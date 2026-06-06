@@ -68,6 +68,10 @@ function AustraliaMigrationPage() {
           content="Detailed guidance on every Australian visa pathway — Subclass 189, 190, 491, employer sponsored, student, partner and business migration. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://imigratesolution.com/australia-migration" />
+        <meta property="og:image" content="https://imigratesolution.com/images/au-melbourne-cityscape.avif" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://imigratesolution.com/images/au-melbourne-cityscape.avif" />
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
 

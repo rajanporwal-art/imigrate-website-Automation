@@ -67,6 +67,10 @@ function CanadaMigrationPage() {
           content="Detailed guidance on every Canadian immigration pathway — Express Entry, PNP, work and study permits, family sponsorship, business and regional programs. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://imigratesolution.com/canada-immigration" />
+        <meta property="og:image" content="https://imigratesolution.com/images/ca-toronto-hero.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://imigratesolution.com/images/ca-toronto-hero.jpg" />
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
 

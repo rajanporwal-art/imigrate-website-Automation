@@ -99,6 +99,10 @@ function FAQPage() {
         <meta property="og:title" content="Immigration FAQs — Canada & Australia Visas | iMigrate Solutions" />
         <meta property="og:description" content="Expert answers on Canada and Australia immigration: Express Entry, PNP, Subclass 189/190/491, costs, processing times and more." />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://imigratesolution.com/faq" />
+        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
 
