@@ -38,10 +38,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/apps/web/
-          # PRODUCTION PATH (confirmed by site owner) — imigratesolution.com is an
-          # ADDON domain. Deploy ONLY here; the top-level public_html is the primary
-          # domain and deploying there causes downtime.
-          server-dir: /home/u982334410/domains/imigratesolution.com/public_html/
+          # PRODUCTION PATH (per site owner): /home/u982334410/domains/imigratesolution.com/public_html
+          # The FTP account is rooted at the home dir (/home/u982334410), so the
+          # FTP-relative path below resolves to exactly that location. imigratesolution.com
+          # is an ADDON domain — never deploy to the top-level public_html (primary domain).
+          server-dir: domains/imigratesolution.com/public_html/
           dangerous-clean-slate: false
           # Content (content.json, blog.json, faqs.json) is authored in this repo
           # and SHIPS on deploy — repo is the source of truth for site content.
