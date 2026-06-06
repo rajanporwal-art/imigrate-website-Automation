@@ -38,12 +38,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/apps/web/
-          # PRODUCTION web root for imigratesolution.com (ADDON domain):
-          #   /home/u982334410/domains/imigratesolution.com/public_html
-          # The GitHub Actions FTP login is rooted at the hosting home (/home/u982334410),
-          # so this FTP-relative path resolves to exactly that absolute location.
-          # NEVER use "public_html/" (that is the PRIMARY domain and takes the site down).
-          server-dir: domains/imigratesolution.com/public_html/
+          # The FTP account is rooted AT the website's web root
+          # (/home/u982334410/domains/imigratesolution.com/public_html), so deploy to
+          # the FTP root directly. Any path prefix here just nests files in an unserved
+          # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
+          server-dir: ./
           dangerous-clean-slate: false
           # Content (content.json, blog.json, faqs.json) is authored in this repo
           # and SHIPS on deploy — repo is the source of truth for site content.
