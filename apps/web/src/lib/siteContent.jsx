@@ -1,0 +1,159 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+/**
+ * Runtime-editable site content.
+ *
+ * The website ships with these DEFAULTS baked in, and on load it fetches
+ * /content.json and merges any values found there on top of the defaults.
+ * That means you can edit /content.json in Hostinger File Manager to change
+ * text, contact details, stats, etc. — no rebuild required. If the file is
+ * missing or has an error, the site silently falls back to these defaults.
+ */
+export const DEFAULT_CONTENT = {
+  contact: {
+    phone: '+60134940302',
+    email: 'contact@imigratesolution.com',
+    whatsapp: '60134940302',
+    address:
+      'KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur',
+  },
+  social: {
+    linkedin: 'https://linkedin.com',
+    facebook: 'https://facebook.com',
+    instagram: 'https://instagram.com',
+  },
+  stats: [
+    { value: '98.6%', label: 'Success rate' },
+    { value: '20+', label: 'Countries served' },
+    { value: '10+', label: 'Years experience' },
+  ],
+  highlights: [
+    {
+      title: '100% Money-Back Guarantee',
+      description:
+        'Confidence in our process — if you are not eligible for the service you paid for, you get your money back.',
+    },
+    {
+      title: 'Pay As You Go',
+      description:
+        'Flexible, stage-by-stage payments. Spread the cost of your application — no large upfront fees.',
+    },
+    {
+      title: 'No Hidden Fees',
+      description:
+        'Transparent, fixed pricing agreed upfront. You always know exactly what you are paying for.',
+    },
+    {
+      title: 'End-to-End Support',
+      description:
+        'A dedicated case manager guides you from free assessment to visa grant and beyond.',
+    },
+  ],
+  home: {
+    heroTitle: 'Australia & Canada Immigration — Trusted by Families & Entrepreneurs from Malaysia, Singapore, India & Vietnam',
+    heroSubtitle:
+      'Whether you are a skilled professional, business owner, or entrepreneur from Malaysia, Singapore, India, or Vietnam — iMigrate Solutions delivers expert, transparent immigration guidance with a 98.6% success rate.',
+    highlightsHeading: 'Why clients across Asia choose iMigrate Solutions',
+    highlightsSubtitle:
+      'Risk-free, flexible and fully transparent immigration services — trusted by professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam.',
+    whyHeading: 'Why choose iMigrate Solutions',
+    whySubtitle:
+      'We specialize in helping clients from Malaysia, Singapore, India and Vietnam migrate to Australia and Canada — with deep expertise, real results and zero hidden fees.',
+    servicesHeading: 'Our immigration services',
+    servicesSubtitle:
+      'From Canada Express Entry and C11 Entrepreneur Work Permits to Australia skilled migration — comprehensive solutions tailored to your profile and goals.',
+    successHeading: 'Client success stories',
+    successSubtitle:
+      "Real people, real results. See how we've helped professionals, families and entrepreneurs from Malaysia, Singapore, India and Vietnam achieve their immigration goals.",
+    ctaHeading: 'Ready to start your immigration journey?',
+    ctaText:
+      'Get your free eligibility check today — our experts will review your profile and provide a personalised roadmap for Australia or Canada immigration within 24 hours.',
+  },
+  australia: {
+    heroTitle: 'Australia Skilled Migration & PR Visa Services',
+    heroSubtitle:
+      'Your complete guide to migrating to Australia. From the Skilled Independent Visa (Subclass 189) to employer sponsored, student, partner and business migration — our experienced consultants guide you through every pathway to Australian permanent residence.',
+    introHeading: 'Explore every Australian visa pathway',
+    introText:
+      "Australia offers one of the world's most respected, points-based skilled migration systems. Below you'll find dedicated, in-depth guidance for each major visa category — including eligibility, benefits, key requirements, processing steps and frequently asked questions. Not sure where you fit? Start with a free eligibility assessment.",
+  },
+  canada: {
+    heroTitle: 'Canada Immigration & PR Visa Services',
+    heroSubtitle:
+      'Your complete guide to immigrating to Canada. From Express Entry skilled migration and the Provincial Nominee Program to work permits, study permits, family sponsorship and business pathways — our experienced consultants guide you to Canadian permanent residence.',
+    introHeading: 'Explore every Canadian immigration pathway',
+    introText:
+      "Canada offers some of the world's most welcoming and well-structured immigration programs. Below you'll find dedicated, in-depth guidance for each major pathway — including eligibility, benefits, key requirements, processing steps and frequently asked questions. Not sure where you fit? Start with a free eligibility assessment.",
+  },
+  about: {
+    heroTitle: 'About iMigrate Solutions',
+    heroSubtitle:
+      'We are a team of dedicated immigration professionals committed to making your dream of living in Australia or Canada a reality.',
+    trustText:
+      'Every case is handled with complete transparency and care — backed by our 100% money-back guarantee and flexible pay-as-you-go options. You receive professional, ethical, and reliable immigration guidance at every step of your journey.',
+  },
+  assessment: {
+    heroTitle: 'Free eligibility assessment',
+    heroSubtitle:
+      'Complete this comprehensive assessment to receive a personalized evaluation of your immigration options for Australia or Canada — or calculate your points instantly below.',
+  },
+  contactPage: {
+    heroTitle: 'Contact Us',
+    heroSubtitle:
+      'Ready to start your immigration journey? Get in touch with our expert team today or visit our office in Kuala Lumpur.',
+  },
+  footer: {
+    tagline:
+      'Your trusted partner for Australia and Canada immigration. Expert guidance for your global journey with a proven track record of success.',
+  },
+};
+
+// Deep-merge objects; arrays and primitives from `override` replace defaults.
+function deepMerge(base, override) {
+  if (Array.isArray(override)) return override;
+  if (override && typeof override === 'object' && !Array.isArray(base)) {
+    const out = { ...base };
+    for (const key of Object.keys(override)) {
+      if (key.startsWith('_')) continue; // ignore _README etc.
+      out[key] =
+        base && typeof base[key] === 'object' && base[key] !== null
+          ? deepMerge(base[key], override[key])
+          : override[key];
+    }
+    return out;
+  }
+  return override === undefined ? base : override;
+}
+
+const SiteContentContext = createContext(DEFAULT_CONTENT);
+
+export function SiteContentProvider({ children }) {
+  const [content, setContent] = useState(DEFAULT_CONTENT);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/content.json', { cache: 'no-cache' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data) setContent(deepMerge(DEFAULT_CONTENT, data));
+      })
+      .catch(() => {
+        /* keep defaults */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <SiteContentContext.Provider value={content}>
+      {children}
+    </SiteContentContext.Provider>
+  );
+}
+
+export function useSiteContent() {
+  return useContext(SiteContentContext);
+}
+
+export default useSiteContent;

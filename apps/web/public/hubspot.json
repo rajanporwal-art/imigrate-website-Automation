@@ -1,0 +1,15 @@
+{
+  "_README": "HubSpot integration settings. Edit in /admin.html (HubSpot & Leads tab) or here. Create a HubSpot form with the fields you map below (recommended: Email, First name, Last name, Phone, Job title, Country, Message), then paste your Portal ID + Form GUID and set enabled=true. 'fieldMap' maps website field names to HubSpot contact property names. Anything not mapped is still saved in the Message property so no data is lost. Portal ID and Form GUID are NOT secrets.",
+  "enabled": false,
+  "portalId": "",
+  "formGuid": "",
+  "notifyEmail": "",
+  "includeMessageSummary": true,
+  "fieldMap": {
+    "email": "email",
+    "phone": "phone",
+    "occupation": "jobtitle",
+    "nationality": "country",
+    "citizenship": "country"
+  }
+}

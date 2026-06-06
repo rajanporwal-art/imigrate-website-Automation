@@ -1,0 +1,39 @@
+# Block direct access to the stored leads data (also protected inside /leads).
+<FilesMatch "\.ndjson$">
+	Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+
+	# ============================================================
+	# 301 REDIRECTS — old Wix /post/ blog URLs → new /blog/ URLs.
+	# Preserves SEO value from the previous site. Keep above the SPA fallback.
+	# ============================================================
+	Redirect 301 /post/simplifying-migration-with-immigration-process-assistance /blog/simplifying-migration-with-immigration-process-assistance
+	Redirect 301 /post/australia-skilled-migration-visa-update-2025-step-by-step-process-latest-updates /blog/australia-skilled-migration-visa-update-2025-step-by-step-process-latest-updates
+	Redirect 301 /post/it-jobs-in-australia-your-comprehensive-guide-with-imigrate-migration-solutions /blog/it-jobs-in-australia-your-comprehensive-guide-with-imigrate-migration-solutions
+	Redirect 301 /post/is-melbourne-expensive-a-deep-dive-into-the-cost-of-living /blog/is-melbourne-expensive-a-deep-dive-into-the-cost-of-living
+	Redirect 301 /post/your-path-to-an-it-career-in-australia-a-comprehensive-guide /blog/your-path-to-an-it-career-in-australia-a-comprehensive-guide
+	Redirect 301 /post/thriving-in-regional-australia-your-guide-to-a-fulfilling-lifestyle /blog/thriving-in-regional-australia-your-guide-to-a-fulfilling-lifestyle
+	Redirect 301 /post/exploring-job-opportunities-in-sydney-in-2024-a-comprehensive-guide /blog/exploring-job-opportunities-in-sydney-in-2024-a-comprehensive-guide
+	# Catch-all: any other old /post/* URL → the blog index (prevents broken links)
+	RewriteRule ^post/(.*)$ /blog [R=301,L]
+	# ============================================================
+
+	# Dynamic XML sitemap (auto-includes blog posts)
+	RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+	# SPA fallback — send all other routes to the app (do not move above redirects)
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+	# Never cache the editable content files so edits appear immediately
+	<FilesMatch "(content|blog|faqs|hubspot|forms)\.json$">
+		Header set Cache-Control "no-cache, no-store, must-revalidate"
+	</FilesMatch>
+</IfModule>

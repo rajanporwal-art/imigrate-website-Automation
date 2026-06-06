@@ -1,0 +1,21 @@
+{
+  "_README": "Custom forms built in /admin.html (Forms tab). Each form is reachable at /form/<slug> and auto-captures + syncs to HubSpot and the Leads dashboard. Field types: text, email, tel, number, textarea, select (provide options). Map field 'name' values in HubSpot settings (fieldMap) to send them to dedicated HubSpot properties.",
+  "forms": [
+    {
+      "slug": "quick-enquiry",
+      "title": "Quick Immigration Enquiry",
+      "intro": "Tell us a little about yourself and our team will be in touch within 24 hours.",
+      "submitText": "Send Enquiry",
+      "successMessage": "Thank you! Our team will contact you shortly.",
+      "fields": [
+        { "name": "fullName", "label": "Full name", "type": "text", "required": true },
+        { "name": "email", "label": "Email", "type": "email", "required": true },
+        { "name": "phone", "label": "Phone", "type": "tel", "required": true },
+        { "name": "nationality", "label": "Nationality", "type": "text", "required": false },
+        { "name": "occupation", "label": "Occupation", "type": "text", "required": false },
+        { "name": "destination", "label": "Preferred destination", "type": "select", "required": true, "options": ["Australia", "Canada", "Both"] },
+        { "name": "message", "label": "Your message", "type": "textarea", "required": false }
+      ]
+    }
+  ]
+}

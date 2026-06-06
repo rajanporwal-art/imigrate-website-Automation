@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+apps/web/node_modules/
+
+# Build output (not committed — built on deploy)
+dist/
+apps/web/dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# OS & editor
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime / temp
+.cache/
+.tmp/
+tmp/
+
+# Large binary/archive files not needed in repo
+*.zip
+*.tar.gz
+*.tar
+*.gz
+*.avif
+*.mov
+*.mp4
+iMigrate_Website/
+imigrate-solutions/
+wordpress/
+wordpress-7.0.zip
+Imigrate\ Word\ press.zip
+app.tar.gz
+iMigrate*.avif
+iMigrate_Website.zip
+
+# Claude Code internal
+.claude/
+
+# PHP upload storage (server-side data, not in repo)
+apps/web/public/leads/
+
+# Vite
+apps/web/.vite/

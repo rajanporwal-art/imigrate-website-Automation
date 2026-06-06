@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /save-content.php
+Disallow: /leads-read.php
+Disallow: /lead-file.php
+Disallow: /form/
+
+Sitemap: https://www.imigratesolution.com/sitemap.xml

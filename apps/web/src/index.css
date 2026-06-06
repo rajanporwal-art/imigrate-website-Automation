@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Outfit", sans-serif;
+  overflow-x: clip;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  :root {
+    /* Brand palette
+       Primary  : Navy Blue  #0B1F3A
+       Secondary: White       #FFFFFF
+       Accent   : Gold        #D4AF37
+       CTA       : Red         #D32F2F  (action buttons only) */
+
+    --background: 0 0% 100%;
+    --foreground: 214 68% 14%;
+
+    /* Primary: Navy Blue */
+    --primary: 214 68% 14%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Navy (dark surfaces such as top bar & footer) */
+    --secondary: 214 68% 14%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Accent: Gold */
+    --accent: 46 65% 52%;
+    --accent-foreground: 214 68% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 214 68% 14%;
+
+    --muted: 214 40% 96%;
+    --muted-foreground: 214 25% 35%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 68% 14%;
+
+    --border: 214 32% 90%;
+    --input: 214 32% 90%;
+    --ring: 214 68% 14%;
+
+    /* CTA: Red — used ONLY for primary action buttons */
+    --cta: 0 64% 51%;
+    --cta-foreground: 0 0% 100%;
+    --cta-hover: 0 64% 42%;
+
+    --destructive: 0 64% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Hover for navy / primary surfaces */
+    --button-hover: 214 68% 9%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 214 68% 8%;
+    --foreground: 0 0% 100%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 214 68% 14%;
+
+    --secondary: 214 68% 12%;
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 46 65% 52%;
+    --accent-foreground: 214 68% 14%;
+
+    --card: 214 68% 12%;
+    --card-foreground: 0 0% 100%;
+
+    --muted: 214 50% 18%;
+    --muted-foreground: 214 20% 75%;
+
+    --popover: 214 68% 12%;
+    --popover-foreground: 0 0% 100%;
+
+    --border: 214 50% 22%;
+    --input: 214 50% 22%;
+    --ring: 46 65% 52%;
+
+    --cta: 0 64% 51%;
+    --cta-foreground: 0 0% 100%;
+    --cta-hover: 0 64% 42%;
+
+    --destructive: 0 64% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --button-hover: 0 0% 90%;
+  }
+}
+
+@layer components {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply py-20 lg:py-24;
+  }
+
+  /* H1 — page heroes & display headlines */
+  .heading-display {
+    @apply text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.05];
+    letter-spacing: -0.03em;
+  }
+
+  /* H2 — section headings */
+  .heading-section {
+    @apply text-3xl sm:text-4xl md:text-5xl font-semibold leading-snug;
+    letter-spacing: -0.02em;
+  }
+
+  /* H3 — card / sub-section titles */
+  .heading-sub {
+    @apply text-2xl md:text-3xl font-semibold leading-snug;
+    letter-spacing: -0.01em;
+  }
+
+  .body-text {
+    @apply text-base md:text-lg leading-relaxed max-w-prose;
+  }
+
+  .card-base {
+    @apply bg-card text-card-foreground rounded-2xl shadow-lg border border-border p-6 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Primary red call-to-action button with strong contrast & modern hover */
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-cta text-cta-foreground font-semibold shadow-md transition-all duration-200 hover:bg-[hsl(var(--cta-hover))] hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cta))] focus-visible:ring-offset-2;
+  }
+
+  /* Subtle gold divider used in premium sections */
+  .gold-rule {
+    @apply h-1 w-16 rounded-full bg-accent;
+  }
+}
