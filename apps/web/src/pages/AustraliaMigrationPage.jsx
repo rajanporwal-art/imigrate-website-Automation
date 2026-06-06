@@ -16,6 +16,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
 import VisaCategorySection from '@/components/VisaCategorySection.jsx';
+import OccupationChecker from '@/components/OccupationChecker.jsx';
 import FaqTeaser from '@/components/FaqTeaser.jsx';
 import LeadForm from '@/components/LeadForm.jsx';
 import { Button } from '@/components/ui/button';
@@ -194,6 +195,9 @@ function AustraliaMigrationPage() {
             </div>
           </div>
         </section>
+
+        {/* Interactive skilled occupation eligibility checker */}
+        <OccupationChecker />
 
         {/* Visa category sections */}
         {australiaVisas.map((visa, index) => (
