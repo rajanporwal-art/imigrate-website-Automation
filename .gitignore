@@ -61,3 +61,8 @@ apps/web/public/leads/
 
 # Vite
 apps/web/.vite/
+
+# PocketBase — binary executable (30MB) and runtime database files
+apps/pocketbase/pocketbase
+apps/pocketbase/pb_data/
+apps/pocketbase/pb_backups/
