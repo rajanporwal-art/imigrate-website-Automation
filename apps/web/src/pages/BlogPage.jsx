@@ -207,18 +207,18 @@ function BlogPage() {
           name="keywords"
           content="immigration blog, Australia visa news, Canada immigration guide, Express Entry, skilled migration, C11 work permit, study permit"
         />
-        <link rel="canonical" href="https://imigratesolution.com/blog" />
+        <link rel="canonical" href="https://www.imigratesolution.com/blog" />
         <meta property="og:title" content="Immigration Blog & Insights — iMigrate Solutions" />
         <meta property="og:description" content="Expert immigration guides, visa news and success stories for Australia and Canada — from Malaysia, Singapore, India and Vietnam to your new home." />
-        <meta property="og:url" content="https://imigratesolution.com/blog" />
+        <meta property="og:url" content="https://www.imigratesolution.com/blog" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://imigratesolution.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://imigratesolution.com/blog" }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.imigratesolution.com/blog" }
           ]
         })}</script>
       </Helmet>

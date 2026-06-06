@@ -28,18 +28,6 @@ function CanadaMigrationPage() {
   const { contact, canada } = useSiteContent();
   const { openLeadForm } = useLeadForm();
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: canadaVisas.flatMap((visa) =>
-      visa.faqs.map((faq) => ({
-        '@type': 'Question',
-        name: faq.q,
-        acceptedAnswer: { '@type': 'Answer', text: faq.a },
-      }))
-    ),
-  };
-
   return (
     <>
       <Helmet>
@@ -52,13 +40,13 @@ function CanadaMigrationPage() {
           name="keywords"
           content="Canada Immigration, Canada PR Visa, Canada Express Entry, Provincial Nominee Program, Canada PNP, Canada Work Permit, Canada Study Permit, Canada Spousal Sponsorship, Canada Start-up Visa, Canada immigration consultant, CRS calculator"
         />
-        <link rel="canonical" href="https://imigratesolution.com/canada-immigration" />
+        <link rel="canonical" href="https://www.imigratesolution.com/canada-immigration" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://imigratesolution.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Canada Immigration", "item": "https://imigratesolution.com/canada-immigration" }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Canada Immigration", "item": "https://www.imigratesolution.com/canada-immigration" }
           ]
         })}</script>
         <meta property="og:title" content="Canada Immigration & PR Visa Services | iMigrate Solutions" />
@@ -67,11 +55,10 @@ function CanadaMigrationPage() {
           content="Detailed guidance on every Canadian immigration pathway — Express Entry, PNP, work and study permits, family sponsorship, business and regional programs. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://imigratesolution.com/canada-immigration" />
-        <meta property="og:image" content="https://imigratesolution.com/images/ca-toronto-hero.jpg" />
+        <meta property="og:url" content="https://www.imigratesolution.com/canada-immigration" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/ca-toronto-hero.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://imigratesolution.com/images/ca-toronto-hero.jpg" />
-        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/ca-toronto-hero.jpg" />
       </Helmet>
 
       <Header />

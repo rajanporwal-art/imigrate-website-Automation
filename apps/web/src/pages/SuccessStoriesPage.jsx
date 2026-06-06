@@ -75,12 +75,12 @@ function SuccessStoriesPage() {
         <title>Immigration Success Stories | 98.6% Success Rate | iMigrate Solutions</title>
         <meta name="description" content="Real success stories from professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam who migrated to Australia and Canada with iMigrate Solutions — 98.6% success rate." />
         <meta name="keywords" content="immigration success stories, visa approval, client testimonials, Australia immigration, Canada immigration" />
-        <link rel="canonical" href="https://imigratesolution.com/success-stories" />
+        <link rel="canonical" href="https://www.imigratesolution.com/success-stories" />
         <meta property="og:title" content="Immigration Success Stories | 98.6% Success Rate | iMigrate Solutions" />
         <meta property="og:description" content="Real success stories from professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam who migrated to Australia and Canada with iMigrate Solutions — 98.6% success rate." />
-        <meta property="og:url" content="https://imigratesolution.com/success-stories" />
+        <meta property="og:url" content="https://www.imigratesolution.com/success-stories" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />

@@ -60,7 +60,8 @@
       <button class="tab" data-tab="blog" onclick="switchTab('blog')">Blog &amp; News</button>
       <button class="tab" data-tab="faqs" onclick="switchTab('faqs')">FAQs</button>
       <button class="tab" data-tab="forms" onclick="switchTab('forms')">Forms</button>
-      <button class="tab" data-tab="leads" onclick="switchTab('leads')">HubSpot &amp; Leads</button>
+      <button class="tab" data-tab="leadsview" onclick="switchTab('leadsview')">Leads</button>
+      <button class="tab" data-tab="leads" onclick="switchTab('leads')">HubSpot</button>
       <button class="tab" data-tab="raw" onclick="switchTab('raw')">Advanced (all content)</button>
     </div>
 
@@ -116,10 +117,12 @@
           <input type="checkbox" id="hs_includeMsg" style="width:auto"/> Also include all fields in the HubSpot "Message" property (recommended)
         </label>
       </div>
+    </div>
 
+    <div id="leadsviewTab" class="hidden">
       <div class="card">
         <h2>Leads</h2>
-        <p><small class="note">Every submission from every form is captured here, even if HubSpot is unavailable.</small></p>
+        <p><small class="note">Every submission from every website form is captured and stored on your own server — so you always have your leads here in the backend, even if HubSpot is down or disabled.</small></p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
           <button class="btn btn-ghost" onclick="loadLeads()">↻ Load leads</button>
           <button class="btn btn-ghost" onclick="exportLeadsCsv()">⬇ Export CSV</button>
@@ -197,7 +200,17 @@
 
   async function unlock(){
     const pw=$('pw').value.trim();
-    if(!pw){$('gateMsg').textContent='Please enter the password.';return;}
+    const msg=$('gateMsg');
+    if(!pw){msg.textContent='Please enter the password.';return;}
+    msg.textContent='Checking…';
+    // Validate the password on the server BEFORE revealing the dashboard,
+    // so anonymous users cannot access the admin UI.
+    try{
+      const res=await fetch('/admin-verify.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+      const j=await res.json().catch(()=>({}));
+      if(!res.ok||!j.ok){msg.textContent=j.error||'Incorrect password.';return;}
+    }catch(e){msg.textContent='Could not reach the server. Please try again.';return;}
+    msg.textContent='';
     sessionStorage.setItem('imig_pw',pw);
     $('gate').classList.add('hidden');$('editor').classList.remove('hidden');
     await load();
@@ -482,9 +495,10 @@
     $('blogTab').classList.toggle('hidden',t!=='blog');
     $('faqsTab').classList.toggle('hidden',t!=='faqs');
     $('formsTab').classList.toggle('hidden',t!=='forms');
+    $('leadsviewTab').classList.toggle('hidden',t!=='leadsview');
     $('leadsTab').classList.toggle('hidden',t!=='leads');
     $('rawTab').classList.toggle('hidden',t!=='raw');
-    if(t==='leads' && !LEADS.length){ loadLeads(); }
+    if(t==='leadsview'){ loadLeads(); }
     if(t==='raw'){ try{ $('rawbox').value=JSON.stringify(DATA,null,2);}catch(e){} }
   }
 

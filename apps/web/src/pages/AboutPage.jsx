@@ -40,12 +40,12 @@ function AboutPage() {
         <title>About iMigrate Solutions | Trusted Immigration Consultants | 98.6% Success Rate</title>
         <meta name="description" content="Learn about iMigrate Solutions, your trusted immigration consultancy with 10+ years of experience helping clients migrate to Australia and Canada." />
         <meta name="keywords" content="immigration consultancy, trusted immigration experts, Australia immigration experts, Canada immigration experts, money-back guarantee immigration" />
-        <link rel="canonical" href="https://imigratesolution.com/about" />
+        <link rel="canonical" href="https://www.imigratesolution.com/about" />
         <meta property="og:title" content="About iMigrate Solutions | Trusted Immigration Consultants | 98.6% Success Rate" />
         <meta property="og:description" content="Learn about iMigrate Solutions — trusted immigration consultancy with 10+ years of experience and a 98.6% success rate helping clients migrate to Australia and Canada." />
-        <meta property="og:url" content="https://imigratesolution.com/about" />
+        <meta property="og:url" content="https://www.imigratesolution.com/about" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />

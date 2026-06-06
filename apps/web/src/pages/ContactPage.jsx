@@ -49,12 +49,12 @@ function ContactPage() {
       <Helmet>
         <title>Contact iMigrate Solutions | Free Immigration Consultation</title>
         <meta name="description" content="Get in touch with iMigrate Solutions. Book an appointment, ask questions, or visit our office in Kuala Lumpur." />
-        <link rel="canonical" href="https://imigratesolution.com/contact" />
+        <link rel="canonical" href="https://www.imigratesolution.com/contact" />
         <meta property="og:title" content="Contact iMigrate Solutions | Free Immigration Consultation" />
         <meta property="og:description" content="Get in touch with iMigrate Solutions. Book a free consultation, ask questions, or visit our office in Kuala Lumpur." />
-        <meta property="og:url" content="https://imigratesolution.com/contact" />
+        <meta property="og:url" content="https://www.imigratesolution.com/contact" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />

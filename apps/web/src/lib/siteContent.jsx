@@ -52,7 +52,7 @@ export const DEFAULT_CONTENT = {
   home: {
     heroTitle: 'Australia & Canada Immigration — Trusted by Families & Entrepreneurs from Malaysia, Singapore, India & Vietnam',
     heroSubtitle:
-      'Whether you are a skilled professional, business owner, or entrepreneur from Malaysia, Singapore, India, or Vietnam — iMigrate Solutions delivers expert, transparent immigration guidance with a 98.6% success rate.',
+      'A Malaysia-based immigration consultancy trusted by clients across Asia and worldwide. We guide you through Australia and Canada skilled migration, student, family and business visas — with a FREE consultation, money-back guarantee and flexible pay-as-you-go payments.',
     highlightsHeading: 'Why clients across Asia choose iMigrate Solutions',
     highlightsSubtitle:
       'Risk-free, flexible and fully transparent immigration services — trusted by professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam.',

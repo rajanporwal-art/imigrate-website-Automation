@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 
-function TestimonialCard({ name, country, visaType, testimonial, image, index }) {
+function TestimonialCard({ name, country, visaType, testimonial, index }) {
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('');
   };
@@ -20,7 +20,6 @@ function TestimonialCard({ name, country, visaType, testimonial, image, index })
         <CardContent className="pt-6">
           <div className="flex items-start space-x-4 mb-4">
             <Avatar className="w-14 h-14 rounded-xl">
-              <AvatarImage src={image} alt={name} />
               <AvatarFallback className="rounded-xl bg-accent/20 text-accent font-semibold">
                 {getInitials(name)}
               </AvatarFallback>
