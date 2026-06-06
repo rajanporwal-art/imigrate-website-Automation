@@ -7,13 +7,17 @@ import { useLeadForm } from '@/components/LeadFormModal.jsx';
 /**
  * Reusable conversion banner. Both CTAs open the single standardized lead form.
  */
-function CTABanner({ heading = 'Ready to take the next step?', subheading, source = 'CTA banner' }) {
+function CTABanner({ heading = 'Ready to take the next step?', subheading, source = 'CTA banner', stacked = false }) {
   const { openLeadForm } = useLeadForm();
+  // In narrow containers (e.g. a blog article column) keep the banner stacked so
+  // the heading isn't squeezed by the side-by-side buttons. Wide containers use
+  // the horizontal layout (default).
+  const rowLayout = stacked ? '' : ' lg:flex-row lg:items-center lg:justify-between';
   return (
     <div className="rounded-2xl bg-primary text-primary-foreground p-8 md:p-10 shadow-xl overflow-hidden relative">
       <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-accent/10" aria-hidden="true" />
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div className="max-w-2xl">
+      <div className={`relative z-10 flex flex-col${rowLayout} gap-6`}>
+        <div className="max-w-2xl min-w-0">
           <div className="gold-rule mb-4" />
           <h3 className="text-2xl font-bold mb-2 text-balance">{heading}</h3>
           <p className="opacity-90 leading-relaxed">
