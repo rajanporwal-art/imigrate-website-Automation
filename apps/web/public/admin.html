@@ -319,18 +319,52 @@
       m.textContent=LEADS.length+' lead(s)';m.className='status ok';
       $('leadsTable').innerHTML = LEADS.length ? `<table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-          <th style="padding:8px">Date</th><th style="padding:8px">Name</th><th style="padding:8px">Email</th><th style="padding:8px">Phone</th><th style="padding:8px">Source (button / page)</th><th style="padding:8px">CV</th><th style="padding:8px">HubSpot</th></tr></thead>
-        <tbody>${LEADS.map(l=>{const f=l.fields||{};const src=esc(f.source||l.formName||'')+(f.sourcePage?' <span style="color:var(--muted)">('+esc(f.sourcePage)+')</span>':'');const cv=f.cvFile?`<button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="downloadCv('${esc(f.cvFile)}','${esc(f.cvOriginalName||f.cvFile)}')">⬇ ${esc(f.cvOriginalName||'CV')}</button>`:'—';return `<tr style="border-bottom:1px solid var(--border)">
+          <th style="padding:8px">Date</th><th style="padding:8px">Name</th><th style="padding:8px">Email</th><th style="padding:8px">Phone</th><th style="padding:8px">Source</th><th style="padding:8px">HubSpot</th><th style="padding:8px">Actions</th></tr></thead>
+        <tbody>${LEADS.map((l,i)=>{const f=l.fields||{};const src=esc(f.source||l.formName||'')+(f.sourcePage?' <span style="color:var(--muted)">('+esc(f.sourcePage)+')</span>':'');return `<tr style="border-bottom:1px solid var(--border)">
           <td style="padding:8px;white-space:nowrap">${esc((l.timestamp||'').slice(0,16).replace('T',' '))}</td>
-          <td style="padding:8px">${esc(f.fullName||f.name||'')}</td>
+          <td style="padding:8px">${esc(f.fullName||f.name||'')}${l.adminNote?' <span title="Has internal note">📝</span>':''}${f.cvFile?' <span title="CV attached">📎</span>':''}</td>
           <td style="padding:8px">${esc(f.email||'')}</td>
           <td style="padding:8px">${esc(f.phone||'')}</td>
           <td style="padding:8px">${src}</td>
-          <td style="padding:8px">${cv}</td>
-          <td style="padding:8px">${l.hubspotSynced?'<span style="color:#1a7f37">✓ synced</span>':'<span style="color:#b71c1c">pending</span>'}</td></tr>`;}).join('')}</tbody></table>`
+          <td style="padding:8px">${l.hubspotSynced?'<span style="color:#1a7f37">✓</span>':'<span style="color:#b71c1c">pending</span>'}</td>
+          <td style="padding:8px">${leadActions(l,i)}</td></tr>
+          <tr id="details_${i}" style="display:none;background:#f8fafc"><td colspan="7" style="padding:0 8px 14px">${leadDetails(l,i)}</td></tr>`;}).join('')}</tbody></table>`
         : '<p class="note" style="color:var(--muted)">No leads captured yet.</p>';
     }catch(e){m.textContent='✗ Could not reach the server (is PHP enabled?).';m.className='status err';}
   }
+
+  // CRM action buttons for a lead row: 📧 Email · 📞 Call · 📄 View CV · ⬇ Download CV · 💬 Notes/details
+  function leadActions(l,i){
+    const f=l.fields||{};const email=f.email||'';const phone=f.phone||'';
+    const b='class="btn btn-ghost" style="padding:3px 8px;font-size:14px;line-height:1"';
+    let h='<div style="display:flex;gap:4px;flex-wrap:wrap">';
+    if(email) h+=`<a ${b} title="Email ${esc(email)}" href="mailto:${esc(email)}">📧</a>`;
+    if(phone) h+=`<a ${b} title="Call ${esc(phone)}" href="tel:${esc(phone)}">📞</a>`;
+    if(f.cvFile){
+      h+=`<button ${b} title="View CV" onclick="viewCv('${esc(f.cvFile)}')">📄</button>`;
+      h+=`<button ${b} title="Download CV" onclick="downloadCv('${esc(f.cvFile)}','${esc(f.cvOriginalName||f.cvFile)}')">⬇</button>`;
+    }
+    h+=`<button ${b} title="Notes & all fields" onclick="toggleDetails(${i})">💬</button>`;
+    return h+'</div>';
+  }
+
+  // Expandable details: every captured field + internal note editor.
+  function leadDetails(l,i){
+    const f=l.fields||{};let rows='';
+    Object.keys(f).forEach(k=>{if(k==='website')return;let v=f[k];if(v==null||v==='')return;rows+=`<div style="display:flex;gap:8px;padding:2px 0"><span style="min-width:150px;color:var(--muted);font-weight:600">${esc(k)}</span><span>${esc(String(v))}</span></div>`;});
+    if(l.id) rows+=`<div style="display:flex;gap:8px;padding:2px 0"><span style="min-width:150px;color:var(--muted);font-weight:600">lead id</span><span>${esc(l.id)}</span></div>`;
+    if(l.ip) rows+=`<div style="display:flex;gap:8px;padding:2px 0"><span style="min-width:150px;color:var(--muted);font-weight:600">ip</span><span>${esc(l.ip)}</span></div>`;
+    return `<div style="padding:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 28px">${rows||'<em class="note">No extra fields</em>'}</div>
+      <div style="margin-top:12px;max-width:640px">
+        <label style="font-weight:600;font-size:13px">💬 Internal note (private to admin)</label>
+        <textarea id="note_${i}" rows="2" style="width:100%;margin-top:4px">${esc(l.adminNote||'')}</textarea>
+        <button class="btn btn-ghost" style="margin-top:6px;padding:4px 12px;font-size:13px" onclick="saveNote('${esc(l.id||'')}',${i})">Save note</button>
+      </div>
+    </div>`;
+  }
+
+  function toggleDetails(i){const r=$('details_'+i);if(r)r.style.display=r.style.display==='none'?'table-row':'none';}
 
   async function downloadCv(file,orig){
     try{
@@ -340,14 +374,51 @@
     }catch(e){alert('Download failed.');}
   }
 
-  function exportLeadsCsv(){
+  async function viewCv(file){
+    try{
+      const res=await fetch('/lead-file.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:sessionStorage.getItem('imig_pw'),file})});
+      if(!res.ok){alert('Could not open the CV (file missing or wrong password).');return;}
+      const blob=await res.blob();const url=URL.createObjectURL(blob);window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000);
+    }catch(e){alert('Open failed.');}
+  }
+
+  async function saveNote(id,i){
+    const ta=$('note_'+i);const note=ta?ta.value:'';const m=$('leadsMsg');m.textContent='Saving note…';m.className='status';
+    try{
+      const res=await fetch('/lead-note.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:sessionStorage.getItem('imig_pw'),id,note})});
+      const j=await res.json();
+      if(j.ok){m.textContent='✓ Note saved';m.className='status ok';if(LEADS[i])LEADS[i].adminNote=note;}
+      else{m.textContent='✗ '+(j.error||'Failed');m.className='status err';}
+    }catch(e){m.textContent='✗ Could not save note.';m.className='status err';}
+  }
+
+  // HMAC-SHA256 (hex) matching PHP hash_hmac — builds signed CV links for the CSV.
+  async function hmacHex(key,msg){
+    const enc=new TextEncoder();
+    const k=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+    const sig=await crypto.subtle.sign('HMAC',k,enc.encode(msg));
+    return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function exportLeadsCsv(){
     if(!LEADS.length){alert('Load leads first.');return;}
-    const cols=['timestamp','formName','source','sourcePage','fullName','name','email','phone','citizenship','nationality','residence','maritalStatus','age','occupation','education','qualification','experience','destination','investment','program','subject','message','cvOriginalName','hubspotSynced'];
-    const head=cols.join(',');
-    const rows=LEADS.map(l=>{const f=l.fields||{};return cols.map(c=>{let v=c==='timestamp'||c==='formName'||c==='hubspotSynced'?l[c]:f[c];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',');});
-    const csv=[head,...rows].join('\n');
-    const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+    const m=$('leadsMsg');m.textContent='Building CSV…';m.className='status';
+    const pw=sessionStorage.getItem('imig_pw')||'';const base=location.origin;
+    // Dynamic columns: lead metadata + the union of EVERY submitted field + a working CV download link.
+    const meta=['timestamp','formName','id','ip','hubspotSynced','adminNote'];
+    const fieldKeys=[];
+    LEADS.forEach(l=>{const f=l.fields||{};Object.keys(f).forEach(k=>{if(k!=='website'&&!fieldKeys.includes(k))fieldKeys.push(k);});});
+    const cols=[...meta,...fieldKeys,'cvDownloadUrl'];
+    const lines=[cols.join(',')];
+    for(const l of LEADS){
+      const f=l.fields||{};let cvUrl='';
+      if(f.cvFile){const tok=await hmacHex(pw,f.cvFile);cvUrl=base+'/lead-file.php?file='+encodeURIComponent(f.cvFile)+'&token='+tok+'&dl=1';}
+      const row=cols.map(c=>{let v;if(c==='cvDownloadUrl')v=cvUrl;else if(meta.includes(c))v=l[c];else v=f[c];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';});
+      lines.push(row.join(','));
+    }
+    const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='imigrate-leads.csv';a.click();
+    m.textContent='✓ Exported '+LEADS.length+' lead(s) with CV links';m.className='status ok';
   }
 
   async function retryLeads(){
