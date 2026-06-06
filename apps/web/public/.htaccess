@@ -63,6 +63,11 @@
 	# Dynamic XML sitemap (auto-includes blog posts)
 	RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
+	# Safeguard: 404 stray nested folders left by earlier deploy-path setup so
+	# they can't be indexed (delete public_html/, domains/, home/ from the web
+	# root via File Manager to remove fully). No real route uses these names.
+	RewriteRule ^(public_html|domains|home)(/|$) - [R=404,L]
+
 	# SPA fallback — send all other routes to the app (do not move above redirects)
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
