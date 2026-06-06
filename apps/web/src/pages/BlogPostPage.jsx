@@ -194,6 +194,8 @@ function BlogPostPage() {
                 {/* In-article lead-generation CTA */}
                 <div className="not-prose my-12">
                   <CTABanner
+                    stacked
+                    source="Blog post"
                     heading="Ready to start your immigration journey?"
                     subheading="Get a free eligibility assessment or book a consultation with an experienced immigration consultant."
                   />

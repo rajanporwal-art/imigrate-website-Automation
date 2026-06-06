@@ -12,8 +12,13 @@ export function mdToHtml(src) {
     escape(t)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(
-        /\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,
-        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+        // Absolute (https://…), relative (/path) and anchor (#id) links.
+        // External links open in a new tab; internal links stay in-tab.
+        /\[(.+?)\]\((https?:\/\/[^\s)]+|\/[^\s)]*|#[^\s)]*)\)/g,
+        (_m, text, url) =>
+          /^https?:\/\//.test(url)
+            ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`
+            : `<a href="${url}">${text}</a>`
       );
 
   const lines = String(src).replace(/\r\n/g, '\n').split('\n');
