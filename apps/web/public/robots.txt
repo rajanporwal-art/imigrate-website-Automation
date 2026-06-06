@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /admin-verify.php
 Disallow: /save-content.php
 Disallow: /leads-read.php
 Disallow: /lead-file.php

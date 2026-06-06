@@ -29,25 +29,11 @@ function FaqTeaser({
     return (cat.faqs || []).slice(0, count);
   }, [faqCategories, categoryId, count]);
 
-  const schema = useMemo(
-    () => ({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faqs.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    }),
-    [faqs]
-  );
-
   if (!faqs.length) return null;
 
   return (
     <section className="section-spacing bg-background">
       <div className="container-custom max-w-4xl">
-        <script type="application/ld+json">{JSON.stringify(schema)}</script>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

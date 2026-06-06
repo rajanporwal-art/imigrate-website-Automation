@@ -3,9 +3,47 @@
 	Require all denied
 </FilesMatch>
 
+# Never expose the Basic-Auth password file or content backups over the web.
+<FilesMatch "(^\.htpasswd$|\.backup$)">
+	Require all denied
+</FilesMatch>
+
+# ============================================================
+# HTTP BASIC AUTH on the admin dashboard + its endpoints (OPTIONAL, DISABLED).
+#
+# This is extra, server-level protection. It is DISABLED by default so the
+# site runs cleanly the moment you upload it — admin access is already
+# restricted by the app's server-validated password gate (admin-verify.php).
+#
+# TO ENABLE (recommended hardening), do BOTH:
+#   1. Set AuthUserFile to the ABSOLUTE server path to .htpasswd. On Hostinger:
+#        /home/uXXXXXXXXX/domains/imigratesolution.com/public_html/.htpasswd
+#      (hPanel → File Manager → right-click .htpasswd → "Get info"/path)
+#   2. Remove the "# " from the start of the five lines below.
+# Login already created in .htpasswd —  user: imigrate-admin
+#
+# ⚠️ If the path is wrong these admin files return HTTP 500 (the public site is
+#    unaffected — the rule is scoped to admin files only). Fix the path or
+#    re-comment the lines to recover.
+# ============================================================
+# <FilesMatch "^(admin\.html|admin-verify\.php|save-content\.php|leads-read\.php|lead-file\.php|lead-upload\.php)$">
+# 	AuthType Basic
+# 	AuthName "iMigrate Admin — authorized access only"
+# 	AuthUserFile "/home/REPLACE_WITH_YOUR_ABSOLUTE_PATH/public_html/.htpasswd"
+# 	Require valid-user
+# </FilesMatch>
+
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteBase /
+
+	# ============================================================
+	# CANONICAL HOST — force non-www → www (matches sitemap, robots.txt
+	# and the canonical tags the app emits). Prevents duplicate content
+	# and split indexing across www / non-www. Keep at the top.
+	# ============================================================
+	RewriteCond %{HTTP_HOST} ^imigratesolution\.com$ [NC]
+	RewriteRule ^(.*)$ https://www.imigratesolution.com/$1 [R=301,L]
 
 	# ============================================================
 	# 301 REDIRECTS — old Wix /post/ blog URLs → new /blog/ URLs.

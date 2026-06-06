@@ -150,18 +150,18 @@ function C11Page() {
         <title>C11 Entrepreneur Work Permit Canada | iMigrate Solutions</title>
         <meta name="description" content="Canada's C11 Entrepreneur Work Permit — flexible business immigration with no minimum investment requirement. Fast-track to permanent residence for entrepreneurs from India, Malaysia, Singapore and beyond." />
         <meta name="keywords" content="C11 entrepreneur work permit, Canada business immigration, entrepreneur visa Canada, Canada PR for entrepreneurs, business immigration Canada" />
-        <link rel="canonical" href="https://imigratesolution.com/c11-entrepreneur-work-permit" />
+        <link rel="canonical" href="https://www.imigratesolution.com/c11-entrepreneur-work-permit" />
         <meta property="og:title" content="C11 Entrepreneur Work Permit — Canada | iMigrate Solutions" />
         <meta property="og:description" content="Canada's most flexible business immigration route. No minimum investment, fast-track to permanent residence." />
-        <meta property="og:url" content="https://imigratesolution.com/c11-entrepreneur-work-permit" />
+        <meta property="og:url" content="https://www.imigratesolution.com/c11-entrepreneur-work-permit" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://imigratesolution.com/" },
-            { "@type": "ListItem", "position": 2, "name": "C11 Entrepreneur Work Permit", "item": "https://imigratesolution.com/c11-entrepreneur-work-permit" }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "C11 Entrepreneur Work Permit", "item": "https://www.imigratesolution.com/c11-entrepreneur-work-permit" }
           ]
         })}</script>
         <script type="application/ld+json">{JSON.stringify({

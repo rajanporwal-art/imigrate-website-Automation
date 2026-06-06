@@ -28,19 +28,6 @@ function AustraliaMigrationPage() {
   const { contact, australia } = useSiteContent();
   const { openLeadForm } = useLeadForm();
 
-  // FAQ structured data (JSON-LD) for rich results across all visa categories
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: australiaVisas.flatMap((visa) =>
-      visa.faqs.map((faq) => ({
-        '@type': 'Question',
-        name: faq.q,
-        acceptedAnswer: { '@type': 'Answer', text: faq.a },
-      }))
-    ),
-  };
-
   return (
     <>
       <Helmet>
@@ -53,13 +40,13 @@ function AustraliaMigrationPage() {
           name="keywords"
           content="Australia Skilled Migration, Australia PR Visa, Skilled Independent Visa 189, Skilled Nominated Visa 190, Skilled Work Regional Visa 491, Australia Employer Sponsored Visa, Australia Student Visa, Australia Partner Visa, Australia Business Migration, Australia immigration consultant"
         />
-        <link rel="canonical" href="https://imigratesolution.com/australia-migration" />
+        <link rel="canonical" href="https://www.imigratesolution.com/australia-migration" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://imigratesolution.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Australia Migration", "item": "https://imigratesolution.com/australia-migration" }
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Australia Migration", "item": "https://www.imigratesolution.com/australia-migration" }
           ]
         })}</script>
         <meta property="og:title" content="Australia Skilled Migration & PR Visa Services | iMigrate Solutions" />
@@ -68,11 +55,10 @@ function AustraliaMigrationPage() {
           content="Detailed guidance on every Australian visa pathway — Subclass 189, 190, 491, employer sponsored, student, partner and business migration. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://imigratesolution.com/australia-migration" />
-        <meta property="og:image" content="https://imigratesolution.com/images/au-melbourne-cityscape.avif" />
+        <meta property="og:url" content="https://www.imigratesolution.com/australia-migration" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/au-melbourne-cityscape.avif" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://imigratesolution.com/images/au-melbourne-cityscape.avif" />
-        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/au-melbourne-cityscape.avif" />
       </Helmet>
 
       <Header />

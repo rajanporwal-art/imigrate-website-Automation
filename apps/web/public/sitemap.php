@@ -16,6 +16,7 @@ $pages = [
     ['/', 'weekly', '1.0'],
     ['/australia-migration', 'weekly', '0.9'],
     ['/canada-immigration', 'weekly', '0.9'],
+    ['/c11-entrepreneur-work-permit', 'weekly', '0.8'],
     ['/assessment', 'monthly', '0.8'],
     ['/faq', 'monthly', '0.7'],
     ['/blog', 'weekly', '0.7'],

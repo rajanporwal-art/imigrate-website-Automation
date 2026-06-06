@@ -107,12 +107,12 @@ function BookAppointmentPage() {
       <Helmet>
         <title>Book a Free Immigration Consultation | iMigrate Solutions</title>
         <meta name="description" content="Schedule a consultation with our expert immigration consultants for Australia and Canada." />
-        <link rel="canonical" href="https://imigratesolution.com/book-appointment" />
+        <link rel="canonical" href="https://www.imigratesolution.com/book-appointment" />
         <meta property="og:title" content="Book a Free Immigration Consultation | iMigrate Solutions" />
         <meta property="og:description" content="Schedule a free consultation with our expert immigration consultants for Australia and Canada. Get personalised advice within 24 hours." />
-        <meta property="og:url" content="https://imigratesolution.com/book-appointment" />
+        <meta property="og:url" content="https://www.imigratesolution.com/book-appointment" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />

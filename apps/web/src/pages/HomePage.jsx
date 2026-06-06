@@ -116,20 +116,20 @@ function HomePage() {
     <>
       <Helmet>
         <title>iMigrate Solutions | Australia &amp; Canada Immigration for Malaysia, Singapore, India &amp; Vietnam | 98.6% Success Rate</title>
-        <meta name="description" content="iMigrate Solutions — trusted Australia &amp; Canada immigration consultants for clients from Malaysia, Singapore, India and Vietnam. Express Entry, C11 Entrepreneur Work Permit, skilled migration &amp; business immigration. 98.6% success rate." />
+        <meta name="description" content="Malaysia-based immigration consultancy serving clients across Asia &amp; worldwide. Expert Australia &amp; Canada PR, Express Entry, C11 work permit &amp; skilled migration — with a FREE consultation, money-back guarantee &amp; flexible pay-as-you-go fees." />
         <meta name="keywords" content="Australia immigration Malaysia, Canada immigration Singapore, immigration consultant India, C11 entrepreneur work permit, Express Entry, skilled migration, immigration consultant Vietnam, Canada PR visa" />
-        <link rel="canonical" href="https://imigratesolution.com/" />
+        <link rel="canonical" href="https://www.imigratesolution.com/" />
         <meta property="og:title" content="iMigrate Solutions - Australia &amp; Canada Immigration Experts" />
-        <meta property="og:description" content="Expert immigration consultancy with 98.6% success rate. Start your journey to Australia or Canada today." />
-        <meta property="og:url" content="https://imigratesolution.com/" />
+        <meta property="og:description" content="Malaysia-based consultancy for Australia &amp; Canada immigration, serving Asia &amp; worldwide. FREE consultation, money-back guarantee &amp; flexible pay-as-you-go fees." />
+        <meta property="og:url" content="https://www.imigratesolution.com/" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": ["Organization", "LocalBusiness"],
           "name": "iMigrate Solutions",
-          "url": "https://imigratesolution.com",
-          "logo": "https://imigratesolution.com/images/imigrate-logo.jpg",
+          "url": "https://www.imigratesolution.com",
+          "logo": "https://www.imigratesolution.com/images/imigrate-logo.jpg",
           "description": "Expert Australia and Canada immigration consultants for clients from Malaysia, Singapore, India and Vietnam. 98.6% success rate.",
           "telephone": "+60134940302",
           "email": "contact@imigratesolution.com",

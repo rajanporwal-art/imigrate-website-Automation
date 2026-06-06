@@ -60,12 +60,12 @@ function AssessmentPage() {
         <title>Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Solutions</title>
         <meta name="description" content="Get a free immigration eligibility assessment and calculate your points for Australia skilled migration (189/190/491) or Canada Express Entry CRS. Instant estimate plus a personalized expert review." />
         <meta name="keywords" content="Australia points calculator, Canada CRS calculator, immigration assessment, skilled migration points test, Express Entry calculator, eligibility check, Australia PR, Canada PR" />
-        <link rel="canonical" href="https://imigratesolution.com/assessment" />
+        <link rel="canonical" href="https://www.imigratesolution.com/assessment" />
         <meta property="og:title" content="Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Solutions" />
         <meta property="og:description" content="Get a free immigration eligibility assessment and calculate your points for Australia skilled migration or Canada Express Entry CRS. Instant estimate plus expert review." />
-        <meta property="og:url" content="https://imigratesolution.com/assessment" />
+        <meta property="og:url" content="https://www.imigratesolution.com/assessment" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />

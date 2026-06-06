@@ -76,10 +76,10 @@ function BlogPostPage() {
   const shareUrl = window.location.href;
   const metaTitle = post.metaTitle || `${post.title} | iMigrate Solutions`;
   const metaDescription = post.metaDescription || post.excerpt || '';
-  const canonical = post.canonicalUrl || `https://imigratesolution.com/blog/${post.slug}`;
+  const canonical = post.canonicalUrl || `https://www.imigratesolution.com/blog/${post.slug}`;
   const ogImage = post.featuredImage && post.featuredImage.startsWith('http')
     ? post.featuredImage
-    : `https://imigratesolution.com${post.featuredImage || '/images/imigrate-logo.jpg'}`;
+    : `https://www.imigratesolution.com${post.featuredImage || '/images/imigrate-logo.jpg'}`;
 
   // Article structured data for rich results.
   const articleSchema = {
@@ -92,7 +92,7 @@ function BlogPostPage() {
     publisher: {
       '@type': 'Organization',
       name: 'iMigrate Solutions',
-      logo: { '@type': 'ImageObject', url: 'https://imigratesolution.com/images/imigrate-logo.jpg' },
+      logo: { '@type': 'ImageObject', url: 'https://www.imigratesolution.com/images/imigrate-logo.jpg' },
     },
     datePublished: post.publishedDate,
     dateModified: post.updatedDate || post.publishedDate,

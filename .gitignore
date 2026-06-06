@@ -66,3 +66,6 @@ apps/web/.vite/
 apps/pocketbase/pocketbase
 apps/pocketbase/pb_data/
 apps/pocketbase/pb_backups/
+
+# local-only nested lockfile (root package-lock.json is authoritative)
+apps/web/package-lock.json

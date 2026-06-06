@@ -18,22 +18,6 @@ function FAQPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(faqCategories[0].id);
 
-  // FAQ structured data (JSON-LD) across every question for rich results.
-  const faqSchema = useMemo(
-    () => ({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faqCategories.flatMap((cat) =>
-        cat.faqs.map((f) => ({
-          '@type': 'Question',
-          name: f.q,
-          acceptedAnswer: { '@type': 'Answer', text: f.a },
-        }))
-      ),
-    }),
-    [faqCategories]
-  );
-
   const query = searchQuery.trim().toLowerCase();
 
   // When searching, flatten matches across all categories; otherwise show active category.
@@ -95,15 +79,14 @@ function FAQPage() {
           name="keywords"
           content="immigration FAQ, Canada immigration consultant, Canada Work Permit, Canada PR, Express Entry, C11 Work Permit, Australia Skilled Migration, Australia PR, Subclass 189, Subclass 190, Subclass 491, visa assessment, skilled worker visa, business immigration"
         />
-        <link rel="canonical" href="https://imigratesolution.com/faq" />
+        <link rel="canonical" href="https://www.imigratesolution.com/faq" />
         <meta property="og:title" content="Immigration FAQs — Canada & Australia Visas | iMigrate Solutions" />
         <meta property="og:description" content="Expert answers on Canada and Australia immigration: Express Entry, PNP, Subclass 189/190/491, costs, processing times and more." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://imigratesolution.com/faq" />
-        <meta property="og:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:url" content="https://www.imigratesolution.com/faq" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://imigratesolution.com/images/imigrate-logo.jpg" />
-        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
       </Helmet>
 
       <Header />
