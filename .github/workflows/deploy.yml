@@ -38,15 +38,16 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/apps/web/
-          # imigratesolution.com is an ADDON domain on this Hostinger account,
-          # so its web root is domains/<domain>/public_html (NOT the top-level
-          # public_html, which belongs to the account's primary domain).
+          # PRODUCTION PATH (per site owner): /home/u982334410/domains/imigratesolution.com/public_html
+          # The FTP account is rooted at the home dir (/home/u982334410), so the
+          # FTP-relative path below resolves to exactly that location. imigratesolution.com
+          # is an ADDON domain — never deploy to the top-level public_html (primary domain).
           server-dir: domains/imigratesolution.com/public_html/
           dangerous-clean-slate: false
-          # Never overwrite server-side secrets/runtime data, and never clobber
-          # content the admin panel edits live on the server. content.json IS
-          # shipped (it carries the SEO/content updates); blog/faqs/forms/hubspot
-          # are preserved so live admin edits are not reverted by a deploy.
+          # Content (content.json, blog.json, faqs.json) is authored in this repo
+          # and SHIPS on deploy — repo is the source of truth for site content.
+          # Only secrets, runtime data, and admin-only integration settings
+          # (forms builder, HubSpot portal config) are preserved on the server.
           exclude: |
             **/.git*
             **/.git*/**
@@ -54,7 +55,5 @@ jobs:
             admin-config.php
             leads/**
             **/*.backup
-            blog.json
-            faqs.json
             forms.json
             hubspot.json
