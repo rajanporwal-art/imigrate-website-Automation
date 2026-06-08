@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>iMigrate CRM</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+    --navy:#0b1f44; --accent:#c8a24a; --cta:#e11d2a; --ok:#1a7f37; --warn:#b45309;
+    --hot:#e11d2a; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"]{
+    --bg:#0b1220; --panel:#111a2e; --text:#e6edf6; --muted:#94a3b8; --border:#22304b;
+    --navy:#0e2a5c; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  a{color:inherit}
+  .hidden{display:none!important}
+  button{font-family:inherit;cursor:pointer}
+  .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600}
+  .btn:hover{border-color:var(--accent)}
+  .btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn-cta{background:var(--cta);color:#fff;border-color:var(--cta)}
+  .btn-sm{padding:4px 9px;font-size:12px}
+  input,select,textarea{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  /* Gate */
+  #gate{max-width:380px;margin:12vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
+  #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 18px}
+  /* App shell */
+  #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px}
+  .sidebar .brand span{color:var(--accent)}
+  .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
+  .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
+  .navitem .ic{width:18px;text-align:center}
+  .navitem.soft{opacity:.55;font-size:12.5px}
+  .main{padding:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
+  .topbar h2{margin:0;font-size:18px}
+  .content{padding:22px}
+  /* Cards / stats */
+  .grid{display:grid;gap:14px}
+  .stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .stat .n{font-size:28px;font-weight:800;color:var(--navy)} [data-theme="dark"] .stat .n{color:#fff}
+  .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--muted);font-weight:600;padding:10px;border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--panel)}
+  td{padding:10px;border-bottom:1px solid var(--border)}
+  tbody tr{cursor:pointer} tbody tr:hover{background:rgba(0,0,0,.025)} [data-theme="dark"] tbody tr:hover{background:rgba(255,255,255,.04)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .badge.hot{background:var(--hot);color:#fff}
+  .badge.cold{background:#e2e8f0;color:#475569} .badge.warm{background:#fef3c7;color:#92400e}
+  .badge.hotcat{background:#fee2e2;color:#b91c1c} .badge.ready{background:#dcfce7;color:#166534}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(11,31,68,.08);color:var(--navy)} [data-theme="dark"] .pill{background:rgba(255,255,255,.1);color:#fff}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .toolbar input,.toolbar select{width:auto}
+  .toolbar input[type=search]{min-width:220px}
+  /* Kanban */
+  .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px}
+  .kcol{min-width:230px;max-width:230px;background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;max-height:72vh}
+  .kcol h4{margin:0;padding:10px 12px;font-size:12.5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+  .kbody{padding:8px;overflow:auto;flex:1;min-height:40px}
+  .kcard{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px;margin-bottom:8px;font-size:12px;cursor:grab}
+  .kcard.drag{opacity:.4} .kcol.over{outline:2px dashed var(--accent)}
+  .kcard .nm{font-weight:700} .kcard .meta{color:var(--muted);margin-top:2px}
+  /* Drawer */
+  #drawer{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:30}
+  #drawer.show{display:block}
+  .drawer-panel{position:absolute;right:0;top:0;height:100%;width:min(560px,100%);background:var(--panel);overflow:auto;box-shadow:-4px 0 20px rgba(0,0,0,.2)}
+  .drawer-head{padding:18px 20px;background:var(--navy);color:#fff;position:sticky;top:0}
+  .drawer-body{padding:20px}
+  .sect{margin-bottom:20px} .sect h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 8px}
+  .kv{display:flex;gap:10px;padding:3px 0;font-size:13px} .kv .k{min-width:140px;color:var(--muted)}
+  .note{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:6px} .note .t{color:var(--muted);font-size:11px}
+  .status{font-size:13px} .ok{color:var(--ok)} .err{color:var(--cta)}
+  .muted{color:var(--muted)} .right{text-align:right}
+  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- Password gate -->
+<div id="gate">
+  <h1>iMigrate <span style="color:var(--accent)">CRM</span></h1>
+  <p>Sign in to access the immigration CRM</p>
+  <input id="pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()" />
+  <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="unlock()">Sign in</button>
+  <p id="gateMsg" class="status err" style="margin-top:12px"></p>
+</div>
+
+<!-- App -->
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">iMigrate <span>CRM</span></div>
+    <div class="navitem active" data-view="dashboard" onclick="go('dashboard')"><span class="ic">📊</span> Dashboard</div>
+    <div class="navitem" data-view="leads" onclick="go('leads')"><span class="ic">👥</span> CRM / Leads</div>
+    <div class="navitem" data-view="pipeline" onclick="go('pipeline')"><span class="ic">🗂️</span> Pipeline</div>
+    <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
+    <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
+    <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
+    <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
+      <div class="navitem soft" onclick="alert('Marketing automation, email & WhatsApp templates run in HubSpot — see Settings.')"><span class="ic">📣</span> Marketing Automation</div>
+      <div class="navitem soft" onclick="alert('Email & WhatsApp templates are managed in HubSpot/your ESP — see Settings.')"><span class="ic">✉️</span> Templates</div>
+      <div class="navitem soft" onclick="alert('Integrations (HubSpot, M365, OneDrive backup, WhatsApp API) are configured in Settings / HubSpot.')"><span class="ic">🔌</span> Integrations</div>
+      <div class="navitem soft" onclick="alert('OneDrive backup requires server-side OAuth — see Settings for the manual export in the meantime.')"><span class="ic">☁️</span> OneDrive Backup</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="viewTitle">Dashboard</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="loadMsg" class="status muted"></span>
+        <button class="btn btn-sm" onclick="loadAll()">↻ Refresh</button>
+        <button class="btn btn-sm" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+        <button class="btn btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Lead drawer -->
+<div id="drawer" onclick="if(event.target===this)closeDrawer()">
+  <div class="drawer-panel"><div id="drawerContent"></div></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const PW = () => sessionStorage.getItem('imig_crm_pw') || '';
+  let LEADS = [], CONTACTS = [], META = {}, TASKS = [], VIEW = 'dashboard';
+
+  const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
+
+  const esc = (v) => (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  /* ---------- auth ---------- */
+  async function unlock(){
+    const pw = $('pw').value.trim(); const m=$('gateMsg');
+    if(!pw){m.textContent='Enter the password.';return;}
+    m.textContent='Checking…';
+    try{
+      const r = await fetch('/admin-verify.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+      const j = await r.json().catch(()=>({}));
+      if(!r.ok||!j.ok){m.textContent=j.error||'Incorrect password.';return;}
+    }catch(e){m.textContent='Could not reach the server.';return;}
+    sessionStorage.setItem('imig_crm_pw',pw);
+    $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    if(localStorage.getItem('imig_crm_theme')==='dark') setTheme('dark');
+    await loadAll();
+  }
+  function logout(){ sessionStorage.removeItem('imig_crm_pw'); location.reload(); }
+
+  /* ---------- data ---------- */
+  async function api(url, body){
+    const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),...body})});
+    return r.json().catch(()=>({ok:false}));
+  }
+  async function loadAll(){
+    const m=$('loadMsg'); m.textContent='Loading…';
+    try{
+      const [lr, mr, tr] = await Promise.all([
+        api('/leads-read.php',{action:'list'}),
+        api('/crm-meta.php',{action:'list'}),
+        api('/crm-tasks.php',{action:'list'}),
+      ]);
+      LEADS = lr.leads||[]; META = mr.meta||{}; TASKS = tr.tasks||[];
+      buildContacts();
+      m.textContent = CONTACTS.length+' contacts';
+      render();
+    }catch(e){ m.textContent='✗ Load failed (PHP enabled?)'; }
+  }
+
+  function buildContacts(){
+    const byEmail = {};
+    LEADS.forEach(l=>{
+      const f=l.fields||{}; const email=(f.email||'').toLowerCase().trim();
+      const key = email || ('noemail-'+l.id);
+      if(!byEmail[key]) byEmail[key]={email,submissions:[],firstSource:'',latestSource:''};
+      byEmail[key].submissions.push(l);
+    });
+    CONTACTS = Object.values(byEmail).map(c=>{
+      c.submissions.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+      const first=c.submissions[0], last=c.submissions[c.submissions.length-1];
+      const f=last.fields||{};
+      const fld=(k)=>{for(let i=c.submissions.length-1;i>=0;i--){const v=(c.submissions[i].fields||{})[k];if(v)return v;}return '';};
+      const points=parseInt(fld('pointsScore')||fld('points')||'0',10)||0;
+      const visas=fld('eligibleVisaSubclasses')||'';
+      const visasCount=visas?visas.split(',').filter(Boolean).length:0;
+      const hasCV=c.submissions.some(s=>(s.fields||{}).cvFile);
+      const reports=c.submissions.filter(s=>((s.fields||{}).pointsScore)||((s.fields||{}).occupation));
+      // lead score
+      let score=0;
+      if(reports.length) score+=10;            // assessment completed
+      if(points>=65) score+=20;                // high points
+      if(visasCount>2) score+=15;              // multiple pathways
+      if(/189/.test(visas)) score+=10;         // 189 eligible
+      if(hasCV) score+=20;                     // CV uploaded
+      if(c.submissions.length>1) score+=10;    // repeat engagement
+      let cat='Cold'; if(score>=60)cat='Sales Ready'; else if(score>=40)cat='Hot'; else if(score>=20)cat='Warm';
+      const hot = score>=40 || (points>=65 && visasCount>2);
+      const meta = META[c.email] || {};
+      return {
+        email:c.email, name:fld('fullName')||fld('name')||'(no name)', phone:fld('phone'),
+        whatsapp:fld('whatsapp')||fld('phone'), country:fld('nationality')||fld('citizenship')||fld('residence')||'',
+        occupation:fld('occupation'), anzsco:fld('anzscoCode'), points, visas, visasCount,
+        recommendations:fld('aiRecommendations'), userInputs:fld('userInputs'),
+        source:fld('source')||last.formName||'', firstSource:(first.fields||{}).source||first.formName||'',
+        firstDate:(first.timestamp||'').slice(0,10), latestDate:(last.timestamp||'').slice(0,10),
+        hasCV, cvFile:fld('cvFile'), cvName:fld('cvOriginalName'),
+        reports, submissions:c.submissions, score, cat, hot,
+        stage: meta.stage || (reports.length?'Assessment Completed':'New Lead'),
+        notes: meta.notes || [], hubspotSynced:last.hubspotSynced,
+      };
+    });
+    CONTACTS.sort((a,b)=>(b.latestDate||'').localeCompare(a.latestDate||''));
+  }
+
+  /* ---------- nav / render ---------- */
+  function go(v){ VIEW=v; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
+  function render(){
+    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'AI Assessment Reports',tasks:'Tasks & Follow-Ups',settings:'Settings'};
+    $('viewTitle').textContent=titles[VIEW]||'';
+    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,settings:renderSettings}[VIEW]||renderDashboard)();
+  }
+
+  function renderDashboard(){
+    const total=CONTACTS.length;
+    const wk=Date.now()-7*864e5;
+    const neu=CONTACTS.filter(c=>new Date(c.latestDate).getTime()>=wk).length;
+    const hot=CONTACTS.filter(c=>c.hot).length;
+    const reports=CONTACTS.filter(c=>c.reports.length).length;
+    const consults=CONTACTS.filter(c=>['Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved'].includes(c.stage)).length;
+    const approvals=CONTACTS.filter(c=>c.stage==='Visa Approved').length;
+    const conv = total?Math.round(consults/total*100):0;
+    const occ={}, vis={};
+    CONTACTS.forEach(c=>{ if(c.occupation)occ[c.occupation]=(occ[c.occupation]||0)+1; (c.visas||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(v=>vis[v]=(vis[v]||0)+1); });
+    const top=(o)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const stat=(n,l)=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    $('content').innerHTML=`
+      <div class="grid stats" style="margin-bottom:16px">
+        ${stat(total,'Total Leads')}${stat(neu,'New (7 days)')}${stat(hot,'🔥 Hot Leads')}${stat(reports,'Reports Generated')}
+        ${stat(consults,'Consultations')}${stat(conv+'%','Conversion Rate')}${stat(approvals,'Visa Approvals')}
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="card"><h3 style="margin:0 0 10px">Top occupations</h3>${top(occ).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
+        <div class="card"><h3 style="margin:0 0 10px">Most recommended visa subclasses</h3>${top(vis).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
+      </div>`;
+  }
+
+  let leadFilter={q:'',stage:'',cat:''};
+  function renderLeads(){
+    const stageOpts=['',...STAGES].map(s=>`<option value="${s}">${s||'All stages'}</option>`).join('');
+    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}">${s||'All scores'}</option>`).join('');
+    let rows=CONTACTS.filter(c=>{
+      const q=leadFilter.q.toLowerCase();
+      if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation}`.toLowerCase().includes(q))) return false;
+      if(leadFilter.stage && c.stage!==leadFilter.stage) return false;
+      if(leadFilter.cat && c.cat!==leadFilter.cat) return false;
+      return true;
+    });
+    $('content').innerHTML=`
+      <div class="toolbar">
+        <input type="search" id="lq" placeholder="Search name, email, phone, occupation…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderLeads();document.getElementById('lq').focus()">
+        <select onchange="leadFilter.stage=this.value;renderLeads()">${stageOpts.replace('value="'+leadFilter.stage+'"','value="'+leadFilter.stage+'" selected')}</select>
+        <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts.replace('value="'+leadFilter.cat+'"','value="'+leadFilter.cat+'" selected')}</select>
+        <span class="muted">${rows.length} lead(s)</span>
+        <button class="btn btn-sm" style="margin-left:auto" onclick="exportCsv()">⬇ Export CSV</button>
+      </div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table><thead><tr><th>Name</th><th>Contact</th><th>Occupation</th><th>Points</th><th>Stage</th><th>Score</th><th>Source</th><th>Updated</th></tr></thead>
+        <tbody>${rows.map((c,i)=>`<tr onclick="openContact('${esc(c.email||c.name)}')">
+          <td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
+          <td>${esc(c.email)}<div class="muted">${esc(c.phone)}</div></td>
+          <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
+          <td>${c.points||'—'}</td>
+          <td><span class="pill">${esc(c.stage)}</span></td>
+          <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
+          <td class="muted">${esc(c.source||'—')}</td>
+          <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No leads.</td></tr>'}</tbody></table>
+      </div>`;
+  }
+
+  function findContact(key){ return CONTACTS.find(c=>(c.email||c.name)===key); }
+  function openContact(key){
+    const c=findContact(key); if(!c) return;
+    const stageSel=`<select onchange="setStage('${esc(c.email)}',this.value)">${STAGES.map(s=>`<option ${s===c.stage?'selected':''}>${s}</option>`).join('')}</select>`;
+    const acts=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+      ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
+      ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
+      ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
+      ${c.cvFile?`<button class="btn btn-sm" onclick="dlCv('${esc(c.cvFile)}','${esc(c.cvName||c.cvFile)}')">📄 CV</button>`:''}
+      <button class="btn btn-sm" onclick="quickTask('${esc(c.email)}')">➕ Task</button>
+    </div>`;
+    const notes=(c.notes||[]).slice().reverse().map(n=>`<div class="note">${esc(n.text)}<div class="t">${esc((n.at||'').slice(0,16).replace('T',' '))}</div></div>`).join('')||'<span class="muted">No notes yet.</span>';
+    const reps=c.reports.map(r=>{const f=r.fields||{};return `<div class="note"><strong>${esc(f.occupation||'Assessment')}</strong> — ${esc(f.pointsScore||'?')} pts · ${esc(f.eligibleVisaSubclasses||'')}<div class="t">${esc((r.timestamp||'').slice(0,16).replace('T',' '))} · id ${esc(r.id)}</div></div>`;}).join('')||'<span class="muted">No assessment reports.</span>';
+    const kv=(k,v)=>v?`<div class="kv"><span class="k">${k}</span><span>${esc(v)}</span></div>`:'';
+    $('drawerContent').innerHTML=`
+      <div class="drawer-head">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div><div style="font-size:20px;font-weight:800">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
+          <div style="opacity:.85;font-size:13px">${esc(c.occupation||'')} ${c.anzsco?'· '+esc(c.anzsco):''}</div></div>
+          <button class="btn btn-sm" onclick="closeDrawer()">✕</button>
+        </div>${acts}
+      </div>
+      <div class="drawer-body">
+        <div class="sect"><h3>Pipeline & score</h3>
+          <div class="kv"><span class="k">Stage</span>${stageSel}</div>
+          <div class="kv"><span class="k">Lead score</span><span>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></span></div>
+        </div>
+        <div class="sect"><h3>Contact</h3>${kv('Email',c.email)}${kv('Mobile',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}${kv('First source',c.firstSource)}${kv('Latest source',c.source)}</div>
+        <div class="sect"><h3>Assessment</h3>${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points score',c.points||'')}${kv('Eligible visas',c.visas)}${kv('User inputs',c.userInputs)}</div>
+        ${c.recommendations?`<div class="sect"><h3>AI recommendations</h3><div style="font-size:13px">${esc(c.recommendations).replace(/\\|/g,'<br>•&nbsp;')}</div></div>`:''}
+        <div class="sect"><h3>Assessment reports (${c.reports.length})</h3>${reps}</div>
+        <div class="sect"><h3>Notes</h3>
+          <textarea id="noteIn" rows="2" placeholder="Add an internal note…"></textarea>
+          <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="addNote('${esc(c.email)}')">Save note</button>
+          <div style="margin-top:10px">${notes}</div>
+        </div>
+      </div>`;
+    $('drawer').classList.add('show');
+  }
+  function closeDrawer(){ $('drawer').classList.remove('show'); }
+
+  async function setStage(email,stage){
+    const c=CONTACTS.find(x=>x.email===email); if(c)c.stage=stage;
+    META[email]={...(META[email]||{email}),stage};
+    await api('/crm-meta.php',{action:'set-stage',email,stage});
+    if(VIEW==='pipeline')renderPipeline();
+  }
+  async function addNote(email){
+    const t=$('noteIn'); const note=t?t.value.trim():''; if(!note)return;
+    const r=await api('/crm-meta.php',{action:'add-note',email,note});
+    if(r.ok){ META[email]=r.meta; const c=CONTACTS.find(x=>x.email===email); if(c)c.notes=r.meta.notes||[]; openContact(email); }
+  }
+  async function dlCv(file,orig){
+    const r=await fetch('/lead-file.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),file})});
+    if(!r.ok){alert('CV not available.');return;}
+    const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=orig||file;a.click();
+  }
+
+  /* ---------- pipeline (kanban) ---------- */
+  let dragEmail=null;
+  function renderPipeline(){
+    const cols=STAGES.map(stage=>{
+      const cards=CONTACTS.filter(c=>c.stage===stage);
+      return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
+        <h4><span>${stage}</span><span class="pill">${cards.length}</span></h4>
+        <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragEmail='${esc(c.email)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openContact('${esc(c.email||c.name)}')">
+          <div class="nm">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
+          <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
+        </div>`).join('')}</div>
+      </div>`;
+    }).join('');
+    $('content').innerHTML=`<p class="muted" style="margin-top:0">Drag cards between stages. ${CONTACTS.length} contacts.</p><div class="kanban">${cols}</div>`;
+  }
+  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragEmail){setStage(dragEmail,stage);} dragEmail=null; }
+
+  /* ---------- reports ---------- */
+  function renderReports(){
+    const reps=CONTACTS.filter(c=>c.reports.length);
+    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} AI assessment report(s)</span></div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Report ID</th><th>Lead</th><th>Occupation</th><th>Points</th><th>Visa pathways</th><th>Date</th><th>Stage</th><th class="right">Actions</th></tr></thead>
+      <tbody>${reps.map(c=>{const r=c.reports[c.reports.length-1];return `<tr>
+        <td class="muted">${esc(r.id)}</td><td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
+        <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
+        <td class="muted">${esc((r.timestamp||'').slice(0,10))}</td><td><span class="pill">${esc(c.stage)}</span></td>
+        <td class="right"><button class="btn btn-sm" onclick="event.stopPropagation();openContact('${esc(c.email||c.name)}')">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();setStage('${esc(c.email)}','Consultation Booked');alert('Moved to Consultation Booked')">→ Consult</button>
+        ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}?subject=Your%20Australia%20Immigration%20Assessment">✉ Email</a>`:''}</td></tr>`;}).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No reports yet.</td></tr>'}</tbody></table></div>`;
+  }
+
+  /* ---------- tasks ---------- */
+  function renderTasks(){
+    const open=TASKS.filter(t=>t.status!=='Done'), done=TASKS.filter(t=>t.status==='Done');
+    const row=(t)=>`<tr><td><input type="checkbox" ${t.status==='Done'?'checked':''} style="width:auto" onchange="toggleTask('${t.id}',this.checked)"></td>
+      <td>${esc(t.title)}<div class="muted">${esc(t.type)}${t.leadEmail?' · '+esc(t.leadEmail):''}</div></td>
+      <td>${esc(t.due||'—')}</td><td><span class="pill">${esc(t.priority)}</span></td>
+      <td class="right"><button class="btn btn-sm" onclick="delTask('${t.id}')">Delete</button></td></tr>`;
+    $('content').innerHTML=`
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="margin:0 0 10px">New task</h3>
+        <div class="toolbar">
+          <input id="tTitle" placeholder="Task title…" style="flex:1;min-width:200px">
+          <select id="tType"><option>Call</option><option>Follow-up</option><option>Email</option><option>Consultation</option></select>
+          <input id="tDue" type="date">
+          <select id="tPriority"><option>Normal</option><option>High</option><option>Low</option></select>
+          <input id="tEmail" placeholder="Lead email (optional)" style="min-width:180px">
+          <button class="btn btn-primary btn-sm" onclick="addTask()">Add task</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th></th><th>Task</th><th>Due</th><th>Priority</th><th class="right"></th></tr></thead>
+      <tbody>${open.map(row).join('')||'<tr><td colspan="5" class="muted" style="padding:18px">No open tasks.</td></tr>'}${done.length?`<tr><td colspan="5" class="muted" style="padding:8px 10px">Completed</td></tr>`+done.map(row).join(''):''}</tbody></table></div>`;
+  }
+  async function addTask(){
+    const body={action:'add',title:$('tTitle').value,type:$('tType').value,due:$('tDue').value,priority:$('tPriority').value,leadEmail:$('tEmail').value};
+    if(!body.title.trim())return; const r=await api('/crm-tasks.php',body); if(r.ok){TASKS=r.tasks;renderTasks();}
+  }
+  async function quickTask(email){ const title=prompt('Task for '+email+':','Call '+email); if(!title)return; const r=await api('/crm-tasks.php',{action:'add',title,type:'Call',leadEmail:email,priority:'High'}); if(r.ok){TASKS=r.tasks;alert('Task added.');} }
+  async function toggleTask(id,done){ const r=await api('/crm-tasks.php',{action:'update',id,status:done?'Done':'Open'}); if(r.ok){TASKS=r.tasks;} }
+  async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
+
+  /* ---------- settings ---------- */
+  function renderSettings(){
+    $('content').innerHTML=`
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Appearance & data</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="toggleTheme()">Toggle dark / light</button>
+        <button class="btn" onclick="exportCsv()">⬇ Export all leads (CSV)</button>
+        <a class="btn" href="/admin.html" target="_blank">Open Admin (content & HubSpot)</a></div>
+      </div>
+      <div class="card"><h3 style="margin:0 0 8px">Automation, WhatsApp, backups & integrations</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Email drip sequences, WhatsApp automation, email open/click tracking, OneDrive daily backup and OAuth integrations (HubSpot, Mailchimp, ActiveCampaign, Microsoft 365, Google Sheets) require a connected platform — they can't run on the current static + shared-hosting setup. The CRM already captures every lead, assessment, report, tag and pipeline stage that <strong>feeds</strong> them.<br><br>
+        <strong>Recommended:</strong> enable HubSpot in the Admin → “HubSpot & Leads” tab (Portal ID + Form GUID). Every lead is then synced to HubSpot, where you can run pipelines, lead scoring, email + WhatsApp sequences, dashboards and the OneDrive/M365 backups. Use “Export CSV” here for a manual backup any time.</p>
+      </div>`;
+  }
+
+  /* ---------- export / theme ---------- */
+  function exportCsv(){
+    const meta=['name','email','phone','whatsapp','country','occupation','anzsco','points','visas','score','cat','stage','source','firstDate','latestDate'];
+    const rows=[meta.join(',')];
+    CONTACTS.forEach(c=>rows.push(meta.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
+    const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='imigrate-crm-leads.csv';a.click();
+  }
+  function setTheme(t){document.body.dataset.theme=t;localStorage.setItem('imig_crm_theme',t);$('themeBtn').textContent=t==='dark'?'☀️ Light':'🌙 Dark';}
+  function toggleTheme(){setTheme(document.body.dataset.theme==='dark'?'light':'dark');}
+</script>
+</body>
+</html>
