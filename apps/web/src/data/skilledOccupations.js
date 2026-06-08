@@ -270,3 +270,19 @@ export const SKILLED_OCCUPATIONS = [
 export function visasForOccupation(occ) {
   return VISA_BY_LIST[occ.list] || [];
 }
+
+const ANZSCO_MAJOR = {
+  1: 'Managers',
+  2: 'Professionals',
+  3: 'Technicians & Trades Workers',
+  4: 'Community & Personal Service Workers',
+  5: 'Clerical & Administrative Workers',
+  6: 'Sales Workers',
+  7: 'Machinery Operators & Drivers',
+  8: 'Labourers',
+};
+
+/** Broad ANZSCO occupation category from the first digit of the code. */
+export function anzscoCategory(code) {
+  return ANZSCO_MAJOR[Number(String(code || '').charAt(0))] || 'Skilled Occupation';
+}
