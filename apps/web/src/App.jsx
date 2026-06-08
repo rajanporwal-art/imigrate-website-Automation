@@ -33,6 +33,8 @@ import AboutPage from './pages/AboutPage.jsx';
 import ServicesPage from './pages/ServicesPage.jsx';
 import AustraliaMigrationPage from './pages/AustraliaMigrationPage.jsx';
 import CanadaMigrationPage from './pages/CanadaMigrationPage.jsx';
+import AustraliaVisasPage from './pages/AustraliaVisasPage.jsx';
+import CanadaVisasPage from './pages/CanadaVisasPage.jsx';
 import AssessmentPage from './pages/AssessmentPage.jsx';
 import SuccessStoriesPage from './pages/SuccessStoriesPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
@@ -80,6 +82,8 @@ function App() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/australia-migration" element={<AustraliaMigrationPage />} />
         <Route path="/canada-immigration" element={<CanadaMigrationPage />} />
+        <Route path="/australia-visas" element={<AustraliaVisasPage />} />
+        <Route path="/canada-visas" element={<CanadaVisasPage />} />
         <Route path="/assessment" element={<AssessmentPage />} />
         <Route path="/success-stories" element={<SuccessStoriesPage />} />
         <Route path="/contact" element={<ContactPage />} />

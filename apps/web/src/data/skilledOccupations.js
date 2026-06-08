@@ -170,6 +170,100 @@ export const SKILLED_OCCUPATIONS = [
   { code: '132511', name: 'Research and Development Manager', list: 'STSOL' },
   { code: '139912', name: 'Quality Assurance Manager', list: 'STSOL' },
   { code: '141111', name: 'Cafe or Restaurant Manager', list: 'STSOL' },
+
+  // ── Additional ICT ──────────────────────────────────────────
+  { code: '261399', name: 'Software and Applications Programmers nec', list: 'MLTSSL' },
+  { code: '263211', name: 'ICT Quality Assurance Engineer', list: 'MLTSSL' },
+  { code: '263212', name: 'ICT Support Engineer', list: 'MLTSSL' },
+  { code: '263213', name: 'ICT Systems Test Engineer', list: 'MLTSSL' },
+  { code: '313113', name: 'Web Administrator', list: 'STSOL' },
+  { code: '135111', name: 'Chief Information Officer', list: 'STSOL' },
+  { code: '262114', name: 'Cyber Security Engineer', list: 'MLTSSL' },
+
+  // ── Additional Engineering & Technical ──────────────────────
+  { code: '233916', name: 'Naval Architect', list: 'MLTSSL' },
+  { code: '312212', name: 'Civil Engineering Technician', list: 'STSOL' },
+  { code: '312511', name: 'Mechanical Engineering Technician', list: 'STSOL' },
+  { code: '312512', name: 'Mechanical Engineering Draftsperson', list: 'STSOL' },
+  { code: '312411', name: 'Electrical Engineering Draftsperson', list: 'STSOL' },
+  { code: '312412', name: 'Electrical Engineering Technician', list: 'STSOL' },
+  { code: '133211', name: 'Engineering Manager', list: 'MLTSSL' },
+
+  // ── Additional Health & Medical ─────────────────────────────
+  { code: '251111', name: 'Dietitian', list: 'MLTSSL' },
+  { code: '251311', name: 'Environmental Health Officer', list: 'MLTSSL' },
+  { code: '251312', name: 'Occupational Health and Safety Adviser', list: 'STSOL' },
+  { code: '252111', name: 'Chiropractor', list: 'MLTSSL' },
+  { code: '252112', name: 'Osteopath', list: 'MLTSSL' },
+  { code: '253511', name: 'Surgeon (General)', list: 'MLTSSL' },
+  { code: '253513', name: 'Neurosurgeon', list: 'MLTSSL' },
+  { code: '253518', name: 'Vascular Surgeon', list: 'MLTSSL' },
+  { code: '254421', name: 'Registered Nurse (Medical Practice)', list: 'MLTSSL' },
+  { code: '254424', name: 'Registered Nurse (Surgical)', list: 'MLTSSL' },
+  { code: '254414', name: 'Registered Nurse (Community Health)', list: 'MLTSSL' },
+  { code: '234611', name: 'Medical Laboratory Scientist', list: 'MLTSSL' },
+  { code: '411411', name: 'Enrolled Nurse', list: 'STSOL' },
+  { code: '251112', name: 'Nutritionist', list: 'STSOL' },
+
+  // ── Additional Trades ───────────────────────────────────────
+  { code: '334114', name: 'Gasfitter', list: 'MLTSSL' },
+  { code: '334115', name: 'Roof Plumber', list: 'MLTSSL' },
+  { code: '334113', name: 'Drainer', list: 'MLTSSL' },
+  { code: '322312', name: 'Pressure Welder', list: 'MLTSSL' },
+  { code: '322114', name: 'Metal Machinist (First Class)', list: 'MLTSSL' },
+  { code: '321111', name: 'Automotive Electrician', list: 'MLTSSL' },
+  { code: '333311', name: 'Roof Tiler', list: 'MLTSSL' },
+  { code: '333212', name: 'Solid Plasterer', list: 'MLTSSL' },
+  { code: '351211', name: 'Butcher or Smallgoods Maker', list: 'STSOL' },
+  { code: '394213', name: 'Wood Machinist', list: 'STSOL' },
+
+  // ── Additional Education ────────────────────────────────────
+  { code: '249311', name: 'Teacher of English to Speakers of Other Languages', list: 'MLTSSL' },
+  { code: '241599', name: 'Special Education Teachers nec', list: 'MLTSSL' },
+  { code: '249214', name: 'Music Teacher (Private Tuition)', list: 'STSOL' },
+  { code: '134311', name: 'School Principal', list: 'STSOL' },
+
+  // ── Additional Science & Agriculture ────────────────────────
+  { code: '234212', name: 'Food Technologist', list: 'MLTSSL' },
+  { code: '234411', name: 'Geologist', list: 'MLTSSL' },
+  { code: '234412', name: 'Geophysicist', list: 'MLTSSL' },
+  { code: '234413', name: 'Hydrogeologist', list: 'MLTSSL' },
+  { code: '234312', name: 'Environmental Consultant', list: 'STSOL' },
+  { code: '234313', name: 'Environmental Research Scientist', list: 'STSOL' },
+  { code: '234514', name: 'Biochemist', list: 'STSOL' },
+  { code: '234516', name: 'Marine Biologist', list: 'STSOL' },
+  { code: '234518', name: 'Zoologist', list: 'STSOL' },
+  { code: '234213', name: 'Winemaker', list: 'STSOL' },
+
+  // ── Finance, Business & Legal ───────────────────────────────
+  { code: '224311', name: 'Economist', list: 'STSOL' },
+  { code: '271111', name: 'Barrister', list: 'MLTSSL' },
+  { code: '271311', name: 'Solicitor', list: 'MLTSSL' },
+  { code: '271211', name: 'Corporate Treasurer', list: 'MLTSSL' },
+  { code: '132111', name: 'Corporate Services Manager', list: 'STSOL' },
+  { code: '222312', name: 'Financial Investment Manager', list: 'STSOL' },
+
+  // ── Social, Community & Creative ────────────────────────────
+  { code: '272114', name: 'Rehabilitation Counsellor', list: 'STSOL' },
+  { code: '272115', name: 'Student Counsellor', list: 'STSOL' },
+  { code: '272111', name: 'Careers Counsellor', list: 'STSOL' },
+  { code: '212415', name: 'Technical Writer', list: 'STSOL' },
+  { code: '212411', name: 'Author', list: 'STSOL' },
+  { code: '411711', name: 'Community Worker', list: 'ROL' },
+  { code: '411715', name: 'Residential Care Officer', list: 'ROL' },
+
+  // ── Aviation & Maritime ─────────────────────────────────────
+  { code: '231111', name: 'Aeroplane Pilot', list: 'STSOL' },
+  { code: '231112', name: 'Flying Instructor', list: 'STSOL' },
+  { code: '231213', name: "Ship's Master", list: 'STSOL' },
+  { code: '231212', name: "Ship's Engineer", list: 'STSOL' },
+
+  // ── Management & Sales ──────────────────────────────────────
+  { code: '131112', name: 'Sales and Marketing Manager', list: 'STSOL' },
+  { code: '131114', name: 'Public Relations Manager', list: 'STSOL' },
+  { code: '133513', name: 'Production Manager (Mining)', list: 'STSOL' },
+  { code: '133512', name: 'Production Manager (Manufacturing)', list: 'STSOL' },
+  { code: '149212', name: 'Customer Service Manager', list: 'STSOL' },
 ];
 
 /** Returns the visa subclasses an occupation's list qualifies for. */

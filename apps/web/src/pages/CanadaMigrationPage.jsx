@@ -31,10 +31,10 @@ function CanadaMigrationPage() {
   return (
     <>
       <Helmet>
-        <title>Canada Immigration & PR Visas | Express Entry, PNP, Work Permits — iMigrate Solutions</title>
+        <title>Canada PR Visas | Express Entry, PNP & Provincial Nomination — iMigrate Solutions</title>
         <meta
           name="description"
-          content="Expert Canada immigration and PR visa services. Express Entry skilled migration, Provincial Nominee Program (PNP), work permits, study permits, family sponsorship, business & start-up visa and Atlantic pathways. Free assessment available."
+          content="Expert Canada permanent residence (PR) services. Express Entry skilled migration, Provincial Nominee Program (PNP), family sponsorship to PR, Start-up Visa and Atlantic PR pathways. Free eligibility assessment available."
         />
         <meta
           name="keywords"
@@ -49,10 +49,10 @@ function CanadaMigrationPage() {
             { "@type": "ListItem", "position": 2, "name": "Canada Immigration", "item": "https://www.imigratesolution.com/canada-immigration" }
           ]
         })}</script>
-        <meta property="og:title" content="Canada Immigration & PR Visa Services | iMigrate Solutions" />
+        <meta property="og:title" content="Canada PR Visa Services | Express Entry, PNP & More | iMigrate Solutions" />
         <meta
           property="og:description"
-          content="Detailed guidance on every Canadian immigration pathway — Express Entry, PNP, work and study permits, family sponsorship, business and regional programs. Check your eligibility with a free assessment."
+          content="Detailed guidance on every Canadian permanent residence pathway — Express Entry, PNP, family sponsorship, Start-up Visa and Atlantic programs. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.imigratesolution.com/canada-immigration" />
@@ -134,7 +134,7 @@ function CanadaMigrationPage() {
         <section className="bg-card border-b border-border sticky top-20 z-30 hidden md:block">
           <div className="container-custom">
             <nav className="flex flex-wrap gap-x-6 gap-y-2 py-4 text-sm font-medium">
-              {canadaVisas.map((visa) => (
+              {canadaVisas.filter((v) => v.pr).map((visa) => (
                 <a
                   key={visa.id}
                   href={`#${visa.id}`}
@@ -196,7 +196,7 @@ function CanadaMigrationPage() {
         </section>
 
         {/* Visa category sections */}
-        {canadaVisas.map((visa, index) => (
+        {canadaVisas.filter((v) => v.pr).map((visa, index) => (
           <VisaCategorySection key={visa.id} visa={visa} index={index} />
         ))}
 

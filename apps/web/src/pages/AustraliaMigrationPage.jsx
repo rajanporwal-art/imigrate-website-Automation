@@ -32,14 +32,14 @@ function AustraliaMigrationPage() {
   return (
     <>
       <Helmet>
-        <title>Australia Skilled Migration & PR Visas | Subclass 189, 190, 491 — iMigrate Solutions</title>
+        <title>Australia PR & Skilled Migration | Subclass 189, 190, 491 — iMigrate Solutions</title>
         <meta
           name="description"
-          content="Expert Australia skilled migration and PR visa services. Skilled Independent Visa 189, Skilled Nominated Visa 190, Skilled Work Regional Visa 491, employer sponsored, student, partner and business migration. Free assessment available."
+          content="Expert Australia permanent residence (PR) and skilled migration services. Skilled Independent Visa 189, Skilled Nominated Visa 190, Skilled Work Regional Visa 491 and partner/family PR pathways — points test, state nomination and occupation lists. Free assessment."
         />
         <meta
           name="keywords"
-          content="Australia Skilled Migration, Australia PR Visa, Skilled Independent Visa 189, Skilled Nominated Visa 190, Skilled Work Regional Visa 491, Australia Employer Sponsored Visa, Australia Student Visa, Australia Partner Visa, Australia Business Migration, Australia immigration consultant"
+          content="Australia PR, Australia Permanent Residence, Australia Skilled Migration, Skilled Independent Visa 189, Skilled Nominated Visa 190, Skilled Work Regional Visa 491, Australia partner visa PR, points test, state nomination, skilled occupation list, Australia immigration consultant"
         />
         <link rel="canonical" href="https://www.imigratesolution.com/australia-migration" />
         <script type="application/ld+json">{JSON.stringify({
@@ -50,10 +50,10 @@ function AustraliaMigrationPage() {
             { "@type": "ListItem", "position": 2, "name": "Australia Migration", "item": "https://www.imigratesolution.com/australia-migration" }
           ]
         })}</script>
-        <meta property="og:title" content="Australia Skilled Migration & PR Visa Services | iMigrate Solutions" />
+        <meta property="og:title" content="Australia PR & Skilled Migration Services | iMigrate Solutions" />
         <meta
           property="og:description"
-          content="Detailed guidance on every Australian visa pathway — Subclass 189, 190, 491, employer sponsored, student, partner and business migration. Check your eligibility with a free assessment."
+          content="Your guide to Australian permanent residence — Subclass 189, 190, 491 skilled migration and partner/family PR pathways, points test and state nomination. Check your eligibility with a free assessment."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.imigratesolution.com/australia-migration" />
@@ -135,7 +135,7 @@ function AustraliaMigrationPage() {
         <section className="bg-card border-b border-border sticky top-20 z-30 hidden md:block">
           <div className="container-custom">
             <nav className="flex flex-wrap gap-x-6 gap-y-2 py-4 text-sm font-medium">
-              {australiaVisas.map((visa) => (
+              {australiaVisas.filter((v) => v.pr).map((visa) => (
                 <a
                   key={visa.id}
                   href={`#${visa.id}`}
@@ -200,7 +200,7 @@ function AustraliaMigrationPage() {
         <OccupationChecker />
 
         {/* Visa category sections */}
-        {australiaVisas.map((visa, index) => (
+        {australiaVisas.filter((v) => v.pr).map((visa, index) => (
           <VisaCategorySection key={visa.id} visa={visa} index={index} />
         ))}
 
