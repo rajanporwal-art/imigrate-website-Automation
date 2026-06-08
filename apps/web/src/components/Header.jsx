@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Linkedin, Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { Menu, ChevronDown, ListChecks, Linkedin, Facebook, Instagram, MessageCircle } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useSiteContent } from '@/lib/siteContent.jsx';
@@ -20,11 +20,20 @@ function Header() {
     { name: 'Australia PR', path: '/australia-migration' },
     { name: 'Canada PR', path: '/canada-immigration' },
     { name: 'C11 Permit', path: '/c11-entrepreneur-work-permit' },
+    {
+      name: 'Other Visas',
+      children: [
+        { name: 'Australia Visas', path: '/australia-visas' },
+        { name: 'Canada Visas', path: '/canada-visas' },
+      ],
+    },
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
 
   const isActive = (path) => location.pathname === path;
+  const isChildActive = (link) =>
+    link.children && link.children.some((c) => isActive(c.path));
 
   return (
     <header className="sticky top-0 z-50 bg-background text-foreground shadow-sm border-b border-border">
@@ -58,19 +67,49 @@ function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden xl:flex items-center gap-0.5 flex-1 justify-center">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-2.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all duration-200 ${
-                  isActive(link.path)
-                    ? 'text-primary bg-primary/10'
-                    : 'text-foreground hover:text-primary hover:bg-muted'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) =>
+              link.children ? (
+                <div key={link.name} className="relative group">
+                  <button
+                    type="button"
+                    aria-haspopup="true"
+                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                      isChildActive(link) ? 'text-primary bg-primary/10' : 'text-foreground hover:text-primary hover:bg-muted'
+                    }`}
+                  >
+                    {link.name}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  <div className="absolute left-0 top-full pt-1 z-50 hidden group-hover:block group-focus-within:block">
+                    <div className="min-w-[180px] rounded-lg border border-border bg-background shadow-lg py-1">
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          className={`block px-4 py-2 text-sm transition-colors ${
+                            isActive(child.path) ? 'text-primary font-medium bg-primary/5' : 'text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                    isActive(link.path)
+                      ? 'text-primary bg-primary/10'
+                      : 'text-foreground hover:text-primary hover:bg-muted'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              )
+            )}
           </nav>
 
           {/* Desktop CTA buttons */}
@@ -101,20 +140,47 @@ function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background text-foreground overflow-y-auto">
               <div className="flex flex-col space-y-1 mt-8">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                      isActive(link.path)
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
+                {navLinks.map((link) =>
+                  link.children ? (
+                    <div key={link.name} className="pt-1">
+                      <span className="px-4 py-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {link.name}
+                      </span>
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          onClick={() => setIsOpen(false)}
+                          className={`px-4 py-2.5 rounded-lg text-sm transition-all duration-200 block ${
+                            isActive(child.path) ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
+                          }`}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                        isActive(link.path)
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  )
+                )}
+                <Link
+                  to="/assessment#occupation-checker"
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2.5 rounded-lg text-sm hover:bg-muted inline-flex items-center gap-2"
+                >
+                  <ListChecks className="h-4 w-4 text-accent" /> Australian Skilled Occupation List
+                </Link>
                 <div className="pt-4 flex flex-col gap-2 border-t border-border mt-2">
                   <Button
                     asChild
@@ -134,6 +200,22 @@ function Header() {
               </div>
             </SheetContent>
           </Sheet>
+        </div>
+      </div>
+
+      {/* Secondary bar — quick link to the Australian skilled occupation list / checker */}
+      <div className="border-t border-border bg-muted/40">
+        <div className="container-custom flex items-center justify-between gap-4 py-2 text-xs">
+          <Link
+            to="/assessment#occupation-checker"
+            className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-cta transition-colors"
+          >
+            <ListChecks className="h-4 w-4 text-accent" />
+            Australian Skilled Occupation List — check your eligibility
+          </Link>
+          <Link to="/assessment" className="hidden sm:inline text-muted-foreground hover:text-cta transition-colors">
+            Free points &amp; eligibility assessment →
+          </Link>
         </div>
       </div>
     </header>

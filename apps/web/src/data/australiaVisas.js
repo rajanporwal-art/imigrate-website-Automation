@@ -25,6 +25,7 @@ import {
 export const australiaVisas = [
   {
     id: 'subclass-189',
+    pr: true,
     title: 'Skilled Independent Visa (Subclass 189)',
     badge: 'Subclass 189',
     icon: Globe,
@@ -110,6 +111,7 @@ export const australiaVisas = [
   },
   {
     id: 'subclass-190',
+    pr: true,
     title: 'Skilled Nominated Visa (Subclass 190)',
     badge: 'Subclass 190',
     icon: Building2,
@@ -184,6 +186,7 @@ export const australiaVisas = [
   },
   {
     id: 'subclass-491',
+    pr: true,
     title: 'Skilled Work Regional (Provisional) Visa (Subclass 491)',
     badge: 'Subclass 491',
     icon: MapPin,
@@ -266,6 +269,7 @@ export const australiaVisas = [
   },
   {
     id: 'employer-sponsored',
+    pr: false,
     title: 'Australia Employer Sponsored Visas',
     badge: 'Subclasses 482 / 186 / 494',
     icon: Briefcase,
@@ -338,6 +342,7 @@ export const australiaVisas = [
   },
   {
     id: 'student-visa',
+    pr: false,
     title: 'Australia Student Visa (Subclass 500)',
     badge: 'Subclass 500',
     icon: GraduationCap,
@@ -413,6 +418,7 @@ export const australiaVisas = [
   },
   {
     id: 'partner-visa',
+    pr: true,
     title: 'Australia Partner Visa (Subclasses 820/801 & 309/100)',
     badge: 'Partner Visa',
     icon: Heart,
@@ -486,6 +492,7 @@ export const australiaVisas = [
   },
   {
     id: 'business-investor',
+    pr: false,
     title: 'Australia Business & Investor Migration',
     badge: 'Business Innovation & Investment',
     icon: TrendingUp,

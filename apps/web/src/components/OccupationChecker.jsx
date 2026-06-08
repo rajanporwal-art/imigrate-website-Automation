@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, CheckCircle2, MapPin, Briefcase, ArrowRight, ClipboardCheck, Info, X } from 'lucide-react';
+import { Search, CheckCircle2, MapPin, Briefcase, Calculator, ClipboardCheck, Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
@@ -246,6 +247,14 @@ function OccupationChecker() {
                     </li>
                   </ul>
                 </div>
+
+                {/* Points calculation link */}
+                <Link
+                  to="/assessment#calculator"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-cta hover:underline"
+                >
+                  <Calculator className="h-4 w-4" /> Calculate your points for skilled migration
+                </Link>
 
                 {/* Caveat */}
                 {selected.caveat && (

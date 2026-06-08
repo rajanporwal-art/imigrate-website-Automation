@@ -15,6 +15,7 @@ import {
 export const canadaVisas = [
   {
     id: 'express-entry',
+    pr: true,
     title: 'Canada Express Entry (Skilled Migration)',
     badge: 'Express Entry',
     icon: Globe,
@@ -89,6 +90,7 @@ export const canadaVisas = [
   },
   {
     id: 'pnp',
+    pr: true,
     title: 'Provincial Nominee Program (PNP)',
     badge: 'PNP',
     icon: MapPin,
@@ -152,6 +154,7 @@ export const canadaVisas = [
   },
   {
     id: 'work-permits',
+    pr: false,
     title: 'Canada Work Permits',
     badge: 'Work Permits',
     icon: Briefcase,
@@ -215,6 +218,7 @@ export const canadaVisas = [
   },
   {
     id: 'study-permit',
+    pr: false,
     title: 'Canada Study Permit',
     badge: 'Study Permit',
     icon: GraduationCap,
@@ -279,6 +283,7 @@ export const canadaVisas = [
   },
   {
     id: 'family-sponsorship',
+    pr: true,
     title: 'Canada Family & Spousal Sponsorship',
     badge: 'Family Sponsorship',
     icon: Heart,
@@ -344,6 +349,7 @@ export const canadaVisas = [
   },
   {
     id: 'business-startup',
+    pr: true,
     title: 'Canada Business & Start-up Visa',
     badge: 'Business & Start-up',
     icon: Rocket,
@@ -408,6 +414,7 @@ export const canadaVisas = [
   },
   {
     id: 'atlantic-regional',
+    pr: true,
     title: 'Atlantic Immigration & Regional Pathways',
     badge: 'Atlantic & Regional',
     icon: Compass,
