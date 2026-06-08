@@ -20,6 +20,22 @@ function FAQPage() {
 
   const query = searchQuery.trim().toLowerCase();
 
+  // FAQPage structured data across every question (placed in <head> via Helmet).
+  const faqSchema = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqCategories.flatMap((cat) =>
+        cat.faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        }))
+      ),
+    }),
+    [faqCategories]
+  );
+
   // When searching, flatten matches across all categories; otherwise show active category.
   const searchResults = useMemo(() => {
     if (!query) return [];
@@ -87,6 +103,7 @@ function FAQPage() {
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
 
       <Header />

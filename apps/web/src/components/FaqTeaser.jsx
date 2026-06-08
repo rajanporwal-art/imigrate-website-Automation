@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
@@ -29,10 +30,26 @@ function FaqTeaser({
     return (cat.faqs || []).slice(0, count);
   }, [faqCategories, categoryId, count]);
 
+  const faqSchema = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    }),
+    [faqs]
+  );
+
   if (!faqs.length) return null;
 
   return (
     <section className="section-spacing bg-background">
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+      </Helmet>
       <div className="container-custom max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

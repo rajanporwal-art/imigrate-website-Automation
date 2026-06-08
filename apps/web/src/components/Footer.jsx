@@ -92,7 +92,7 @@ function Footer() {
               </li>
               <li className="flex items-start space-x-3 text-sm opacity-90">
                 <Mail className="h-5 w-5 mt-0.5 flex-shrink-0 text-accent" />
-                <span className="break-all">{contact.email}</span>
+                <a href={`mailto:${contact.email}`} className="break-all hover:text-accent transition-colors">{contact.email}</a>
               </li>
               <li className="flex items-start space-x-3 text-sm opacity-90">
                 <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-accent" />
