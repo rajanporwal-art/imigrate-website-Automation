@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { CheckCircle, MessageCircle, Calculator } from 'lucide-react';
+import { CheckCircle, MessageCircle, Calculator, ArrowRight, UserCheck, ShieldCheck, Route, AlertTriangle, Clock, MapPin, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
@@ -130,6 +131,102 @@ function AssessmentPage() {
         <section className="section-spacing bg-background">
           <div className="container-custom">
             <PointsCalculator />
+          </div>
+        </section>
+
+        {/* Book a free consultation — details + benefits */}
+        <section className="section-spacing bg-muted">
+          <div className="container-custom">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="gold-rule mb-5" />
+                <h2 className="heading-section text-balance text-primary mb-4">
+                  Get your FREE professional eligibility consultation
+                </h2>
+                <p className="text-muted-foreground leading-relaxed mb-7 max-w-xl">
+                  A points score is a great start — but every successful application begins with expert
+                  advice. Book a free, no-obligation consultation with an experienced iMigrate migration
+                  consultant who will review your profile and map your best path to a visa.
+                </p>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-4 mb-8">
+                  {[
+                    { icon: UserCheck, text: 'Review your complete profile' },
+                    { icon: CheckCircle, text: 'Verify your real eligibility' },
+                    { icon: Route, text: 'Identify the strongest visa pathway' },
+                    { icon: AlertTriangle, text: 'Highlight risks before you apply' },
+                    { icon: BadgeCheck, text: 'Build a personalized migration roadmap' },
+                    { icon: MessageCircle, text: 'Get honest answers to your questions' },
+                  ].map(({ icon: Icon, text }) => (
+                    <li key={text} className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 shrink-0">
+                        <Icon className="h-4 w-4 text-accent" />
+                      </span>
+                      <span className="text-sm text-foreground">{text}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button asChild size="lg" variant="cta" className="text-base px-7">
+                    <Link to="/book-appointment">
+                      Book My FREE Consultation <ArrowRight className="ml-1 h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="text-base px-7">
+                    <a href="#assessment-form">Or send your details below</a>
+                  </Button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <Card className="bg-primary text-primary-foreground shadow-xl border-none overflow-hidden">
+                  <CardContent className="p-7">
+                    <h3 className="text-xl font-bold mb-5">Your free consultation includes</h3>
+                    <ul className="space-y-4 mb-6">
+                      <li className="flex items-center gap-3">
+                        <ShieldCheck className="h-6 w-6 text-accent shrink-0" />
+                        <span className="text-sm opacity-95"><strong>100% free &amp; no obligation</strong> — honest, expert advice</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <Clock className="h-6 w-6 text-accent shrink-0" />
+                        <span className="text-sm opacity-95">About <strong>30 minutes</strong> with a registered consultant</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <MessageCircle className="h-6 w-6 text-accent shrink-0" />
+                        <span className="text-sm opacity-95">Online by <strong>video or phone</strong>, or in person</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <MapPin className="h-6 w-6 text-accent shrink-0" />
+                        <span className="text-sm opacity-95">Visit us at <strong>KL Eco City, Kuala Lumpur</strong></span>
+                      </li>
+                    </ul>
+                    <div className="grid grid-cols-3 gap-3 border-t border-white/15 pt-5 text-center">
+                      <div>
+                        <p className="text-2xl font-extrabold text-accent">98.6%</p>
+                        <p className="text-[11px] uppercase tracking-wide opacity-80">Success rate</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-extrabold text-accent">15+</p>
+                        <p className="text-[11px] uppercase tracking-wide opacity-80">Years experience</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-extrabold text-accent">40+</p>
+                        <p className="text-[11px] uppercase tracking-wide opacity-80">Countries served</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
           </div>
         </section>
 
