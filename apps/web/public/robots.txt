@@ -2,6 +2,10 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /admin-verify.php
+Disallow: /crm.html
+Disallow: /crm-meta.php
+Disallow: /crm-tasks.php
+Disallow: /send-report.php
 Disallow: /save-content.php
 Disallow: /leads-read.php
 Disallow: /lead-file.php
