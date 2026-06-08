@@ -5,6 +5,7 @@ import { Calendar as CalendarIcon, Clock, CheckCircle, AlertCircle } from 'lucid
 import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import TrustHighlights from '@/components/TrustHighlights.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -148,6 +149,9 @@ function BookAppointmentPage() {
             </Card>
           </div>
         </section>
+
+        {/* Trust highlights — Money-Back Guarantee, Pay As You Go, etc. */}
+        <TrustHighlights />
       </main>
 
       <Footer />
