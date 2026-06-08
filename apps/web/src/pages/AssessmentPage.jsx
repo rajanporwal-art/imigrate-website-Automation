@@ -6,7 +6,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
 import PointsCalculator from '@/components/PointsCalculator.jsx';
-import OccupationChecker from '@/components/OccupationChecker.jsx';
+import AustraliaAIAssessment from '@/components/AustraliaAIAssessment.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSiteContent } from '@/lib/siteContent.jsx';
@@ -123,10 +123,10 @@ function AssessmentPage() {
           </div>
         </section>
 
-        {/* Australia skilled occupation eligibility checker (step 1: confirm your occupation) */}
-        <OccupationChecker />
+        {/* AI-powered Australia eligibility assessment: occupation → points → emailed report */}
+        <AustraliaAIAssessment />
 
-        {/* Skilled migration points calculator (Australia & Canada) */}
+        {/* Skilled migration points calculator (Australia & Canada CRS) */}
         <section className="section-spacing bg-background">
           <div className="container-custom">
             <PointsCalculator />
