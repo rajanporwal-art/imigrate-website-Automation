@@ -115,8 +115,8 @@ function HomePage() {
   return (
     <>
       <Helmet>
-        <title>iMigrate Solutions | Australia &amp; Canada Immigration for Malaysia, Singapore, India &amp; Vietnam | 98.6% Success Rate</title>
-        <meta name="description" content="Malaysia-based immigration consultancy serving clients across Asia &amp; worldwide. Expert Australia &amp; Canada PR, Express Entry, C11 work permit &amp; skilled migration — with a FREE consultation, money-back guarantee &amp; flexible pay-as-you-go fees." />
+        <title>Australia &amp; Canada Immigration Consultants | iMigrate</title>
+        <meta name="description" content="Malaysia-based Australia &amp; Canada immigration experts — PR, Express Entry, skilled migration &amp; C11 work permits. Book your FREE eligibility assessment today." />
         <meta name="keywords" content="Australia immigration Malaysia, Canada immigration Singapore, immigration consultant India, C11 entrepreneur work permit, Express Entry, skilled migration, immigration consultant Vietnam, Canada PR visa" />
         <link rel="canonical" href="https://www.imigratesolution.com/" />
         <meta property="og:title" content="iMigrate Solutions - Australia &amp; Canada Immigration Experts" />
