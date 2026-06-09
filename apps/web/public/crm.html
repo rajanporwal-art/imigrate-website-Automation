@@ -37,26 +37,30 @@
   .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
   .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
   .navitem .ic{width:18px;text-align:center}
-  .navitem.soft{opacity:.55;font-size:12.5px}
   .main{padding:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
   .topbar h2{margin:0;font-size:18px}
   .content{padding:22px}
   /* Cards / stats */
   .grid{display:grid;gap:14px}
-  .stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .stats{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .stat{text-align:left;cursor:pointer;transition:transform .08s,border-color .12s;width:100%;border:1px solid var(--border)}
+  .stat:hover{transform:translateY(-2px);border-color:var(--accent)}
   .stat .n{font-size:28px;font-weight:800;color:var(--navy)} [data-theme="dark"] .stat .n{color:#fff}
   .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+  .stat .hint{font-size:11px;color:var(--accent);margin-top:6px;font-weight:600}
   /* Table */
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;color:var(--muted);font-weight:600;padding:10px;border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--panel)}
   td{padding:10px;border-bottom:1px solid var(--border)}
-  tbody tr{cursor:pointer} tbody tr:hover{background:rgba(0,0,0,.025)} [data-theme="dark"] tbody tr:hover{background:rgba(255,255,255,.04)}
+  tbody tr.clk{cursor:pointer} tbody tr.clk:hover{background:rgba(0,0,0,.025)} [data-theme="dark"] tbody tr.clk:hover{background:rgba(255,255,255,.04)}
   .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
   .badge.hot{background:var(--hot);color:#fff}
   .badge.cold{background:#e2e8f0;color:#475569} .badge.warm{background:#fef3c7;color:#92400e}
   .badge.hotcat{background:#fee2e2;color:#b91c1c} .badge.ready{background:#dcfce7;color:#166534}
+  .badge.ai{background:#ede9fe;color:#6d28d9} .badge.std{background:#e0f2fe;color:#0369a1}
+  [data-theme="dark"] .badge.ai{background:#4c1d95;color:#ede9fe} [data-theme="dark"] .badge.std{background:#0c4a6e;color:#e0f2fe}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(11,31,68,.08);color:var(--navy)} [data-theme="dark"] .pill{background:rgba(255,255,255,.1);color:#fff}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
   .toolbar input,.toolbar select{width:auto}
@@ -69,18 +73,35 @@
   .kcard{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px;margin-bottom:8px;font-size:12px;cursor:grab}
   .kcard.drag{opacity:.4} .kcol.over{outline:2px dashed var(--accent)}
   .kcard .nm{font-weight:700} .kcard .meta{color:var(--muted);margin-top:2px}
-  /* Drawer */
-  #drawer{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:30}
-  #drawer.show{display:block}
-  .drawer-panel{position:absolute;right:0;top:0;height:100%;width:min(560px,100%);background:var(--panel);overflow:auto;box-shadow:-4px 0 20px rgba(0,0,0,.2)}
-  .drawer-head{padding:18px 20px;background:var(--navy);color:#fff;position:sticky;top:0}
-  .drawer-body{padding:20px}
-  .sect{margin-bottom:20px} .sect h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 8px}
-  .kv{display:flex;gap:10px;padding:3px 0;font-size:13px} .kv .k{min-width:140px;color:var(--muted)}
-  .note{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:6px} .note .t{color:var(--muted);font-size:11px}
+  /* Profile */
+  .pf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .pf-name{font-size:24px;font-weight:800;color:var(--navy)} [data-theme="dark"] .pf-name{color:#fff}
+  .pf-sub{color:var(--muted);font-size:14px;margin-top:2px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer}
+  .tab.active{color:var(--navy);border-bottom-color:var(--accent)} [data-theme="dark"] .tab.active{color:#fff}
+  .tab .cnt{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:0 6px;margin-left:4px}
+  .kv{display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)} .kv:last-child{border-bottom:none}
+  .kv .k{min-width:150px;color:var(--muted)}
+  .sect h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 10px}
+  .note{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:13px;margin-bottom:8px} .note .t{color:var(--muted);font-size:11px;margin-top:4px;display:flex;gap:8px;justify-content:space-between}
+  .rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .rec-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--bg)}
+  .rec-card h4{margin:0 0 8px;font-size:13px;display:flex;align-items:center;gap:6px}
+  .rec-card ul{margin:0;padding-left:18px;font-size:13px;line-height:1.5}
+  .rec-card.green{border-left:3px solid var(--ok)} .rec-card.red{border-left:3px solid var(--cta)}
+  .rec-card.amber{border-left:3px solid var(--warn)} .rec-card.navy{border-left:3px solid var(--navy)}
+  .ui-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .ui-item{border:1px solid var(--border);border-radius:9px;padding:10px 12px;background:var(--bg)}
+  .ui-item .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .ui-item .val{font-size:15px;font-weight:700;margin-top:3px}
+  .ui-item .pts{font-size:11px;color:var(--accent);font-weight:600;margin-top:2px}
+  .tl{position:relative;padding-left:18px} .tl::before{content:"";position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--border)}
+  .tl-item{position:relative;padding:0 0 14px 6px;font-size:13px} .tl-item::before{content:"";position:absolute;left:-16px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  .tl-item .t{color:var(--muted);font-size:11px}
   .status{font-size:13px} .ok{color:var(--ok)} .err{color:var(--cta)}
   .muted{color:var(--muted)} .right{text-align:right}
-  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}}
+  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}.kv .k{min-width:110px}}
 </style>
 </head>
 <body data-theme="light">
@@ -104,12 +125,6 @@
     <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
     <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
-    <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px">
-      <div class="navitem soft" onclick="alert('Marketing automation, email & WhatsApp templates run in HubSpot — see Settings.')"><span class="ic">📣</span> Marketing Automation</div>
-      <div class="navitem soft" onclick="alert('Email & WhatsApp templates are managed in HubSpot/your ESP — see Settings.')"><span class="ic">✉️</span> Templates</div>
-      <div class="navitem soft" onclick="alert('Integrations (HubSpot, M365, OneDrive backup, WhatsApp API) are configured in Settings / HubSpot.')"><span class="ic">🔌</span> Integrations</div>
-      <div class="navitem soft" onclick="alert('OneDrive backup requires server-side OAuth — see Settings for the manual export in the meantime.')"><span class="ic">☁️</span> OneDrive Backup</div>
-    </div>
   </aside>
 
   <div class="main">
@@ -126,19 +141,17 @@
   </div>
 </div>
 
-<!-- Lead drawer -->
-<div id="drawer" onclick="if(event.target===this)closeDrawer()">
-  <div class="drawer-panel"><div id="drawerContent"></div></div>
-</div>
-
 <script>
   const $ = (id) => document.getElementById(id);
   const PW = () => sessionStorage.getItem('imig_crm_pw') || '';
-  let LEADS = [], CONTACTS = [], META = {}, TASKS = [], VIEW = 'dashboard';
+  const CRM_USER = () => localStorage.getItem('imig_crm_user') || 'Consultant';
+  let LEADS = [], CONTACTS = [], META = {}, TASKS = [], REPORTS = [], VIEW = 'dashboard';
+  let PROFILE_KEY = null, PROFILE_TAB = 'contact';
 
   const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
 
   const esc = (v) => (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtDT = (s) => (s||'').slice(0,16).replace('T',' ');
 
   /* ---------- auth ---------- */
   async function unlock(){
@@ -159,224 +172,458 @@
 
   /* ---------- data ---------- */
   async function api(url, body){
-    const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),...body})});
+    const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})});
     return r.json().catch(()=>({ok:false}));
   }
   async function loadAll(){
     const m=$('loadMsg'); m.textContent='Loading…';
     try{
-      const [lr, mr, tr] = await Promise.all([
+      const [lr, mr, tr, rr] = await Promise.all([
         api('/leads-read.php',{action:'list'}),
         api('/crm-meta.php',{action:'list'}),
         api('/crm-tasks.php',{action:'list'}),
+        api('/crm-reports.php',{action:'list'}),
       ]);
-      LEADS = lr.leads||[]; META = mr.meta||{}; TASKS = tr.tasks||[];
+      LEADS = lr.leads||[]; META = mr.meta||{}; TASKS = tr.tasks||[]; REPORTS = rr.reports||[];
       buildContacts();
-      m.textContent = CONTACTS.length+' contacts';
+      m.textContent = CONTACTS.length+' contacts · '+REPORTS.length+' reports';
       render();
     }catch(e){ m.textContent='✗ Load failed (PHP enabled?)'; }
+  }
+
+  /* A submission is an AI assessment if it came from the AI eligibility flow. */
+  function isAISubmission(s){
+    const f=s.fields||{}; const name=(s.formName||'').toLowerCase();
+    return /ai|eligibility|assessment/.test(name) || !!f.aiRecommendations || (!!f.pointsScore && !!f.anzscoCode);
   }
 
   function buildContacts(){
     const byEmail = {};
     LEADS.forEach(l=>{
       const f=l.fields||{}; const email=(f.email||'').toLowerCase().trim();
-      const key = email || ('noemail-'+l.id);
-      if(!byEmail[key]) byEmail[key]={email,submissions:[],firstSource:'',latestSource:''};
+      const key = email || ('id:'+l.id);
+      if(!byEmail[key]) byEmail[key]={ckey:key,email,submissions:[]};
       byEmail[key].submissions.push(l);
     });
     CONTACTS = Object.values(byEmail).map(c=>{
       c.submissions.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
       const first=c.submissions[0], last=c.submissions[c.submissions.length-1];
-      const f=last.fields||{};
       const fld=(k)=>{for(let i=c.submissions.length-1;i>=0;i--){const v=(c.submissions[i].fields||{})[k];if(v)return v;}return '';};
-      const points=parseInt(fld('pointsScore')||fld('points')||'0',10)||0;
-      const visas=fld('eligibleVisaSubclasses')||'';
+      const meta = META[c.ckey] || META[c.email] || {};
+      const ov = meta.overrides || {};
+      const g = (k,alt)=> (ov[k]!=null && ov[k]!=='') ? ov[k] : (fld(k)|| (alt?fld(alt):'') );
+      const points=parseInt(g('pointsScore','points')||'0',10)||0;
+      const visas=g('eligibleVisaSubclasses')||'';
       const visasCount=visas?visas.split(',').filter(Boolean).length:0;
       const hasCV=c.submissions.some(s=>(s.fields||{}).cvFile);
       const reports=c.submissions.filter(s=>((s.fields||{}).pointsScore)||((s.fields||{}).occupation));
-      // lead score
+      const isAI = c.submissions.some(isAISubmission);
       let score=0;
-      if(reports.length) score+=10;            // assessment completed
-      if(points>=65) score+=20;                // high points
-      if(visasCount>2) score+=15;              // multiple pathways
-      if(/189/.test(visas)) score+=10;         // 189 eligible
-      if(hasCV) score+=20;                     // CV uploaded
-      if(c.submissions.length>1) score+=10;    // repeat engagement
+      if(reports.length) score+=10;
+      if(points>=65) score+=20;
+      if(visasCount>2) score+=15;
+      if(/189/.test(visas)) score+=10;
+      if(hasCV) score+=20;
+      if(c.submissions.length>1) score+=10;
       let cat='Cold'; if(score>=60)cat='Sales Ready'; else if(score>=40)cat='Hot'; else if(score>=20)cat='Warm';
       const hot = score>=40 || (points>=65 && visasCount>2);
-      const meta = META[c.email] || {};
+      const storedReports = REPORTS.filter(r=>r.ckey===c.ckey || (c.email && (r.leadEmail||'').toLowerCase()===c.email));
       return {
-        email:c.email, name:fld('fullName')||fld('name')||'(no name)', phone:fld('phone'),
-        whatsapp:fld('whatsapp')||fld('phone'), country:fld('nationality')||fld('citizenship')||fld('residence')||'',
-        occupation:fld('occupation'), anzsco:fld('anzscoCode'), points, visas, visasCount,
-        recommendations:fld('aiRecommendations'), userInputs:fld('userInputs'),
-        source:fld('source')||last.formName||'', firstSource:(first.fields||{}).source||first.formName||'',
+        ckey:c.ckey, email:c.email, name:g('fullName','name')||'(no name)', phone:g('phone'),
+        whatsapp:g('whatsapp')||g('phone'), country:g('nationality')||g('citizenship')||g('residence')||g('country')||'',
+        occupation:g('occupation'), anzsco:g('anzscoCode'), points, visas, visasCount,
+        recommendations:g('aiRecommendations'), userInputs:g('userInputs'),
+        eligibilityStatus:g('eligibilityStatus'), assessmentDate:g('assessmentDate')||(reports.length?(reports[reports.length-1].timestamp||'').slice(0,10):''),
+        source:g('leadSource')||g('source')||last.formName||'', firstSource:(first.fields||{}).leadSource||(first.fields||{}).source||first.formName||'',
         firstDate:(first.timestamp||'').slice(0,10), latestDate:(last.timestamp||'').slice(0,10),
-        hasCV, cvFile:fld('cvFile'), cvName:fld('cvOriginalName'),
-        reports, submissions:c.submissions, score, cat, hot,
+        hasCV, cvFiles:c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile,at:s.timestamp})),
+        reports, storedReports, submissions:c.submissions, score, cat, hot, isAI,
+        sourceType: isAI?'AI':'Standard',
         stage: meta.stage || (reports.length?'Assessment Completed':'New Lead'),
-        notes: meta.notes || [], hubspotSynced:last.hubspotSynced,
+        notes: meta.notes || [], activity: meta.activity || [], overrides: ov,
       };
     });
     CONTACTS.sort((a,b)=>(b.latestDate||'').localeCompare(a.latestDate||''));
   }
 
   /* ---------- nav / render ---------- */
-  function go(v){ VIEW=v; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
+  function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'AI Assessment Reports',tasks:'Tasks & Follow-Ups',settings:'Settings'};
+    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'AI Assessment Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
+    if(VIEW==='profile'){ renderProfile(); return; }
     ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
+  /* ---------- dashboard (clickable widgets) ---------- */
   function renderDashboard(){
     const total=CONTACTS.length;
     const wk=Date.now()-7*864e5;
     const neu=CONTACTS.filter(c=>new Date(c.latestDate).getTime()>=wk).length;
     const hot=CONTACTS.filter(c=>c.hot).length;
+    const ai=CONTACTS.filter(c=>c.isAI).length;
+    const std=total-ai;
     const reports=CONTACTS.filter(c=>c.reports.length).length;
-    const consults=CONTACTS.filter(c=>['Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved'].includes(c.stage)).length;
+    const consultStages=['Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved'];
+    const consults=CONTACTS.filter(c=>consultStages.includes(c.stage)).length;
     const approvals=CONTACTS.filter(c=>c.stage==='Visa Approved').length;
-    const conv = total?Math.round(consults/total*100):0;
     const occ={}, vis={};
     CONTACTS.forEach(c=>{ if(c.occupation)occ[c.occupation]=(occ[c.occupation]||0)+1; (c.visas||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(v=>vis[v]=(vis[v]||0)+1); });
     const top=(o)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,6);
-    const stat=(n,l)=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    const stat=(n,l,fn)=>`<button class="card stat" onclick="${fn}"><div class="n">${n}</div><div class="l">${l}</div><div class="hint">View →</div></button>`;
     $('content').innerHTML=`
       <div class="grid stats" style="margin-bottom:16px">
-        ${stat(total,'Total Leads')}${stat(neu,'New (7 days)')}${stat(hot,'🔥 Hot Leads')}${stat(reports,'Reports Generated')}
-        ${stat(consults,'Consultations')}${stat(conv+'%','Conversion Rate')}${stat(approvals,'Visa Approvals')}
+        ${stat(total,'Total Leads',"dashGo({})")}
+        ${stat(neu,'New (7 days)',"dashGo({sort:'new'})")}
+        ${stat(hot,'🔥 Hot Leads',"dashGo({cat:'Hot'})")}
+        ${stat(ai,'AI Assessment Leads',"dashGo({type:'AI'})")}
+        ${stat(std,'Standard Leads',"dashGo({type:'Standard'})")}
+        ${stat(reports,'Reports Generated',"go('reports')")}
+        ${stat(consults,'Consultations',"dashGo({stage:'Consultation Booked'})")}
+        ${stat(approvals,'Visa Approvals',"dashGo({stage:'Visa Approved'})")}
       </div>
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <div class="card"><h3 style="margin:0 0 10px">Top occupations</h3>${top(occ).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
         <div class="card"><h3 style="margin:0 0 10px">Most recommended visa subclasses</h3>${top(vis).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
       </div>`;
   }
+  function dashGo(filter){ leadFilter={q:'',stage:filter.stage||'',cat:filter.cat||'',type:filter.type||'',sort:filter.sort||''}; go('leads'); }
 
-  let leadFilter={q:'',stage:'',cat:''};
+  /* ---------- leads list ---------- */
+  let leadFilter={q:'',stage:'',cat:'',type:'',sort:''};
   function renderLeads(){
-    const stageOpts=['',...STAGES].map(s=>`<option value="${s}">${s||'All stages'}</option>`).join('');
-    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}">${s||'All scores'}</option>`).join('');
+    const stageOpts=['',...STAGES].map(s=>`<option value="${s}" ${s===leadFilter.stage?'selected':''}>${s||'All stages'}</option>`).join('');
+    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
+    const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
     let rows=CONTACTS.filter(c=>{
       const q=leadFilter.q.toLowerCase();
       if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation}`.toLowerCase().includes(q))) return false;
       if(leadFilter.stage && c.stage!==leadFilter.stage) return false;
       if(leadFilter.cat && c.cat!==leadFilter.cat) return false;
+      if(leadFilter.type && c.sourceType!==leadFilter.type) return false;
+      if(leadFilter.sort==='new'){ const wk=Date.now()-7*864e5; if(new Date(c.latestDate).getTime()<wk) return false; }
       return true;
     });
     $('content').innerHTML=`
       <div class="toolbar">
         <input type="search" id="lq" placeholder="Search name, email, phone, occupation…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderLeads();document.getElementById('lq').focus()">
-        <select onchange="leadFilter.stage=this.value;renderLeads()">${stageOpts.replace('value="'+leadFilter.stage+'"','value="'+leadFilter.stage+'" selected')}</select>
-        <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts.replace('value="'+leadFilter.cat+'"','value="'+leadFilter.cat+'" selected')}</select>
+        <select onchange="leadFilter.type=this.value;renderLeads()">${typeOpts}</select>
+        <select onchange="leadFilter.stage=this.value;renderLeads()">${stageOpts}</select>
+        <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts}</select>
         <span class="muted">${rows.length} lead(s)</span>
         <button class="btn btn-sm" style="margin-left:auto" onclick="exportCsv()">⬇ Export CSV</button>
       </div>
       <div class="card" style="padding:0;overflow:auto">
-        <table><thead><tr><th>Name</th><th>Contact</th><th>Occupation</th><th>Points</th><th>Stage</th><th>Score</th><th>Source</th><th>Updated</th></tr></thead>
-        <tbody>${rows.map((c,i)=>`<tr onclick="openContact('${esc(c.email||c.name)}')">
+        <table><thead><tr><th>Name</th><th>Type</th><th>Contact</th><th>Occupation</th><th>Points</th><th>Stage</th><th>Score</th><th>Source</th><th>Updated</th></tr></thead>
+        <tbody>${rows.map((c)=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')">
           <td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
-          <td>${esc(c.email)}<div class="muted">${esc(c.phone)}</div></td>
+          <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
+          <td>${esc(c.email||'—')}<div class="muted">${esc(c.phone)}</div></td>
           <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
           <td>${c.points||'—'}</td>
           <td><span class="pill">${esc(c.stage)}</span></td>
           <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
           <td class="muted">${esc(c.source||'—')}</td>
-          <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No leads.</td></tr>'}</tbody></table>
+          <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted" style="padding:20px">No leads match.</td></tr>'}</tbody></table>
       </div>`;
   }
 
-  function findContact(key){ return CONTACTS.find(c=>(c.email||c.name)===key); }
-  function openContact(key){
-    const c=findContact(key); if(!c) return;
-    const stageSel=`<select onchange="setStage('${esc(c.email)}',this.value)">${STAGES.map(s=>`<option ${s===c.stage?'selected':''}>${s}</option>`).join('')}</select>`;
-    const acts=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-      ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
-      ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
-      ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
-      ${c.cvFile?`<button class="btn btn-sm" onclick="dlCv('${esc(c.cvFile)}','${esc(c.cvName||c.cvFile)}')">📄 CV</button>`:''}
-      <button class="btn btn-sm" onclick="quickTask('${esc(c.email)}')">➕ Task</button>
-    </div>`;
-    const notes=(c.notes||[]).slice().reverse().map(n=>`<div class="note">${esc(n.text)}<div class="t">${esc((n.at||'').slice(0,16).replace('T',' '))}</div></div>`).join('')||'<span class="muted">No notes yet.</span>';
-    const reps=c.reports.map(r=>{const f=r.fields||{};return `<div class="note"><strong>${esc(f.occupation||'Assessment')}</strong> — ${esc(f.pointsScore||'?')} pts · ${esc(f.eligibleVisaSubclasses||'')}<div class="t">${esc((r.timestamp||'').slice(0,16).replace('T',' '))} · id ${esc(r.id)}</div></div>`;}).join('')||'<span class="muted">No assessment reports.</span>';
-    const kv=(k,v)=>v?`<div class="kv"><span class="k">${k}</span><span>${esc(v)}</span></div>`:'';
-    $('drawerContent').innerHTML=`
-      <div class="drawer-head">
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <div><div style="font-size:20px;font-weight:800">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
-          <div style="opacity:.85;font-size:13px">${esc(c.occupation||'')} ${c.anzsco?'· '+esc(c.anzsco):''}</div></div>
-          <button class="btn btn-sm" onclick="closeDrawer()">✕</button>
-        </div>${acts}
+  /* ---------- parsing helpers ---------- */
+  function parseUserInputs(str){
+    if(!str) return [];
+    return str.split(/;\s*/).map(part=>{
+      const m=part.match(/^(.*?):\s*(.*?)(?:\s*\(([^)]*)\))?\s*$/);
+      if(!m) return null;
+      return {label:(m[1]||'').trim(), choice:(m[2]||'').trim(), points:(m[3]||'').trim()};
+    }).filter(x=>x&&x.label);
+  }
+  function parseRecs(str){ return str ? str.split(/\s*\|\s*/).map(s=>s.trim()).filter(Boolean) : []; }
+  function bucketRecs(recs){
+    const b={strengths:[],risks:[],improve:[],next:[]};
+    recs.forEach(r=>{
+      const t=r.toLowerCase();
+      if(/you meet|widest range|access to|strong|eligible for the/.test(t)) b.strengths.push(r);
+      else if(/below|not available|competitive|risk|gap/.test(t)) b.risks.push(r);
+      else if(/obtain|book|consultation|before lodging|skills assessment/.test(t)) b.next.push(r);
+      else b.improve.push(r);
+    });
+    return b;
+  }
+
+  /* ---------- full-page profile ---------- */
+  function findByKey(k){ return CONTACTS.find(c=>c.ckey===k) || CONTACTS.find(c=>c.email===k); }
+  function openProfile(k){ PROFILE_KEY=k; PROFILE_TAB='contact'; VIEW='profile'; document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active')); render(); window.scrollTo(0,0); }
+  function setTab(t){ PROFILE_TAB=t; renderProfile(); }
+
+  function renderProfile(){
+    const c=findByKey(PROFILE_KEY);
+    if(!c){ $('content').innerHTML='<p class="muted">Lead not found. <button class="btn btn-sm" onclick="go(\'leads\')">Back to leads</button></p>'; return; }
+    const myTasks=TASKS.filter(t=>t.leadEmail && c.email && t.leadEmail.toLowerCase()===c.email);
+    const tabs=[
+      ['contact','Contact'],['assessment','Assessment'],['inputs','User Inputs'],['recs','AI Recommendations'],
+      ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
+      ['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
+    ];
+    const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option ${s===c.stage?'selected':''}>${s}</option>`).join('')}</select>`;
+    $('content').innerHTML=`
+      <button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>
+      <div class="pf-head" style="margin-top:12px">
+        <div>
+          <div class="pf-name">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span> ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
+          <div class="pf-sub">${esc(c.occupation||'No occupation')} ${c.anzsco?'· '+esc(c.anzsco):''} ${c.points?'· '+c.points+' pts':''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span class="muted" style="font-size:12px">Stage:</span> ${stageSel}
+          ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
+          ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
+          ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
+        </div>
       </div>
-      <div class="drawer-body">
-        <div class="sect"><h3>Pipeline & score</h3>
-          <div class="kv"><span class="k">Stage</span>${stageSel}</div>
-          <div class="kv"><span class="k">Lead score</span><span>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></span></div>
-        </div>
-        <div class="sect"><h3>Contact</h3>${kv('Email',c.email)}${kv('Mobile',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}${kv('First source',c.firstSource)}${kv('Latest source',c.source)}</div>
-        <div class="sect"><h3>Assessment</h3>${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points score',c.points||'')}${kv('Eligible visas',c.visas)}${kv('User inputs',c.userInputs)}</div>
-        ${c.recommendations?`<div class="sect"><h3>AI recommendations</h3><div style="font-size:13px">${esc(c.recommendations).replace(/\\|/g,'<br>•&nbsp;')}</div></div>`:''}
-        <div class="sect"><h3>Assessment reports (${c.reports.length})</h3>${reps}</div>
-        <div class="sect"><h3>Notes</h3>
-          <textarea id="noteIn" rows="2" placeholder="Add an internal note…"></textarea>
-          <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="addNote('${esc(c.email)}')">Save note</button>
-          <div style="margin-top:10px">${notes}</div>
-        </div>
-      </div>`;
-    $('drawer').classList.add('show');
+      <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
+      <div id="tabBody"></div>`;
+    renderProfileTab(c, myTasks);
   }
-  function closeDrawer(){ $('drawer').classList.remove('show'); }
 
-  async function setStage(email,stage){
-    const c=CONTACTS.find(x=>x.email===email); if(c)c.stage=stage;
-    META[email]={...(META[email]||{email}),stage};
-    await api('/crm-meta.php',{action:'set-stage',email,stage});
-    if(VIEW==='pipeline')renderPipeline();
+  function renderProfileTab(c, myTasks){
+    const b=$('tabBody'); if(!b) return;
+    const kv=(k,v)=>`<div class="kv"><span class="k">${k}</span><span>${v?esc(v):'<span class="muted">—</span>'}</span></div>`;
+    if(PROFILE_TAB==='contact'){
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Contact information</h3>
+        ${kv('Full Name',c.name)}${kv('Email',c.email)}${kv('Mobile',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}
+        ${kv('Lead source',c.source)}${kv('First seen',c.firstDate)}${kv('Last activity',c.latestDate)}</div>
+        <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit contact &amp; assessment fields</button></div></div>`;
+    } else if(PROFILE_TAB==='assessment'){
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Assessment details</h3>
+        ${kv('Occupation',c.occupation)}${kv('ANZSCO Code',c.anzsco)}${kv('Points Score',c.points||'')}
+        ${kv('Visa Subclasses',c.visas)}${kv('Eligibility status',c.eligibilityStatus)}${kv('Assessment Date',c.assessmentDate)}
+        ${kv('Lead Source',c.source)}</div>
+        <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit fields</button></div></div>`;
+    } else if(PROFILE_TAB==='inputs'){
+      const items=parseUserInputs(c.userInputs);
+      b.innerHTML=`<div class="card"><div class="sect"><h3>User inputs (assessment answers)</h3>
+        ${items.length?`<div class="ui-grid">${items.map(i=>`<div class="ui-item"><div class="lab">${esc(i.label)}</div><div class="val">${esc(i.choice)}</div>${i.points?`<div class="pts">${esc(i.points)} pts</div>`:''}</div>`).join('')}</div>`:'<p class="muted">No structured assessment answers on file for this lead.</p>'}
+        </div></div>`;
+    } else if(PROFILE_TAB==='recs'){
+      const recs=parseRecs(c.recommendations);
+      const visas=(c.visas||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if(!recs.length && !visas.length){ b.innerHTML='<div class="card"><p class="muted">No AI recommendations on file for this lead.</p></div>'; return; }
+      const bk=bucketRecs(recs);
+      const card=(cls,icon,title,arr)=>arr.length?`<div class="rec-card ${cls}"><h4>${icon} ${title}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+      b.innerHTML=`<div class="card"><div class="sect"><h3>AI recommendations</h3>
+        <div class="rec-grid">
+          ${visas.length?`<div class="rec-card navy"><h4>🧭 Recommended pathways</h4><ul>${visas.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div>`:''}
+          ${card('green','✅','Strengths',bk.strengths)}
+          ${card('red','⚠️','Risks &amp; gaps',bk.risks)}
+          ${card('amber','📈','Improvement suggestions',bk.improve)}
+          ${card('navy','➡️','Next steps',bk.next)}
+        </div></div></div>`;
+    } else if(PROFILE_TAB==='activity'){
+      const acts=(c.activity||[]).slice().reverse();
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Activity timeline</h3>
+        ${acts.length?`<div class="tl">${acts.map(a=>`<div class="tl-item"><strong>${esc(a.event)}</strong>${a.detail?' — '+esc(a.detail):''}<div class="t">${esc(fmtDT(a.at))} · ${esc(a.author||'')}</div></div>`).join('')}</div>`:'<p class="muted">No activity recorded yet. Stage changes, edits and notes will appear here.</p>'}
+        </div></div>`;
+    } else if(PROFILE_TAB==='notes'){
+      const notes=(c.notes||[]).slice().reverse();
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Notes</h3>
+        <textarea id="noteIn" rows="3" placeholder="Add an internal note…"></textarea>
+        <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="addNote('${esc(c.ckey)}')">Save note</button>
+        <div style="margin-top:14px">${notes.length?notes.map(n=>`<div class="note">${esc(n.text)}<div class="t"><span>${esc(fmtDT(n.at))} · ${esc(n.author||'Consultant')}${n.editedAt?' · edited':''}</span><span><button class="btn btn-sm" onclick="editNote('${esc(c.ckey)}','${esc(n.id)}')">Edit</button> <button class="btn btn-sm" onclick="delNote('${esc(c.ckey)}','${esc(n.id)}')">Delete</button></span></div></div>`).join(''):'<span class="muted">No notes yet.</span>'}</div>
+        </div></div>`;
+    } else if(PROFILE_TAB==='tasks'){
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Tasks for this lead</h3>
+        <div class="toolbar">
+          <input id="ptTitle" placeholder="Task title…" style="flex:1;min-width:180px">
+          <select id="ptType"><option>Call</option><option>Follow-up</option><option>Consultation</option><option>Document Collection</option><option>Email Follow-Up</option></select>
+          <input id="ptDue" type="date"><select id="ptPriority"><option>Normal</option><option>High</option><option>Low</option></select>
+          <button class="btn btn-sm btn-primary" onclick="addProfileTask('${esc(c.ckey)}','${esc(c.email)}')">Add task</button>
+        </div>
+        ${myTasks.length?`<table><thead><tr><th></th><th>Task</th><th>Type</th><th>Due</th><th>Priority</th><th class="right"></th></tr></thead><tbody>${myTasks.map(t=>`<tr><td><input type="checkbox" ${t.status==='Done'?'checked':''} style="width:auto" onchange="toggleTask('${t.id}',this.checked)"></td><td>${esc(t.title)}</td><td class="muted">${esc(t.type)}</td><td>${esc(t.due||'—')}</td><td><span class="pill">${esc(t.priority)}</span></td><td class="right"><button class="btn btn-sm" onclick="delTaskP('${t.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">No tasks yet.</p>'}
+        ${c.email?'':'<p class="muted" style="font-size:12px;margin-top:8px">Note: this lead has no email, so tasks are tracked by name only.</p>'}
+      </div></div>`;
+    } else if(PROFILE_TAB==='reports'){
+      renderReportsTab(c);
+    } else if(PROFILE_TAB==='documents'){
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Documents</h3>
+        ${c.cvFiles.length?c.cvFiles.map(f=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>📄 ${esc(f.name)}<div class="t">${esc((f.at||'').slice(0,10))}</div></span><button class="btn btn-sm" onclick="dlCv('${esc(f.file)}','${esc(f.name)}')">Download</button></div>`).join(''):'<p class="muted">No documents uploaded yet.</p>'}
+        <p class="muted" style="font-size:12px;margin-top:8px">Full multi-file upload (passports, certificates, employment docs) arrives in Phase 2. CVs uploaded via the website forms appear here.</p>
+      </div></div>`;
+    }
   }
-  async function addNote(email){
+
+  /* ---------- editable fields ---------- */
+  function editFields(ckey){
+    const c=findByKey(ckey); if(!c) return;
+    const f=(lab,id,val)=>`<div style="margin-bottom:8px"><label class="muted" style="font-size:12px">${lab}</label><input id="ef_${id}" value="${esc(val||'')}"></div>`;
+    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Edit lead</h3>
+      <div class="ui-grid">
+        ${f('Full Name','fullName',c.name==='(no name)'?'':c.name)}${f('Email','email',c.email)}${f('Mobile','phone',c.phone)}${f('WhatsApp','whatsapp',c.whatsapp)}
+        ${f('Country','country',c.country)}${f('Occupation','occupation',c.occupation)}${f('ANZSCO Code','anzscoCode',c.anzsco)}${f('Points Score','pointsScore',c.points||'')}
+        ${f('Visa Subclasses','eligibleVisaSubclasses',c.visas)}
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm btn-primary" onclick="saveFields('${esc(ckey)}')">Save changes</button><button class="btn btn-sm" onclick="setTab('contact')">Cancel</button></div>
+      <p class="muted" style="font-size:12px;margin-top:8px">Edits are stored as CRM overrides (the original submission is preserved) and logged in the activity timeline.</p>
+    </div></div>`;
+  }
+  async function saveFields(ckey){
+    const ids=['fullName','email','phone','whatsapp','country','occupation','anzscoCode','pointsScore','eligibleVisaSubclasses'];
+    const fields={}; ids.forEach(id=>{ const el=$('ef_'+id); if(el) fields[id]=el.value; });
+    const c=findByKey(ckey);
+    const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields});
+    if(r.ok){ META[ckey]=r.meta; buildContacts(); PROFILE_TAB='contact'; renderProfile(); }
+    else alert('Could not save.');
+  }
+
+  /* ---------- stage / notes ---------- */
+  async function setStage(ckey,stage){
+    const c=findByKey(ckey); if(c)c.stage=stage;
+    const r=await api('/crm-meta.php',{action:'set-stage',key:ckey,email:c?c.email:'',stage});
+    if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;} if(VIEW==='pipeline')renderPipeline(); }
+  }
+  async function addNote(ckey){
     const t=$('noteIn'); const note=t?t.value.trim():''; if(!note)return;
-    const r=await api('/crm-meta.php',{action:'add-note',email,note});
-    if(r.ok){ META[email]=r.meta; const c=CONTACTS.find(x=>x.email===email); if(c)c.notes=r.meta.notes||[]; openContact(email); }
+    const c=findByKey(ckey);
+    const r=await api('/crm-meta.php',{action:'add-note',key:ckey,email:c?c.email:'',note});
+    if(r.ok){ META[ckey]=r.meta; if(c){c.notes=r.meta.notes||[];c.activity=r.meta.activity||[];} renderProfile(); }
+    else alert('Could not save note.');
+  }
+  async function editNote(ckey,noteId){
+    const c=findByKey(ckey); const n=(c.notes||[]).find(x=>x.id===noteId); if(!n)return;
+    const note=prompt('Edit note:',n.text); if(note==null)return;
+    const r=await api('/crm-meta.php',{action:'edit-note',key:ckey,email:c.email,noteId,note});
+    if(r.ok){ META[ckey]=r.meta; c.notes=r.meta.notes||[]; renderProfile(); }
+  }
+  async function delNote(ckey,noteId){
+    if(!confirm('Delete this note?'))return;
+    const c=findByKey(ckey);
+    const r=await api('/crm-meta.php',{action:'delete-note',key:ckey,email:c.email,noteId});
+    if(r.ok){ META[ckey]=r.meta; c.notes=r.meta.notes||[]; c.activity=r.meta.activity||[]; renderProfile(); }
   }
   async function dlCv(file,orig){
     const r=await fetch('/lead-file.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),file})});
-    if(!r.ok){alert('CV not available.');return;}
+    if(!r.ok){alert('File not available.');return;}
     const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=orig||file;a.click();
   }
 
+  /* ---------- tasks (profile + global) ---------- */
+  async function addProfileTask(ckey,email){
+    const title=$('ptTitle').value.trim(); if(!title)return;
+    const body={action:'add',title,type:$('ptType').value,due:$('ptDue').value,priority:$('ptPriority').value,leadEmail:email};
+    const r=await api('/crm-tasks.php',body); if(r.ok){TASKS=r.tasks;renderProfile();}
+  }
+  async function delTaskP(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderProfile();} }
+
+  /* ---------- reports (reconstruct + store + actions) ---------- */
+  function buildReportHtml(c){
+    const items=parseUserInputs(c.userInputs);
+    const recs=parseRecs(c.recommendations);
+    const visas=(c.visas||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const row=(k,v)=>`<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;color:#555">${esc(k)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;font-weight:600">${esc(v||'—')}</td></tr>`;
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Assessment Report — ${esc(c.name)}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#222;max-width:760px;margin:0 auto;padding:24px}
+      h1{font-size:20px}h2{color:#0b1f44;font-size:15px;margin-top:24px;border-bottom:2px solid #c8a24a;padding-bottom:4px}
+      table{width:100%;border-collapse:collapse;font-size:13px}ul{font-size:13px;line-height:1.6}
+      .hd{background:#0b1f44;color:#fff;padding:20px 24px;border-radius:8px}.muted{color:#777;font-size:12px}
+      @media print{.noprint{display:none}}</style></head><body>
+      <div class="hd"><h1 style="margin:0;color:#fff">Australia Immigration Assessment Report</h1>
+      <div style="opacity:.85;margin-top:4px">iMigrate Migration Solutions</div></div>
+      <div class="noprint" style="text-align:right;margin:12px 0"><button onclick="window.print()" style="background:#e11d2a;color:#fff;border:0;padding:10px 18px;border-radius:6px;font-weight:700;cursor:pointer">🖨 Print / Save as PDF</button></div>
+      <h2>Candidate summary</h2>
+      <table>${row('Name',c.name)}${row('Occupation',c.occupation)}${row('ANZSCO Code',c.anzsco)}${row('Points Score',(c.points||'—')+' / 65 minimum')}${row('Eligible visa pathways',c.visas)}${row('Assessment date',c.assessmentDate)}${row('Preliminary status',c.eligibilityStatus)}</table>
+      ${items.length?`<h2>Your inputs</h2><table>${items.map(i=>row(i.label,i.choice+(i.points?' ('+i.points+' pts)':''))).join('')}</table>`:''}
+      ${visas.length?`<h2>Likely visa pathways</h2><ul>${visas.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>`:''}
+      ${recs.length?`<h2>Recommendations &amp; next steps</h2><ul>${recs.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
+      <p class="muted" style="margin-top:24px">This report is generated from the information provided and is a preliminary guide only — not legal advice or a visa-approval prediction. Book a consultation with an iMigrate specialist for a verified assessment.</p>
+      </body></html>`;
+  }
+  function openHtmlWindow(html){
+    const w=window.open('','_blank');
+    if(!w){ alert('Please allow pop-ups to view/print the report.'); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+  }
+  async function reportHtmlFor(c, id){
+    if(id){ const r=await api('/crm-reports.php',{action:'get',id}); if(r.ok && r.report && r.report.html) return r.report.html; }
+    return buildReportHtml(c);
+  }
+  async function viewReport(ckey,id){ const c=findByKey(ckey); openHtmlWindow(await reportHtmlFor(c,id)); }
+  async function downloadPdf(ckey,id){ const c=findByKey(ckey); openHtmlWindow(await reportHtmlFor(c,id)); } /* opens print-ready; user saves as PDF */
+  async function emailReport(ckey,id){
+    const c=findByKey(ckey);
+    if(!c.email){ alert('This lead has no email address on file.'); return; }
+    if(!confirm('Email the assessment report to '+c.email+'?'))return;
+    const html=await reportHtmlFor(c,id);
+    const r=await fetch('/send-report.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      name:c.name,email:c.email,mobile:c.phone,subject:'Your Australia Immigration Assessment Report',
+      html,points:c.points,occupation:c.occupation,visas:c.visas,website:''
+    })});
+    const j=await r.json().catch(()=>({}));
+    await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event:'Report emailed',detail:c.email});
+    alert(j.ok?'Report emailed to '+c.email:'Email could not be sent (mail() may be limited on this host).');
+    loadAll();
+  }
+  async function regenerateReport(ckey){
+    const c=findByKey(ckey);
+    const html=buildReportHtml(c);
+    const r=await api('/crm-reports.php',{action:'save',key:ckey,email:c.email,name:c.name,occupation:c.occupation,anzsco:c.anzsco,points:String(c.points||''),visas:c.visas,eligibilityStatus:c.eligibilityStatus,html,source:'CRM regenerate'});
+    if(r.ok){ await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event:'Report regenerated',detail:'v'+r.version}); alert('Report regenerated (version '+r.version+').'); loadAll(); }
+    else alert('Could not save report.');
+  }
+  async function addReportNote(id,ckey){
+    const note=prompt('Add a note to this report:'); if(!note)return;
+    const r=await api('/crm-reports.php',{action:'add-note',id,note});
+    if(r.ok){ alert('Note added to report.'); } else alert('Could not add note.');
+  }
+  function renderReportsTab(c){
+    const reps=c.storedReports.slice();
+    const actions=(id)=>`<button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','${esc(id||'')}')">View</button>
+      <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','${esc(id||'')}')">PDF</button>
+      <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','${esc(id||'')}')">Email</button>
+      ${id?`<button class="btn btn-sm" onclick="addReportNote('${esc(id)}','${esc(c.ckey)}')">Add note</button>`:''}`;
+    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Assessment reports</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-sm btn-primary" onclick="viewReport('${esc(c.ckey)}','')">📄 View current report</button>
+        <button class="btn btn-sm" onclick="regenerateReport('${esc(c.ckey)}')">♻ Regenerate &amp; save version</button>
+        <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">✉ Email current report</button>
+      </div>
+      ${reps.length?`<table><thead><tr><th>Version</th><th>Source</th><th>Points</th><th>Date</th><th>Notes</th><th class="right">Actions</th></tr></thead>
+        <tbody>${reps.map(r=>`<tr><td>v${esc(r.version)} <span class="muted">${esc(r.origin||'')}</span></td><td class="muted">${esc(r.source||'')}</td><td>${esc(r.points||'—')}</td><td class="muted">${esc((r.at||'').slice(0,10))}</td><td>${(r.notes||[]).length||0}</td><td class="right">${actions(r.id)}</td></tr>`).join('')}</tbody></table>`
+        :'<p class="muted">No stored report versions yet. Use “View current report” to generate one from the assessment data, or “Regenerate &amp; save version” to store a copy. New website assessments are stored automatically.</p>'}
+      </div></div>`;
+  }
+
+  /* ---------- reports view (global) ---------- */
+  function renderReports(){
+    const reps=CONTACTS.filter(c=>c.isAI || c.reports.length || c.storedReports.length);
+    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} lead(s) with assessment reports · ${REPORTS.length} stored version(s)</span></div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Lead</th><th>Type</th><th>Occupation</th><th>Points</th><th>Visa pathways</th><th>Versions</th><th>Stage</th><th class="right">Actions</th></tr></thead>
+      <tbody>${reps.map(c=>`<tr>
+        <td class="clk" onclick="openProfile('${esc(c.ckey)}')"><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}<div class="muted">${esc(c.email||'')}</div></td>
+        <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
+        <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
+        <td>${c.storedReports.length||'—'}</td><td><span class="pill">${esc(c.stage)}</span></td>
+        <td class="right"><button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','')">View</button>
+        <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','')">PDF</button>
+        <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">Email</button>
+        <button class="btn btn-sm" onclick="openProfile('${esc(c.ckey)}')">Open</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No reports yet.</td></tr>'}</tbody></table></div>`;
+  }
+
   /* ---------- pipeline (kanban) ---------- */
-  let dragEmail=null;
+  let dragKey=null;
   function renderPipeline(){
     const cols=STAGES.map(stage=>{
       const cards=CONTACTS.filter(c=>c.stage===stage);
       return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
         <h4><span>${stage}</span><span class="pill">${cards.length}</span></h4>
-        <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragEmail='${esc(c.email)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openContact('${esc(c.email||c.name)}')">
-          <div class="nm">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
+        <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
+          <div class="nm">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}" style="font-size:9px">${c.sourceType}</span></div>
           <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
         </div>`).join('')}</div>
       </div>`;
     }).join('');
     $('content').innerHTML=`<p class="muted" style="margin-top:0">Drag cards between stages. ${CONTACTS.length} contacts.</p><div class="kanban">${cols}</div>`;
   }
-  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragEmail){setStage(dragEmail,stage);} dragEmail=null; }
+  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){setStage(dragKey,stage).then(()=>renderPipeline());} dragKey=null; }
 
-  /* ---------- reports ---------- */
-  function renderReports(){
-    const reps=CONTACTS.filter(c=>c.reports.length);
-    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} AI assessment report(s)</span></div>
-      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Report ID</th><th>Lead</th><th>Occupation</th><th>Points</th><th>Visa pathways</th><th>Date</th><th>Stage</th><th class="right">Actions</th></tr></thead>
-      <tbody>${reps.map(c=>{const r=c.reports[c.reports.length-1];return `<tr>
-        <td class="muted">${esc(r.id)}</td><td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
-        <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
-        <td class="muted">${esc((r.timestamp||'').slice(0,10))}</td><td><span class="pill">${esc(c.stage)}</span></td>
-        <td class="right"><button class="btn btn-sm" onclick="event.stopPropagation();openContact('${esc(c.email||c.name)}')">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();setStage('${esc(c.email)}','Consultation Booked');alert('Moved to Consultation Booked')">→ Consult</button>
-        ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}?subject=Your%20Australia%20Immigration%20Assessment">✉ Email</a>`:''}</td></tr>`;}).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No reports yet.</td></tr>'}</tbody></table></div>`;
-  }
-
-  /* ---------- tasks ---------- */
+  /* ---------- tasks (global) ---------- */
   function renderTasks(){
     const open=TASKS.filter(t=>t.status!=='Done'), done=TASKS.filter(t=>t.status==='Done');
     const row=(t)=>`<tr><td><input type="checkbox" ${t.status==='Done'?'checked':''} style="width:auto" onchange="toggleTask('${t.id}',this.checked)"></td>
@@ -388,7 +635,7 @@
         <h3 style="margin:0 0 10px">New task</h3>
         <div class="toolbar">
           <input id="tTitle" placeholder="Task title…" style="flex:1;min-width:200px">
-          <select id="tType"><option>Call</option><option>Follow-up</option><option>Email</option><option>Consultation</option></select>
+          <select id="tType"><option>Call</option><option>Follow-up</option><option>Email Follow-Up</option><option>Consultation</option><option>Document Collection</option></select>
           <input id="tDue" type="date">
           <select id="tPriority"><option>Normal</option><option>High</option><option>Low</option></select>
           <input id="tEmail" placeholder="Lead email (optional)" style="min-width:180px">
@@ -402,29 +649,35 @@
     const body={action:'add',title:$('tTitle').value,type:$('tType').value,due:$('tDue').value,priority:$('tPriority').value,leadEmail:$('tEmail').value};
     if(!body.title.trim())return; const r=await api('/crm-tasks.php',body); if(r.ok){TASKS=r.tasks;renderTasks();}
   }
-  async function quickTask(email){ const title=prompt('Task for '+email+':','Call '+email); if(!title)return; const r=await api('/crm-tasks.php',{action:'add',title,type:'Call',leadEmail:email,priority:'High'}); if(r.ok){TASKS=r.tasks;alert('Task added.');} }
-  async function toggleTask(id,done){ const r=await api('/crm-tasks.php',{action:'update',id,status:done?'Done':'Open'}); if(r.ok){TASKS=r.tasks;} }
+  async function toggleTask(id,done){ const r=await api('/crm-tasks.php',{action:'update',id,status:done?'Done':'Open'}); if(r.ok){TASKS=r.tasks; if(VIEW==='profile')renderProfile();} }
   async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
 
   /* ---------- settings ---------- */
   function renderSettings(){
     $('content').innerHTML=`
-      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Appearance & data</h3>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Your profile</h3>
+        <div style="max-width:320px"><label class="muted" style="font-size:12px">Consultant name (recorded on notes &amp; activity)</label>
+        <input id="userName" value="${esc(CRM_USER())}" onchange="localStorage.setItem('imig_crm_user',this.value)"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Appearance &amp; data</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="toggleTheme()">Toggle dark / light</button>
         <button class="btn" onclick="exportCsv()">⬇ Export all leads (CSV)</button>
-        <a class="btn" href="/admin.html" target="_blank">Open Admin (content & HubSpot)</a></div>
+        <a class="btn" href="/admin.html" target="_blank">Open Admin (website content)</a></div>
       </div>
-      <div class="card"><h3 style="margin:0 0 8px">Automation, WhatsApp, backups & integrations</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6">Email drip sequences, WhatsApp automation, email open/click tracking, OneDrive daily backup and OAuth integrations (HubSpot, Mailchimp, ActiveCampaign, Microsoft 365, Google Sheets) require a connected platform — they can't run on the current static + shared-hosting setup. The CRM already captures every lead, assessment, report, tag and pipeline stage that <strong>feeds</strong> them.<br><br>
-        <strong>Recommended:</strong> enable HubSpot in the Admin → “HubSpot & Leads” tab (Portal ID + Form GUID). Every lead is then synced to HubSpot, where you can run pipelines, lead scoring, email + WhatsApp sequences, dashboards and the OneDrive/M365 backups. Use “Export CSV” here for a manual backup any time.</p>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Microsoft 365 integration</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">The Outlook / OneDrive / Calendar integration module is scheduled for Phase 2. It will connect via Microsoft Graph once an Azure app (Client ID + Secret) is registered. Email send, inbox sync, calendar scheduling and OneDrive backup will appear here.</p>
+        <span class="badge std">Phase 2 — pending Azure app</span>
+      </div>
+      <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
   }
 
   /* ---------- export / theme ---------- */
   function exportCsv(){
-    const meta=['name','email','phone','whatsapp','country','occupation','anzsco','points','visas','score','cat','stage','source','firstDate','latestDate'];
-    const rows=[meta.join(',')];
-    CONTACTS.forEach(c=>rows.push(meta.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
+    const cols=['name','sourceType','email','phone','whatsapp','country','occupation','anzsco','points','visas','score','cat','stage','source','firstDate','latestDate'];
+    const rows=[cols.join(',')];
+    CONTACTS.forEach(c=>rows.push(cols.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
     const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='imigrate-crm-leads.csv';a.click();
   }
