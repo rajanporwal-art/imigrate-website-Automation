@@ -62,7 +62,7 @@ function BookAppointmentPage() {
     }
 
     setIsSubmitting(true);
-    // Durably capture the booking request and forward to HubSpot.
+    // Durably capture the booking request and forward to our CRM.
     await submitLead({ formName: 'Book Free Consultation', fields: formData });
     setIsSuccess(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -106,10 +106,10 @@ function BookAppointmentPage() {
   return (
     <>
       <Helmet>
-        <title>Book a Free Immigration Consultation | iMigrate Solutions</title>
+        <title>Book a Free Immigration Consultation | iMigrate Migration Solutions</title>
         <meta name="description" content="Schedule a consultation with our expert immigration consultants for Australia and Canada." />
         <link rel="canonical" href="https://www.imigratesolution.com/book-appointment" />
-        <meta property="og:title" content="Book a Free Immigration Consultation | iMigrate Solutions" />
+        <meta property="og:title" content="Book a Free Immigration Consultation | iMigrate Migration Solutions" />
         <meta property="og:description" content="Schedule a free consultation with our expert immigration consultants for Australia and Canada. Get personalised advice within 24 hours." />
         <meta property="og:url" content="https://www.imigratesolution.com/book-appointment" />
         <meta property="og:type" content="website" />

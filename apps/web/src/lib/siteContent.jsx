@@ -11,9 +11,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
  */
 export const DEFAULT_CONTENT = {
   contact: {
-    phone: '+60134940302',
+    phone: '+60 11-2767 9613',
     email: 'contact@imigratesolution.com',
-    whatsapp: '60134940302',
+    whatsapp: '601127679613',
     address:
       'KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur',
   },
@@ -31,32 +31,32 @@ export const DEFAULT_CONTENT = {
     {
       title: '100% Money-Back Guarantee',
       description:
-        'Confidence in our process — if you are not eligible for the service you paid for, you get your money back.',
+        'At iMigrate Migration Solutions, we offer a 100% money-back guarantee for complete peace of mind. If you are not eligible for the service you paid for, you will receive a full refund, reflecting our commitment to a fair, transparent, and trusted process.',
     },
     {
       title: 'Pay As You Go',
       description:
-        'Flexible, stage-by-stage payments. Spread the cost of your application — no large upfront fees.',
+        'Enjoy flexible, stage-by-stage payment options with iMigrate Migration Solutions. Spread the cost of your immigration journey with no large upfront fees, paying only as you progress through each stage of the application process.',
     },
     {
       title: 'No Hidden Fees',
       description:
-        'Transparent, fixed pricing agreed upfront. You always know exactly what you are paying for.',
+        'At iMigrate Migration Solutions, we believe in complete transparency. Our pricing is clear and upfront, with no hidden fees or unexpected charges, so you know exactly what you\'re paying for from the start.',
     },
     {
       title: 'End-to-End Support',
       description:
-        'A dedicated case manager guides you from free assessment to visa grant and beyond.',
+        'iMigrate Migration Solutions offers end-to-end immigration support from eligibility assessment through visa submission and final decision. A dedicated case manager guides you throughout the process, ensuring a smooth, accurate, and stress-free experience.',
     },
   ],
   home: {
     heroTitle: 'Australia & Canada Immigration — Trusted by Families & Entrepreneurs from Malaysia, Singapore, India & Vietnam',
     heroSubtitle:
       'A Malaysia-based immigration consultancy trusted by clients across Asia and worldwide. We guide you through Australia and Canada skilled migration, student, family and business visas — with a FREE consultation, money-back guarantee and flexible pay-as-you-go payments.',
-    highlightsHeading: 'Why clients across Asia choose iMigrate Solutions',
+    highlightsHeading: 'Why clients across Asia choose iMigrate Migration Solutions',
     highlightsSubtitle:
       'Risk-free, flexible and fully transparent immigration services — trusted by professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam.',
-    whyHeading: 'Why choose iMigrate Solutions',
+    whyHeading: 'Why choose iMigrate Migration Solutions',
     whySubtitle:
       'We specialize in helping clients from Malaysia, Singapore, India and Vietnam migrate to Australia and Canada — with deep expertise, real results and zero hidden fees.',
     servicesHeading: 'Our immigration services',
@@ -86,7 +86,7 @@ export const DEFAULT_CONTENT = {
       "Canada offers some of the world's most welcoming and well-structured immigration programs. Below you'll find dedicated, in-depth guidance for each major pathway — including eligibility, benefits, key requirements, processing steps and frequently asked questions. Not sure where you fit? Start with a free eligibility assessment.",
   },
   about: {
-    heroTitle: 'About iMigrate Solutions',
+    heroTitle: 'About iMigrate Migration Solutions',
     heroSubtitle:
       'We are a team of dedicated immigration professionals committed to making your dream of living in Australia or Canada a reality.',
     trustText:

@@ -22,7 +22,7 @@ function AustraliaVisasPage() {
   return (
     <>
       <Helmet>
-        <title>Australia Visas | Student, Work, Employer Sponsored & Business Visas — iMigrate Solutions</title>
+        <title>Australia Visas | Student, Work, Employer Sponsored & Business Visas — iMigrate Migration Solutions</title>
         <meta
           name="description"
           content="Explore Australia's temporary and non-PR visas — Student Visa (Subclass 500), employer sponsored work visas (482/186/494) and business & investor migration. Compare pathways and check your eligibility with a free assessment."
@@ -40,7 +40,7 @@ function AustraliaVisasPage() {
             { '@type': 'ListItem', position: 2, name: 'Australia Visas', item: CANONICAL },
           ],
         })}</script>
-        <meta property="og:title" content="Australia Visas — Student, Work, Employer & Business | iMigrate Solutions" />
+        <meta property="og:title" content="Australia Visas — Student, Work, Employer & Business | iMigrate Migration Solutions" />
         <meta property="og:description" content="Australia's student, employer sponsored and business visas explained — eligibility, requirements and pathways. Free assessment available." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={CANONICAL} />

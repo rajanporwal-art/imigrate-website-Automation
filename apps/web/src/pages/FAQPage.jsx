@@ -86,7 +86,7 @@ function FAQPage() {
   return (
     <>
       <Helmet>
-        <title>Immigration FAQs | Canada &amp; Australia Visas — iMigrate Solutions</title>
+        <title>Immigration FAQs | Canada &amp; Australia Visas — iMigrate Migration Solutions</title>
         <meta
           name="description"
           content="Answers to the most common Canada and Australia immigration questions — Express Entry, PNP, work permits, C11, Subclass 189/190/491, skills assessment, PR, costs, processing times and visa refusals. Get a free assessment from an expert immigration consultant."
@@ -96,7 +96,7 @@ function FAQPage() {
           content="immigration FAQ, Canada immigration consultant, Canada Work Permit, Canada PR, Express Entry, C11 Work Permit, Australia Skilled Migration, Australia PR, Subclass 189, Subclass 190, Subclass 491, visa assessment, skilled worker visa, business immigration"
         />
         <link rel="canonical" href="https://www.imigratesolution.com/faq" />
-        <meta property="og:title" content="Immigration FAQs — Canada & Australia Visas | iMigrate Solutions" />
+        <meta property="og:title" content="Immigration FAQs — Canada & Australia Visas | iMigrate Migration Solutions" />
         <meta property="og:description" content="Expert answers on Canada and Australia immigration: Express Entry, PNP, Subclass 189/190/491, costs, processing times and more." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.imigratesolution.com/faq" />

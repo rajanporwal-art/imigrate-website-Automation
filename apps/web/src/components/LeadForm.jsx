@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { submitLead } from '@/lib/leads';
+import LegalDisclaimer from '@/components/LegalDisclaimer.jsx';
 
 const EMPTY = {
   fullName: '', email: '', phone: '', citizenship: '', residence: '',
@@ -284,6 +285,7 @@ function LeadForm({ source = 'Website', onSuccess }) {
           ? 'Submitting…'
           : (<><Send className="mr-1 h-5 w-5" /> Submit &amp; Get Free Eligibility Check</>)}
       </Button>
+      <LegalDisclaimer variant="form" className="mt-3" />
     </form>
   );
 }

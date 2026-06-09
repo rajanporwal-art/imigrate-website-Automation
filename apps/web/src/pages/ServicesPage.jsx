@@ -107,11 +107,11 @@ function ServicesPage() {
   return (
     <>
       <Helmet>
-        <title>Immigration Services | Skilled Migration, Express Entry, C11 Work Permit | iMigrate Solutions</title>
+        <title>Immigration Services | Skilled Migration, Express Entry, C11 Work Permit | iMigrate Migration Solutions</title>
         <meta name="description" content="Comprehensive immigration services for Australia and Canada including skilled migration, student visas, family sponsorship, and business immigration." />
         <meta name="keywords" content="skilled migration, Express Entry, student visa, partner visa, business immigration, investor visa, provincial nominee, C11 entrepreneur work permit" />
         <link rel="canonical" href="https://www.imigratesolution.com/services" />
-        <meta property="og:title" content="Immigration Services | Skilled Migration, Express Entry, C11 Work Permit | iMigrate Solutions" />
+        <meta property="og:title" content="Immigration Services | Skilled Migration, Express Entry, C11 Work Permit | iMigrate Migration Solutions" />
         <meta property="og:description" content="Comprehensive immigration services for Australia and Canada including skilled migration, student visas, family sponsorship, and business immigration." />
         <meta property="og:url" content="https://www.imigratesolution.com/services" />
         <meta property="og:type" content="website" />

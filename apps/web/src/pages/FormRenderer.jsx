@@ -15,7 +15,7 @@ import { submitLead } from '@/lib/leads';
 
 /**
  * Renders any custom form defined in /forms.json at /form/:slug.
- * Submissions are captured durably and synced to HubSpot like every other form.
+ * Submissions are captured durably and synced to our CRM like every other form.
  */
 function FormRenderer() {
   const { slug } = useParams();
@@ -49,7 +49,7 @@ function FormRenderer() {
   return (
     <>
       <Helmet>
-        <title>{form && form.title ? `${form.title} — iMigrate Solutions` : 'Form — iMigrate Solutions'}</title>
+        <title>{form && form.title ? `${form.title} — iMigrate Migration Solutions` : 'Form — iMigrate Migration Solutions'}</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <Header />

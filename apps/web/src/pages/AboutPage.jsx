@@ -37,12 +37,12 @@ function AboutPage() {
   return (
     <>
       <Helmet>
-        <title>About iMigrate Solutions | Trusted Immigration Consultants | 98.6% Success Rate</title>
-        <meta name="description" content="Learn about iMigrate Solutions, your trusted immigration consultancy with 10+ years of experience helping clients migrate to Australia and Canada." />
+        <title>About iMigrate Migration Solutions | Trusted Immigration Consultants | 98.6% Success Rate</title>
+        <meta name="description" content="Learn about iMigrate Migration Solutions, your trusted immigration consultancy with 10+ years of experience helping clients migrate to Australia and Canada." />
         <meta name="keywords" content="immigration consultancy, trusted immigration experts, Australia immigration experts, Canada immigration experts, money-back guarantee immigration" />
         <link rel="canonical" href="https://www.imigratesolution.com/about" />
-        <meta property="og:title" content="About iMigrate Solutions | Trusted Immigration Consultants | 98.6% Success Rate" />
-        <meta property="og:description" content="Learn about iMigrate Solutions — trusted immigration consultancy with 10+ years of experience and a 98.6% success rate helping clients migrate to Australia and Canada." />
+        <meta property="og:title" content="About iMigrate Migration Solutions | Trusted Immigration Consultants | 98.6% Success Rate" />
+        <meta property="og:description" content="Learn about iMigrate Migration Solutions — trusted immigration consultancy with 10+ years of experience and a 98.6% success rate helping clients migrate to Australia and Canada." />
         <meta property="og:url" content="https://www.imigratesolution.com/about" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
@@ -80,7 +80,7 @@ function AboutPage() {
                 <h2 className="heading-section text-balance mb-6">Our story</h2>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    iMigrate Solutions was built on a simple belief: immigration should be accessible, transparent, and successful for everyone with the right qualifications and determination. That belief drives everything we do — and it's backed by a 98.6% success rate, a 100% money-back guarantee, and honest, pay-as-you-go pricing.
+                    iMigrate Migration Solutions was built on a simple belief: immigration should be accessible, transparent, and successful for everyone with the right qualifications and determination. That belief drives everything we do — and it's backed by a 98.6% success rate, a 100% money-back guarantee, and honest, pay-as-you-go pricing.
                   </p>
                   <p>
                     Having navigated our own immigration journeys, we understand the challenges, uncertainties, and complexities that applicants face. We set out to create a consultancy that provides expert, ethical guidance while treating every client with the respect and attention they deserve — no false promises, no hidden fees.

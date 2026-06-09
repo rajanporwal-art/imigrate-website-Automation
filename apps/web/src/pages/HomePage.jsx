@@ -93,14 +93,14 @@ function HomePage() {
       name: 'Arjun Mehta',
       country: 'India → Canada',
       visaType: 'C11 Entrepreneur Work Permit',
-      testimonial: 'As a business owner from Mumbai, I was looking for a flexible route to Canada. iMigrate Solutions guided me through the C11 process seamlessly. Their expertise in structuring my business plan made all the difference. I am now running my IT consulting firm in Toronto.',
+      testimonial: 'As a business owner from Mumbai, I was looking for a flexible route to Canada. iMigrate Migration Solutions guided me through the C11 process seamlessly. Their expertise in structuring my business plan made all the difference. I am now running my IT consulting firm in Toronto.',
       image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
     },
     {
       name: 'Priya Nair',
       country: 'India → Australia',
       visaType: 'Skilled Independent Visa (189)',
-      testimonial: "iMigrate Solutions helped me navigate Australia's points system with confidence. Their team reviewed my profile thoroughly and identified the best pathway for my nursing career. The process was transparent and professional from start to finish.",
+      testimonial: "iMigrate Migration Solutions helped me navigate Australia's points system with confidence. Their team reviewed my profile thoroughly and identified the best pathway for my nursing career. The process was transparent and professional from start to finish.",
       image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
     },
     {
@@ -119,7 +119,7 @@ function HomePage() {
         <meta name="description" content="Malaysia-based Australia &amp; Canada immigration experts — PR, Express Entry, skilled migration &amp; C11 work permits. Book your FREE eligibility assessment today." />
         <meta name="keywords" content="Australia immigration Malaysia, Canada immigration Singapore, immigration consultant India, C11 entrepreneur work permit, Express Entry, skilled migration, immigration consultant Vietnam, Canada PR visa" />
         <link rel="canonical" href="https://www.imigratesolution.com/" />
-        <meta property="og:title" content="iMigrate Solutions - Australia &amp; Canada Immigration Experts" />
+        <meta property="og:title" content="iMigrate Migration Solutions - Australia &amp; Canada Immigration Experts" />
         <meta property="og:description" content="Malaysia-based consultancy for Australia &amp; Canada immigration, serving Asia &amp; worldwide. FREE consultation, money-back guarantee &amp; flexible pay-as-you-go fees." />
         <meta property="og:url" content="https://www.imigratesolution.com/" />
         <meta property="og:type" content="website" />
@@ -127,11 +127,11 @@ function HomePage() {
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": ["Organization", "LocalBusiness"],
-          "name": "iMigrate Solutions",
+          "name": "iMigrate Migration Solutions",
           "url": "https://www.imigratesolution.com",
           "logo": "https://www.imigratesolution.com/images/imigrate-logo.jpg",
           "description": "Expert Australia and Canada immigration consultants for clients from Malaysia, Singapore, India and Vietnam. 98.6% success rate.",
-          "telephone": "+60134940302",
+          "telephone": "+60 11-2767 9613",
           "email": "contact@imigratesolution.com",
           "address": {
             "@type": "PostalAddress",

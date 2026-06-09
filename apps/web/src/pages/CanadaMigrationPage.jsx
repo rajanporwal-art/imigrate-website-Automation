@@ -31,7 +31,7 @@ function CanadaMigrationPage() {
   return (
     <>
       <Helmet>
-        <title>Canada PR Visas | Express Entry, PNP & Provincial Nomination — iMigrate Solutions</title>
+        <title>Canada PR Visas | Express Entry, PNP & Provincial Nomination — iMigrate Migration Solutions</title>
         <meta
           name="description"
           content="Expert Canada permanent residence (PR) services. Express Entry skilled migration, Provincial Nominee Program (PNP), family sponsorship to PR, Start-up Visa and Atlantic PR pathways. Free eligibility assessment available."
@@ -49,7 +49,7 @@ function CanadaMigrationPage() {
             { "@type": "ListItem", "position": 2, "name": "Canada Immigration", "item": "https://www.imigratesolution.com/canada-immigration" }
           ]
         })}</script>
-        <meta property="og:title" content="Canada PR Visa Services | Express Entry, PNP & More | iMigrate Solutions" />
+        <meta property="og:title" content="Canada PR Visa Services | Express Entry, PNP & More | iMigrate Migration Solutions" />
         <meta
           property="og:description"
           content="Detailed guidance on every Canadian permanent residence pathway — Express Entry, PNP, family sponsorship, Start-up Visa and Atlantic programs. Check your eligibility with a free assessment."

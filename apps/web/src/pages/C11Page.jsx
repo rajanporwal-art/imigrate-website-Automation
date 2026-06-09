@@ -110,7 +110,7 @@ const faqs = [
   },
   {
     q: 'How does the C11 work permit lead to permanent residence?',
-    a: 'After operating your business in Canada for a period of time (typically 12–24 months), you can apply for permanent residence through provincial nominee programs such as the BCPNP Entrepreneur stream, the OINP Entrepreneur stream, or other provincial pathways. iMigrate Solutions guides you through this transition.',
+    a: 'After operating your business in Canada for a period of time (typically 12–24 months), you can apply for permanent residence through provincial nominee programs such as the BCPNP Entrepreneur stream, the OINP Entrepreneur stream, or other provincial pathways. iMigrate Migration Solutions guides you through this transition.',
   },
   {
     q: 'What types of businesses qualify for a C11 work permit?',
@@ -118,7 +118,7 @@ const faqs = [
   },
   {
     q: 'How long does the C11 work permit process take?',
-    a: 'Processing times vary depending on the visa office processing your application and the completeness of your documentation. iMigrate Solutions prepares thorough applications to minimize delays. We provide realistic timelines based on current processing conditions at the time of your application.',
+    a: 'Processing times vary depending on the visa office processing your application and the completeness of your documentation. iMigrate Migration Solutions prepares thorough applications to minimize delays. We provide realistic timelines based on current processing conditions at the time of your application.',
   },
 ];
 
@@ -147,15 +147,15 @@ function C11Page() {
   return (
     <>
       <Helmet>
-        <title>C11 Entrepreneur Work Permit Canada | iMigrate Solutions</title>
+        <title>C11 Entrepreneur Work Permit Canada | iMigrate Migration Solutions</title>
         <meta name="description" content="Canada's C11 Entrepreneur Work Permit — flexible business immigration with no minimum investment requirement. Fast-track to permanent residence for entrepreneurs from India, Malaysia, Singapore and beyond." />
         <meta name="keywords" content="C11 entrepreneur work permit, Canada business immigration, entrepreneur visa Canada, Canada PR for entrepreneurs, business immigration Canada" />
         <link rel="canonical" href="https://www.imigratesolution.com/c11-entrepreneur-work-permit" />
-        <meta property="og:title" content="C11 Entrepreneur Work Permit — Canada | iMigrate Solutions" />
+        <meta property="og:title" content="C11 Entrepreneur Work Permit — Canada | iMigrate Migration Solutions" />
         <meta property="og:description" content="Canada's most flexible business immigration route. No minimum investment, fast-track to permanent residence." />
         <meta property="og:url" content="https://www.imigratesolution.com/c11-entrepreneur-work-permit" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta property="og:image" content="https://www.imigratesolution.com/images/ca-toronto-cntower.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
@@ -168,7 +168,7 @@ function C11Page() {
           "@context": "https://schema.org",
           "@type": "Service",
           "name": "C11 Entrepreneur Work Permit",
-          "provider": { "@type": "Organization", "name": "iMigrate Solutions" },
+          "provider": { "@type": "Organization", "name": "iMigrate Migration Solutions" },
           "description": "Expert guidance for Canada's C11 Entrepreneur Work Permit — business immigration pathway to Canadian permanent residence.",
           "areaServed": ["India", "Malaysia", "Singapore", "Canada"],
         })}</script>
@@ -179,8 +179,17 @@ function C11Page() {
 
       <main>
         {/* Hero */}
-        <section className="section-spacing bg-primary text-primary-foreground">
-          <div className="container-custom">
+        <section className="relative bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden section-spacing">
+          <div className="absolute inset-0 opacity-25">
+            <img
+              src="/images/ca-toronto-cntower.jpg"
+              alt="Toronto skyline and CN Tower representing Canada business and entrepreneur immigration"
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/90 to-primary/70" />
+          <div className="container-custom relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -188,8 +197,10 @@ function C11Page() {
               className="max-w-3xl"
             >
               <div className="gold-rule mb-5" />
-              <span className="text-accent font-semibold text-sm uppercase tracking-widest">Featured Program</span>
-              <h1 className="heading-display text-balance mt-2 mb-6">C11 Entrepreneur Work Permit — Canada</h1>
+              <span className="inline-flex items-center gap-2 text-accent font-semibold text-sm uppercase tracking-widest">
+                <span role="img" aria-label="Flag of Canada">🇨🇦</span> Featured Business Immigration Program
+              </span>
+              <h1 className="heading-display text-balance mt-3 mb-6">C11 Entrepreneur Work Permit — Canada</h1>
               <p className="text-xl leading-relaxed opacity-90 mb-8">
                 Canada's premier business immigration route. Establish or purchase a business in Canada with no mandatory minimum investment and a clear fast-track to permanent residence — ideal for entrepreneurs from India, Malaysia, Singapore, and across Asia.
               </p>
@@ -228,7 +239,7 @@ function C11Page() {
                   Unlike many business immigration programs, C11 does not mandate a minimum investment amount in legislation, giving immigration officers flexibility to assess each case on its merits. What matters most is demonstrating that the business is genuine, viable, will provide significant economic benefit to Canada, and will create or maintain employment for Canadian citizens or permanent residents.
                 </p>
                 <p>
-                  iMigrate Solutions specializes in C11 applications for entrepreneurs from India, Malaysia, Singapore, and other Asian markets. Our team handles the entire process — from initial assessment and business identification through to permanent residence.
+                  iMigrate Migration Solutions specializes in C11 applications for entrepreneurs from India, Malaysia, Singapore, and other Asian markets. Our team handles the entire process — from initial assessment and business identification through to permanent residence.
                 </p>
               </div>
             </motion.div>
