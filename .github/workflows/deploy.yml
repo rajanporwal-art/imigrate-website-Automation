@@ -57,3 +57,4 @@ jobs:
             **/*.backup
             forms.json
             hubspot.json
+            m365-config.php

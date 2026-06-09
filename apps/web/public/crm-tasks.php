@@ -61,7 +61,9 @@ if ($action === 'add') {
         'due' => substr((string) ($p['due'] ?? ''), 0, 20),
         'priority' => substr((string) ($p['priority'] ?? 'Normal'), 0, 20),
         'leadEmail' => substr((string) ($p['leadEmail'] ?? ''), 0, 120),
-        'status' => 'Open',
+        'ckey' => substr((string) ($p['ckey'] ?? ''), 0, 160),
+        'assignedTo' => substr((string) ($p['assignedTo'] ?? ($p['author'] ?? '')), 0, 60),
+        'status' => substr((string) ($p['status'] ?? 'Open'), 0, 20),
         'createdAt' => date('c'),
     ];
     if ($task['title'] === '') { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Title required']); exit; }
@@ -71,7 +73,7 @@ if ($action === 'add') {
     $found = false;
     foreach ($tasks as &$t) {
         if (($t['id'] ?? '') === $id) {
-            foreach (['title', 'due', 'priority', 'status', 'type', 'leadEmail'] as $k) {
+            foreach (['title', 'due', 'priority', 'status', 'type', 'leadEmail', 'ckey', 'assignedTo'] as $k) {
                 if (isset($p[$k])) $t[$k] = substr((string) $p[$k], 0, 200);
             }
             $found = true; break;

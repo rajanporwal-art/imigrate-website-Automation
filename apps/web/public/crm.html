@@ -150,6 +150,23 @@
 
   const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
 
+  /* Immigration email templates. {{name}} {{occupation}} {{points}} {{visas}} are filled per lead. */
+  const EMAIL_TEMPLATES = {
+    'CV Request': { subject:'Please share your CV — iMigrate Migration Solutions',
+      body:`<p>Hi {{name}},</p><p>Thank you for your interest in migrating with iMigrate Migration Solutions. To prepare your eligibility assessment, please reply with your most recent <strong>CV / résumé</strong> (PDF or Word).</p><p>This helps our specialists verify your occupation, skills and experience against the relevant program criteria.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+    'Consultation Invitation': { subject:'Book your FREE immigration consultation',
+      body:`<p>Hi {{name}},</p><p>We'd love to walk you through your options for {{occupation}}. Book a <strong>free, no-obligation consultation</strong> with one of our migration specialists and we'll map out the best pathway for your profile.</p><p><a href="https://www.imigratesolution.com/assessment">Book my consultation</a></p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+    'Assessment Completed': { subject:'Your immigration assessment is ready',
+      body:`<p>Hi {{name}},</p><p>Great news — we've completed your preliminary assessment. Based on your profile ({{occupation}}, {{points}} points), you may be eligible for: <strong>{{visas}}</strong>.</p><p>Let's discuss the next steps on a quick call.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+    'Report Delivery': { subject:'Your personalized Australia immigration report',
+      body:`<p>Hi {{name}},</p><p>Please find your personalized immigration assessment report attached/linked. It summarises your points, likely visa pathways and recommended next steps.</p><p>Book a free consultation to have a specialist verify your eligibility and build your roadmap.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+    'Follow-Up Reminder': { subject:'Following up on your migration plans',
+      body:`<p>Hi {{name}},</p><p>Just checking in on your migration plans. Do you have any questions about your eligibility or the process? We're here to help whenever you're ready.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+    'Re-Engagement': { subject:'Still thinking about moving abroad?',
+      body:`<p>Hi {{name}},</p><p>It's been a little while since we last connected. Immigration programs and points thresholds change regularly — if you're still considering a move, now is a great time to revisit your options with a free reassessment.</p><p><a href="https://www.imigratesolution.com/assessment">Reassess my eligibility</a></p><p>Warm regards,<br>iMigrate Migration Solutions</p>` },
+  };
+  function fillTemplate(str,c){ return (str||'').replace(/{{name}}/g,c.name&&c.name!=='(no name)'?c.name:'there').replace(/{{occupation}}/g,c.occupation||'your occupation').replace(/{{points}}/g,c.points||'—').replace(/{{visas}}/g,c.visas||'your eligible pathways'); }
+
   const esc = (v) => (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fmtDT = (s) => (s||'').slice(0,16).replace('T',' ');
 
@@ -362,7 +379,7 @@
     const tabs=[
       ['contact','Contact'],['assessment','Assessment'],['inputs','User Inputs'],['recs','AI Recommendations'],
       ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
-      ['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
+      ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
     ];
     const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option ${s===c.stage?'selected':''}>${s}</option>`).join('')}</select>`;
     $('content').innerHTML=`
@@ -377,6 +394,7 @@
           ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
           ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
           ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
+          <button class="btn btn-sm" onclick="scheduleConsult('${esc(c.ckey)}')">📅 Consultation</button>
         </div>
       </div>
       <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
@@ -430,23 +448,36 @@
         <div style="margin-top:14px">${notes.length?notes.map(n=>`<div class="note">${esc(n.text)}<div class="t"><span>${esc(fmtDT(n.at))} · ${esc(n.author||'Consultant')}${n.editedAt?' · edited':''}</span><span><button class="btn btn-sm" onclick="editNote('${esc(c.ckey)}','${esc(n.id)}')">Edit</button> <button class="btn btn-sm" onclick="delNote('${esc(c.ckey)}','${esc(n.id)}')">Delete</button></span></div></div>`).join(''):'<span class="muted">No notes yet.</span>'}</div>
         </div></div>`;
     } else if(PROFILE_TAB==='tasks'){
+      const statuses=['Open','In Progress','Done'];
+      const stSel=(t)=>`<select style="width:auto" onchange="updTaskStatus('${t.id}',this.value)">${statuses.map(s=>`<option ${s===(t.status||'Open')?'selected':''}>${s}</option>`).join('')}</select>`;
       b.innerHTML=`<div class="card"><div class="sect"><h3>Tasks for this lead</h3>
         <div class="toolbar">
-          <input id="ptTitle" placeholder="Task title…" style="flex:1;min-width:180px">
+          <input id="ptTitle" placeholder="Task title…" style="flex:1;min-width:160px">
           <select id="ptType"><option>Call</option><option>Follow-up</option><option>Consultation</option><option>Document Collection</option><option>Email Follow-Up</option></select>
           <input id="ptDue" type="date"><select id="ptPriority"><option>Normal</option><option>High</option><option>Low</option></select>
+          <input id="ptAssign" placeholder="Assigned to" value="${esc(CRM_USER())}" style="width:130px">
           <button class="btn btn-sm btn-primary" onclick="addProfileTask('${esc(c.ckey)}','${esc(c.email)}')">Add task</button>
         </div>
-        ${myTasks.length?`<table><thead><tr><th></th><th>Task</th><th>Type</th><th>Due</th><th>Priority</th><th class="right"></th></tr></thead><tbody>${myTasks.map(t=>`<tr><td><input type="checkbox" ${t.status==='Done'?'checked':''} style="width:auto" onchange="toggleTask('${t.id}',this.checked)"></td><td>${esc(t.title)}</td><td class="muted">${esc(t.type)}</td><td>${esc(t.due||'—')}</td><td><span class="pill">${esc(t.priority)}</span></td><td class="right"><button class="btn btn-sm" onclick="delTaskP('${t.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">No tasks yet.</p>'}
+        ${myTasks.length?`<table><thead><tr><th>Task</th><th>Type</th><th>Due</th><th>Priority</th><th>Assigned</th><th>Status</th><th class="right"></th></tr></thead><tbody>${myTasks.map(t=>`<tr><td>${esc(t.title)}</td><td class="muted">${esc(t.type)}</td><td>${esc(t.due||'—')}</td><td><span class="pill">${esc(t.priority)}</span></td><td class="muted">${esc(t.assignedTo||'—')}</td><td>${stSel(t)}</td><td class="right"><button class="btn btn-sm" onclick="delTaskP('${t.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">No tasks yet.</p>'}
         ${c.email?'':'<p class="muted" style="font-size:12px;margin-top:8px">Note: this lead has no email, so tasks are tracked by name only.</p>'}
       </div></div>`;
     } else if(PROFILE_TAB==='reports'){
       renderReportsTab(c);
+    } else if(PROFILE_TAB==='emails'){
+      renderEmailsTab(c);
     } else if(PROFILE_TAB==='documents'){
       b.innerHTML=`<div class="card"><div class="sect"><h3>Documents</h3>
-        ${c.cvFiles.length?c.cvFiles.map(f=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>📄 ${esc(f.name)}<div class="t">${esc((f.at||'').slice(0,10))}</div></span><button class="btn btn-sm" onclick="dlCv('${esc(f.file)}','${esc(f.name)}')">Download</button></div>`).join(''):'<p class="muted">No documents uploaded yet.</p>'}
-        <p class="muted" style="font-size:12px;margin-top:8px">Full multi-file upload (passports, certificates, employment docs) arrives in Phase 2. CVs uploaded via the website forms appear here.</p>
+        <div class="toolbar">
+          <input type="file" id="docFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="width:auto">
+          <select id="docCat" style="width:auto"><option value="">Category…</option><option>CV / Résumé</option><option>Passport</option><option>Educational Certificate</option><option>Employment Document</option><option>Assessment Report</option><option>Other</option></select>
+          <button class="btn btn-sm btn-primary" onclick="uploadDoc('${esc(c.ckey)}','${esc(c.email)}')">⬆ Upload</button>
+          <span id="docMsg" class="muted" style="font-size:12px"></span>
+        </div>
+        <p class="muted" style="font-size:12px">Accepted: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (max 10 MB).</p>
+        <div id="docList"><p class="muted">Loading documents…</p></div>
+        ${c.cvFiles.length?`<h3 style="margin-top:18px">From website forms</h3>${c.cvFiles.map(f=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>📄 ${esc(f.name)}<div class="t">${esc((f.at||'').slice(0,10))}</div></span><button class="btn btn-sm" onclick="dlCv('${esc(f.file)}','${esc(f.name)}')">Download</button></div>`).join('')}`:''}
       </div></div>`;
+      loadDocs(c);
     }
   }
 
@@ -507,10 +538,113 @@
   /* ---------- tasks (profile + global) ---------- */
   async function addProfileTask(ckey,email){
     const title=$('ptTitle').value.trim(); if(!title)return;
-    const body={action:'add',title,type:$('ptType').value,due:$('ptDue').value,priority:$('ptPriority').value,leadEmail:email};
+    const body={action:'add',title,type:$('ptType').value,due:$('ptDue').value,priority:$('ptPriority').value,leadEmail:email,ckey,assignedTo:$('ptAssign')?$('ptAssign').value:CRM_USER()};
     const r=await api('/crm-tasks.php',body); if(r.ok){TASKS=r.tasks;renderProfile();}
   }
   async function delTaskP(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderProfile();} }
+  async function updTaskStatus(id,status){ const r=await api('/crm-tasks.php',{action:'update',id,status}); if(r.ok){TASKS=r.tasks; if(VIEW==='profile')renderProfile();} }
+
+  /* ---------- schedule consultation (M365 calendar + task + stage) ---------- */
+  async function scheduleConsult(ckey){
+    const c=findByKey(ckey);
+    const when=prompt('Consultation date & time (YYYY-MM-DD HH:MM):',new Date(Date.now()+864e5).toISOString().slice(0,16).replace('T',' '));
+    if(!when)return;
+    const start=new Date(when.replace(' ','T')); if(isNaN(start)){ alert('Invalid date/time.'); return; }
+    const end=new Date(start.getTime()+30*60000);
+    // Create a follow-up task + move stage regardless of M365.
+    await api('/crm-tasks.php',{action:'add',title:'Consultation with '+c.name,type:'Consultation',due:start.toISOString().slice(0,10),priority:'High',leadEmail:c.email,ckey,assignedTo:CRM_USER()});
+    await setStage(ckey,'Consultation Booked');
+    // Try to add it to the Microsoft 365 calendar.
+    const r=await api('/m365.php',{action:'event',subject:'iMigrate consultation — '+c.name,start:start.toISOString(),end:end.toISOString(),attendee:c.email||'',body:'Immigration consultation for '+esc(c.name)});
+    await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event:'Consultation scheduled',detail:when});
+    alert(r&&r.ok?'Consultation booked + added to your Microsoft 365 calendar.':'Consultation booked and task created. (Connect Microsoft 365 in Settings to also add it to your Outlook calendar.)');
+    renderProfile();
+  }
+
+  /* ---------- emails (compose, templates, send, tracking) ---------- */
+  async function renderEmailsTab(c){
+    const b=$('tabBody'); if(!b) return;
+    const tplOpts=['',...Object.keys(EMAIL_TEMPLATES)].map(t=>`<option value="${esc(t)}">${t||'Blank / no template'}</option>`).join('');
+    b.innerHTML=`<div class="card"><div class="sect"><h3>Send email</h3>
+      ${c.email?'':'<p class="err" style="font-size:13px">This lead has no email address. Add one in the Contact tab to send email.</p>'}
+      <div style="display:grid;gap:8px;max-width:680px">
+        <div><label class="muted" style="font-size:12px">Template</label><select id="emTpl" onchange="applyTemplate('${esc(c.ckey)}')">${tplOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">To</label><input id="emTo" value="${esc(c.email||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Subject</label><input id="emSubject" placeholder="Subject…"></div>
+        <div><label class="muted" style="font-size:12px">Message (HTML allowed)</label><textarea id="emBody" rows="9" placeholder="Write your message…"></textarea></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="muted" style="font-size:12px">Schedule (optional)</label><input id="emSchedule" type="datetime-local" style="width:auto">
+          <button class="btn btn-sm" onclick="emPreview()">👁 Preview</button>
+          <button class="btn btn-sm btn-primary" onclick="sendEmail('${esc(c.ckey)}')">✉ Send</button>
+        </div>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:8px">Opens &amp; link clicks are tracked. Delivery uses Microsoft 365 when connected, otherwise the server mailer. Scheduled emails require the cron job (see Settings).</p>
+      </div></div>
+      <div class="card" style="margin-top:14px"><div class="sect"><h3>Email history</h3><div id="emHist"><p class="muted">Loading…</p></div></div></div>`;
+    loadEmails(c);
+  }
+  function applyTemplate(ckey){
+    const c=findByKey(ckey); const name=$('emTpl').value; if(!name){return;}
+    const t=EMAIL_TEMPLATES[name]; if(!t)return;
+    $('emSubject').value=fillTemplate(t.subject,c);
+    $('emBody').value=fillTemplate(t.body,c);
+  }
+  function emPreview(){ const html=$('emBody').value; openHtmlWindow('<!doctype html><meta charset="utf-8"><body style="font-family:Arial,sans-serif;max-width:640px;margin:20px auto;padding:0 16px">'+html+'</body>'); }
+  async function sendEmail(ckey){
+    const c=findByKey(ckey);
+    const to=$('emTo').value.trim(), subject=$('emSubject').value.trim(), html=$('emBody').value.trim();
+    if(!to||!subject||!html){ alert('To, subject and message are required.'); return; }
+    const scheduleRaw=$('emSchedule').value;
+    const scheduleAt = scheduleRaw ? new Date(scheduleRaw).toISOString() : '';
+    const r=await api('/crm-email.php',{action:'send',ckey,to,toName:c.name,subject,html,template:$('emTpl').value,scheduleAt});
+    if(r.ok){
+      await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event: r.status==='scheduled'?'Email scheduled':'Email sent',detail:subject});
+      alert(r.status==='scheduled'?('Email scheduled for '+fmtDT(r.scheduleAt)):('Email sent'+(r.via?(' via '+r.via):'')+'.'));
+      loadEmails(c);
+    } else { alert(r.error||'Send failed.'); if(r.id) loadEmails(c); }
+  }
+  async function loadEmails(c){
+    const box=$('emHist'); if(!box) return;
+    const r=await api('/crm-email.php',{action:'by',key:c.ckey,email:c.email});
+    const emails=(r.emails||[]);
+    box.innerHTML = emails.length ? emails.map(e=>{
+      const opens=(e.opens&&e.opens.length!=null)?(Array.isArray(e.opens)?e.opens.length:e.opens):0;
+      const clicks=(e.clicks&&e.clicks.length!=null)?(Array.isArray(e.clicks)?e.clicks.length:e.clicks):0;
+      const badge=e.status==='sent'?'<span class="badge ready">sent</span>':e.status==='scheduled'?'<span class="badge warm">scheduled</span>':e.status==='failed'?'<span class="badge hotcat">failed</span>':'';
+      return `<div class="note"><strong>${esc(e.subject)}</strong> ${badge}<div class="t"><span>${esc(fmtDT(e.sentAt||e.scheduleAt||e.createdAt))} · ${esc(e.via||e.template||'')}</span><span>👁 ${opens} opens · 🔗 ${clicks} clicks</span></div></div>`;
+    }).join('') : '<p class="muted">No emails sent yet.</p>';
+  }
+
+  /* ---------- documents (upload / list / delete) ---------- */
+  async function loadDocs(c){
+    const box=$('docList'); if(!box) return;
+    const r=await api('/crm-docs.php',{action:'list',key:c.ckey,email:c.email});
+    const docs=r.docs||[];
+    box.innerHTML = docs.length ? docs.map(d=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>📎 ${esc(d.name)} ${d.category?`<span class="pill">${esc(d.category)}</span>`:''}<div class="t">${esc((d.at||'').slice(0,10))} · ${(d.size/1024|0)} KB · ${esc(d.uploadedBy||'')}</div></span><span><button class="btn btn-sm" onclick="dlDoc('${esc(d.id)}','${esc(d.name)}')">Download</button> <button class="btn btn-sm" onclick="deleteDoc('${esc(d.id)}','${esc(c.ckey)}')">Delete</button></span></div>`).join('') : '<p class="muted">No documents uploaded yet.</p>';
+  }
+  async function uploadDoc(ckey,email){
+    const inp=$('docFile'); const msg=$('docMsg'); if(!inp||!inp.files.length){ if(msg)msg.textContent='Choose a file first.'; return; }
+    const fd=new FormData();
+    fd.append('password',PW()); fd.append('author',CRM_USER()); fd.append('ckey',ckey); fd.append('leadEmail',email||'');
+    fd.append('category',$('docCat')?$('docCat').value:''); fd.append('file',inp.files[0]);
+    if(msg)msg.textContent='Uploading…';
+    try{
+      const r=await fetch('/crm-docs.php',{method:'POST',body:fd});
+      const j=await r.json().catch(()=>({ok:false}));
+      if(j.ok){ if(msg)msg.textContent='Uploaded.'; const c=findByKey(ckey); await api('/crm-meta.php',{action:'log',key:ckey,email,event:'Document uploaded',detail:(j.doc&&j.doc.name)||''}); loadDocs(c); }
+      else { if(msg)msg.textContent=j.error||'Upload failed.'; }
+    }catch(e){ if(msg)msg.textContent='Upload failed.'; }
+  }
+  async function deleteDoc(id,ckey){
+    if(!confirm('Delete this document?'))return;
+    const r=await api('/crm-docs.php',{action:'delete',id});
+    if(r.ok){ const c=findByKey(ckey); loadDocs(c); }
+  }
+  async function dlDoc(id,name){
+    const r=await fetch('/crm-docs.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',id})});
+    if(!r.ok){ alert('File not available.'); return; }
+    const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name||'document';a.click();
+  }
 
   /* ---------- reports (reconstruct + store + actions) ---------- */
   function buildReportHtml(c){
@@ -665,13 +799,53 @@
         <a class="btn" href="/admin.html" target="_blank">Open Admin (website content)</a></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Microsoft 365 integration</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6">The Outlook / OneDrive / Calendar integration module is scheduled for Phase 2. It will connect via Microsoft Graph once an Azure app (Client ID + Secret) is registered. Email send, inbox sync, calendar scheduling and OneDrive backup will appear here.</p>
-        <span class="badge std">Phase 2 — pending Azure app</span>
+        <div id="m365Status"><p class="muted">Checking connection…</p></div>
+        <div id="m365Inbox" style="margin-top:10px"></div>
+        <p class="muted" style="font-size:12px;line-height:1.6;margin-top:10px">Connects Outlook (send/receive email), Calendar (consultations) and OneDrive (backups) via Microsoft Graph. Requires a registered Azure app — copy <code>m365-config.example.php</code> to <code>m365-config.php</code> on the server and add your Client ID + Secret, then click Connect.</p>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Scheduled emails (cron)</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Scheduled emails dispatch via <code>crm-cron.php</code>. In Hostinger → Advanced → Cron Jobs, add (every 5 min):<br><code>php /home/USER/domains/imigratesolution.com/public_html/crm-cron.php</code><br>Set <code>$CRON_SECRET</code> in <code>admin-config.php</code> if calling it by URL.</p>
       </div>
       <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
+        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
+    m365LoadStatus();
   }
+  async function m365LoadStatus(){
+    const box=$('m365Status'); if(!box) return;
+    let r; try{ r=await api('/m365.php',{action:'status'}); }catch(e){ r={ok:false}; }
+    const s=(r&&r.status)||{};
+    if(!s.configured){
+      box.innerHTML=`<span class="badge std">Not configured</span><p class="muted" style="font-size:13px;margin-top:6px">Add Azure app credentials in <code>m365-config.php</code> to enable. The module is fully built and waiting on credentials.</p>`;
+      return;
+    }
+    if(s.connected){
+      box.innerHTML=`<span class="badge ready">Connected</span> <strong>${esc(s.displayName||'')}</strong> <span class="muted">${esc(s.account||'')}</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn btn-sm" onclick="m365Inbox()">📥 Sync inbox</button>
+          <button class="btn btn-sm" onclick="m365Backup()">☁️ Backup leads to OneDrive</button>
+          <button class="btn btn-sm" onclick="m365Disconnect()">Disconnect</button>
+        </div>`;
+    } else {
+      box.innerHTML=`<span class="badge warm">Configured · not connected</span>
+        <div style="margin-top:10px"><a class="btn btn-sm btn-primary" href="/m365.php?action=connect" target="_blank" onclick="setTimeout(m365LoadStatus,6000)">🔗 Connect Microsoft 365</a></div>`;
+    }
+  }
+  async function m365Inbox(){
+    const box=$('m365Inbox'); if(box)box.innerHTML='<p class="muted">Loading inbox…</p>';
+    const r=await api('/m365.php',{action:'messages',top:10});
+    const msgs=(r&&r.messages)||[];
+    if(box) box.innerHTML = msgs.length ? `<div class="card" style="background:var(--bg)"><h3 style="margin:0 0 8px;font-size:12px">Recent inbox</h3>${msgs.map(m=>`<div class="note"><strong>${esc((m.from&&m.from.emailAddress&&m.from.emailAddress.name)||'')}</strong> — ${esc(m.subject||'(no subject)')}<div class="t">${esc(fmtDT(m.receivedDateTime))}</div><div class="muted" style="font-size:12px">${esc((m.bodyPreview||'').slice(0,120))}</div></div>`).join('')}</div>` : '<p class="muted">No messages or not connected.</p>';
+  }
+  async function m365Backup(){
+    const cols=['name','sourceType','email','phone','occupation','points','visas','stage','source','latestDate'];
+    const rows=[cols.join(',')]; CONTACTS.forEach(c=>rows.push(cols.map(k=>'"'+String(c[k]==null?'':c[k]).replace(/"/g,'""')+'"').join(',')));
+    const content=btoa(unescape(encodeURIComponent('﻿'+rows.join('\r\n'))));
+    const name='imigrate-crm-leads-'+new Date().toISOString().slice(0,10)+'.csv';
+    const r=await api('/m365.php',{action:'onedrive',name,content,folder:'iMigrate CRM'});
+    alert(r&&r.ok?('Backed up '+CONTACTS.length+' leads to OneDrive › iMigrate CRM › '+name):'Backup failed (check Microsoft 365 connection).');
+  }
+  async function m365Disconnect(){ if(!confirm('Disconnect Microsoft 365?'))return; await api('/m365.php',{action:'disconnect'}); m365LoadStatus(); $('m365Inbox').innerHTML=''; }
 
   /* ---------- export / theme ---------- */
   function exportCsv(){
