@@ -95,6 +95,19 @@ function AustraliaAIAssessment() {
           visas: fields.eligibleVisaSubclasses, tags: fields.tags, website: '',
         }),
       }).catch(() => {});
+      // 3) Persist the rendered report to the CRM so consultants can view,
+      //    download (PDF), re-email and keep historical versions of it.
+      await fetch('/crm-reports.php', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'capture', name: lead.fullName, email: lead.email,
+          occupation: rpt.occupation ? rpt.occupation.name : '',
+          anzsco: rpt.occupation ? rpt.occupation.code : '',
+          points: String(rpt.points), visas: fields.eligibleVisaSubclasses,
+          eligibilityStatus: rpt.eligibilityStatus,
+          source: 'Australia Free Eligibility Check', html, website: '',
+        }),
+      }).catch(() => {});
       setReport(rpt); setDone(true);
     } catch (err) {
       setError('Something went wrong sending your report. Please try again.');
