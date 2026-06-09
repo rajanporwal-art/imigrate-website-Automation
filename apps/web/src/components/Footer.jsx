@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useSiteContent } from '@/lib/siteContent.jsx';
 import { submitLead } from '@/lib/leads';
+import LegalDisclaimer from '@/components/LegalDisclaimer.jsx';
 
 function Footer() {
   const [email, setEmail] = useState('');
@@ -35,7 +36,7 @@ function Footer() {
             <div className="flex items-center space-x-2 mb-6">
               <img 
                 src="/images/imigrate-logo.jpg" 
-                alt="iMigrate Solutions Logo" 
+                alt="iMigrate Migration Solutions Logo" 
                 className="h-16 w-auto rounded-lg bg-white p-2" 
               />
             </div>
@@ -123,11 +124,14 @@ function Footer() {
         </div>
 
         <div className="border-t border-secondary-foreground/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-sm opacity-90">© {new Date().getFullYear()} iMigrate Solutions. All rights reserved.</p>
+          <p className="text-sm opacity-90">© {new Date().getFullYear()} iMigrate Migration Solutions. All rights reserved.</p>
           <div className="flex space-x-6 text-sm">
             <Link to="/privacy" className="opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Privacy Policy</Link>
             <Link to="/terms" className="opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Terms of Service</Link>
           </div>
+        </div>
+        <div className="border-t border-secondary-foreground/10 mt-6 pt-6">
+          <LegalDisclaimer variant="footer" />
         </div>
       </div>
     </footer>

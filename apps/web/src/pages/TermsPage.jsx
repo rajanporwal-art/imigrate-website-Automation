@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import LegalDisclaimer from '@/components/LegalDisclaimer.jsx';
 
 const EFFECTIVE_DATE = '1 June 2026';
-const COMPANY = 'iMigrate Solutions';
+const COMPANY = 'iMigrate Migration Solutions';
 const WEBSITE = 'www.imigratesolution.com';
 const EMAIL = 'contact@imigratesolution.com';
 const ADDRESS = 'KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur, Malaysia';
@@ -42,8 +43,8 @@ export default function TermsPage() {
   return (
     <>
       <Helmet>
-        <title>Terms of Service — iMigrate Solutions</title>
-        <meta name="description" content="iMigrate Solutions Terms of Service — the terms and conditions governing use of our immigration consultancy services and website." />
+        <title>Terms of Service — iMigrate Migration Solutions</title>
+        <meta name="description" content="iMigrate Migration Solutions Terms of Service — the terms and conditions governing use of our immigration consultancy services and website." />
         <meta name="robots" content="noindex, follow" />
       </Helmet>
 
@@ -103,6 +104,8 @@ export default function TermsPage() {
                 <p className="text-muted-foreground leading-relaxed mb-10">
                   These Terms of Service ("<strong>Terms</strong>") govern your access to and use of the website at <strong>{WEBSITE}</strong> and the immigration consultancy services provided by <strong>{COMPANY}</strong> ("<strong>we</strong>", "<strong>us</strong>", or "<strong>our</strong>"). By accessing our website or engaging our services, you agree to be bound by these Terms. If you do not agree, please do not use our website or services.
                 </p>
+
+                <LegalDisclaimer className="mb-10" />
 
                 <Section id="acceptance" title="1. Acceptance of Terms">
                   <p>
@@ -311,7 +314,7 @@ export default function TermsPage() {
                     <p><strong className="text-foreground">{COMPANY}</strong></p>
                     <p>{ADDRESS}</p>
                     <p>Email: <a href={`mailto:${EMAIL}`} className="text-primary hover:underline font-medium">{EMAIL}</a></p>
-                    <p>Phone: <a href="tel:+60134940302" className="text-primary hover:underline font-medium">+60134940302</a></p>
+                    <p>Phone: <a href="tel:+60 11-2767 9613" className="text-primary hover:underline font-medium">+60 11-2767 9613</a></p>
                     <p>Website: <a href={`https://${WEBSITE}`} className="text-primary hover:underline font-medium">{WEBSITE}</a></p>
                   </div>
                 </Section>

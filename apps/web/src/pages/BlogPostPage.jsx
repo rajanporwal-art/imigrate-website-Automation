@@ -74,7 +74,7 @@ function BlogPostPage() {
   if (!post) return null;
 
   const shareUrl = window.location.href;
-  const metaTitle = post.metaTitle || `${post.title} | iMigrate Solutions`;
+  const metaTitle = post.metaTitle || `${post.title} | iMigrate Migration Solutions`;
   const metaDescription = post.metaDescription || post.excerpt || '';
   const canonical = post.canonicalUrl || `https://www.imigratesolution.com/blog/${post.slug}`;
   const ogImage = post.featuredImage && post.featuredImage.startsWith('http')
@@ -88,10 +88,10 @@ function BlogPostPage() {
     headline: post.title,
     description: metaDescription,
     image: ogImage,
-    author: { '@type': 'Organization', name: post.author || 'iMigrate Solutions' },
+    author: { '@type': 'Organization', name: post.author || 'iMigrate Migration Solutions' },
     publisher: {
       '@type': 'Organization',
-      name: 'iMigrate Solutions',
+      name: 'iMigrate Migration Solutions',
       logo: { '@type': 'ImageObject', url: 'https://www.imigratesolution.com/images/imigrate-logo.jpg' },
     },
     datePublished: post.publishedDate,

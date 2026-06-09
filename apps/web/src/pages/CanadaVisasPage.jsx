@@ -22,7 +22,7 @@ function CanadaVisasPage() {
   return (
     <>
       <Helmet>
-        <title>Canada Visas | Work Permits, Study Permits & Temporary Pathways — iMigrate Solutions</title>
+        <title>Canada Visas | Work Permits, Study Permits & Temporary Pathways — iMigrate Migration Solutions</title>
         <meta
           name="description"
           content="Explore Canada's temporary and non-PR visas — work permits (including LMIA), study permits and other temporary resident pathways. Compare options and check your eligibility with a free assessment."
@@ -40,7 +40,7 @@ function CanadaVisasPage() {
             { '@type': 'ListItem', position: 2, name: 'Canada Visas', item: CANONICAL },
           ],
         })}</script>
-        <meta property="og:title" content="Canada Visas — Work Permits, Study Permits & Temporary Pathways | iMigrate Solutions" />
+        <meta property="og:title" content="Canada Visas — Work Permits, Study Permits & Temporary Pathways | iMigrate Migration Solutions" />
         <meta property="og:description" content="Canada's work permits, study permits and temporary resident pathways explained — eligibility, requirements and how each can lead to PR. Free assessment available." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={CANONICAL} />

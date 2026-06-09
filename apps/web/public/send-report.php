@@ -52,7 +52,7 @@ $replyTo  = 'contact@' . $fromDomain;
 
 $headers  = 'MIME-Version: 1.0' . "\r\n";
 $headers .= 'Content-Type: text/html; charset=UTF-8' . "\r\n";
-$headers .= 'From: iMigrate Solutions <' . $fromAddr . '>' . "\r\n";
+$headers .= 'From: iMigrate Migration Solutions <' . $fromAddr . '>' . "\r\n";
 $headers .= 'Reply-To: ' . $replyTo . "\r\n";
 $headers .= 'X-Mailer: iMigrate-AI-Report' . "\r\n";
 

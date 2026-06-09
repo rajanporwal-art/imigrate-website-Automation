@@ -60,7 +60,7 @@ function Header() {
           <Link to="/" className="flex-shrink-0">
             <img
               src="/images/imigrate-logo.jpg"
-              alt="iMigrate Solutions Logo"
+              alt="iMigrate Migration Solutions Logo"
               className="h-12 md:h-14 w-auto"
             />
           </Link>

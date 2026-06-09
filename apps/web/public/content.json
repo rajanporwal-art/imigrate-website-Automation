@@ -2,9 +2,9 @@
   "_README": "Edit via /admin.html (recommended) or by hand here. Keep quotes and commas intact. To change photos, upload a new image to /images using the SAME filename. If this file ever breaks, the site falls back to built-in defaults.",
 
   "contact": {
-    "phone": "+60134940302",
+    "phone": "+60 11-2767 9613",
     "email": "contact@imigratesolution.com",
-    "whatsapp": "60134940302",
+    "whatsapp": "601127679613",
     "address": "KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur"
   },
 
@@ -16,15 +16,15 @@
 
   "stats": [
     { "value": "98.6%", "label": "Success rate" },
-    { "value": "40+", "label": "Countries served" },
-    { "value": "15+", "label": "Years experience" }
+    { "value": "20+", "label": "Countries served" },
+    { "value": "10+", "label": "Years experience" }
   ],
 
   "highlights": [
-    { "title": "100% Money-Back Guarantee", "description": "Confidence in our process — if you are not eligible for the service you paid for, you get your money back." },
-    { "title": "Pay As You Go", "description": "Flexible, stage-by-stage payments. Spread the cost of your application — no large upfront fees." },
-    { "title": "No Hidden Fees", "description": "Transparent, fixed pricing agreed upfront. You always know exactly what you are paying for." },
-    { "title": "End-to-End Support", "description": "A dedicated case manager guides you from free assessment to visa grant and beyond." }
+    { "title": "100% Money-Back Guarantee", "description": "At iMigrate Migration Solutions, we offer a 100% money-back guarantee for complete peace of mind. If you are not eligible for the service you paid for, you will receive a full refund, reflecting our commitment to a fair, transparent, and trusted process." },
+    { "title": "Pay As You Go", "description": "Enjoy flexible, stage-by-stage payment options with iMigrate Migration Solutions. Spread the cost of your immigration journey with no large upfront fees, paying only as you progress through each stage of the application process." },
+    { "title": "No Hidden Fees", "description": "At iMigrate Migration Solutions, we believe in complete transparency. Our pricing is clear and upfront, with no hidden fees or unexpected charges, so you know exactly what you're paying for from the start." },
+    { "title": "End-to-End Support", "description": "iMigrate Migration Solutions offers end-to-end immigration support from eligibility assessment through visa submission and final decision. A dedicated case manager guides you throughout the process, ensuring a smooth, accurate, and stress-free experience." }
   ],
 
   "home": {
@@ -57,7 +57,7 @@
   },
 
   "about": {
-    "heroTitle": "About iMigrate Solutions",
+    "heroTitle": "About iMigrate Migration Solutions",
     "heroSubtitle": "We are a team of dedicated immigration professionals committed to making your dream of living in Australia or Canada a reality.",
     "trustText": "Every case is handled with complete transparency and care — backed by our 100% money-back guarantee and flexible pay-as-you-go options. You receive professional, ethical, and reliable immigration guidance at every step of your journey."
   },

@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import LegalDisclaimer from '@/components/LegalDisclaimer.jsx';
 
 const EFFECTIVE_DATE = '1 June 2026';
-const COMPANY = 'iMigrate Solutions';
+const COMPANY = 'iMigrate Migration Solutions';
 const WEBSITE = 'www.imigratesolution.com';
 const EMAIL = 'contact@imigratesolution.com';
 const ADDRESS = 'KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur, Malaysia';
@@ -41,8 +42,8 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <Helmet>
-        <title>Privacy Policy — iMigrate Solutions</title>
-        <meta name="description" content="iMigrate Solutions Privacy Policy — how we collect, use, and protect your personal information." />
+        <title>Privacy Policy — iMigrate Migration Solutions</title>
+        <meta name="description" content="iMigrate Migration Solutions Privacy Policy — how we collect, use, and protect your personal information." />
         <meta name="robots" content="noindex, follow" />
       </Helmet>
 
@@ -99,9 +100,11 @@ export default function PrivacyPolicyPage() {
             <div className="lg:col-span-3">
               <div className="bg-card rounded-2xl border border-border p-8 md:p-10 shadow-sm">
 
-                <p className="text-muted-foreground leading-relaxed mb-10">
+                <p className="text-muted-foreground leading-relaxed mb-6">
                   {COMPANY} ("<strong>we</strong>", "<strong>us</strong>", or "<strong>our</strong>") is committed to protecting and respecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you visit our website at <strong>{WEBSITE}</strong> or use any of our immigration consultancy services. Please read this policy carefully. If you disagree with its terms, please discontinue use of our site.
                 </p>
+
+                <LegalDisclaimer className="mb-10" />
 
                 <Section id="information-we-collect" title="1. Information We Collect">
                   <p>We collect information that you provide directly to us and information collected automatically when you use our website.</p>
@@ -135,7 +138,7 @@ export default function PrivacyPolicyPage() {
                   <ul className="list-disc pl-6 space-y-2">
                     <li><strong>Providing our services:</strong> assessing your immigration eligibility, preparing and lodging visa applications, providing case management and legal advice.</li>
                     <li><strong>Client communication:</strong> responding to enquiries, sending appointment reminders, providing updates on your case, sending invoices.</li>
-                    <li><strong>CRM and lead management:</strong> we use HubSpot CRM to manage client records, schedule follow-ups, and track the progress of enquiries and active cases.</li>
+                    <li><strong>CRM and lead management:</strong> we use our CRM to manage client records, schedule follow-ups, and track the progress of enquiries and active cases.</li>
                     <li><strong>Marketing communications:</strong> with your consent, sending newsletters, immigration news, and promotional content about our services. You may unsubscribe at any time.</li>
                     <li><strong>Analytics and improvement:</strong> understanding how visitors use our website to improve our content and user experience.</li>
                     <li><strong>Legal compliance:</strong> complying with applicable immigration laws, professional regulations, anti-money laundering obligations, and lawful requests from authorities.</li>
@@ -156,7 +159,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="sharing" title="4. Sharing of Information">
                   <p>We do not sell, rent, or trade your personal information to third parties for their own marketing purposes. We may share your information in the following circumstances:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li><strong>Service providers:</strong> trusted third-party processors who assist us in operating our business — including HubSpot (CRM and email marketing), cloud storage providers, and our payment processor. These providers are contractually bound to protect your data and may only use it for the services they provide to us.</li>
+                    <li><strong>Service providers:</strong> trusted third-party processors who assist us in operating our business — including our CRM (client management and email), cloud storage providers, and our payment processor. These providers are contractually bound to protect your data and may only use it for the services they provide to us.</li>
                     <li><strong>Immigration authorities:</strong> government departments and official bodies in Australia, Canada, Malaysia, or other relevant jurisdictions, as required to process your visa or immigration application.</li>
                     <li><strong>Professional advisers:</strong> solicitors, barristers, or other regulated professionals who need access to your information to provide legal advice in connection with your matter.</li>
                     <li><strong>Business transfers:</strong> in the event of a merger, acquisition, or sale of assets, your data may be transferred as part of that transaction. We will notify you before your data is transferred and becomes subject to a different privacy policy.</li>
@@ -183,7 +186,7 @@ export default function PrivacyPolicyPage() {
                     <ul className="list-disc pl-6 space-y-2">
                       <li><strong>Essential cookies:</strong> necessary for the website to function. Cannot be disabled.</li>
                       <li><strong>Analytics cookies:</strong> help us understand how visitors interact with our site (e.g. Google Analytics). Data is aggregated and anonymous.</li>
-                      <li><strong>HubSpot tracking cookie (<code>hubspotutk</code>):</strong> used to link your form submissions to your browsing session for lead-source attribution in HubSpot CRM. This cookie is set when you visit our site and is referenced when you submit a form.</li>
+                      <li><strong>CRM session cookie:</strong> used to link your form submissions to your browsing session for lead-source attribution in our CRM. This cookie is set when you visit our site and is referenced when you submit a form.</li>
                       <li><strong>Marketing / preference cookies:</strong> used to personalise content and ads. Only set with your consent.</li>
                     </ul>
                   </div>
@@ -228,7 +231,7 @@ export default function PrivacyPolicyPage() {
                     As an immigration consultancy serving clients globally and working with Australian and Canadian immigration authorities, your personal data may be transferred to and processed in countries outside Malaysia. Where such transfers occur, we ensure appropriate safeguards are in place, including standard contractual clauses or equivalent protections.
                   </p>
                   <p>
-                    In particular, data submitted through our HubSpot CRM may be stored on servers located in the United States. HubSpot Inc. is certified under applicable data-transfer frameworks and maintains appropriate security standards.
+                    In particular, data submitted through our CRM may be stored on servers located outside Malaysia. Our CRM and hosting providers are certified under applicable data-transfer frameworks and maintain appropriate security standards.
                   </p>
                 </Section>
 
@@ -240,7 +243,7 @@ export default function PrivacyPolicyPage() {
 
                 <Section id="third-party-links" title="11. Third-Party Links">
                   <p>
-                    Our website may contain links to third-party websites, including official government immigration portals (e.g. immi.homeaffairs.gov.au, canada.ca). We are not responsible for the privacy practices of those websites and encourage you to read their privacy policies. This Privacy Policy applies solely to information collected by iMigrate Solutions.
+                    Our website may contain links to third-party websites, including official government immigration portals (e.g. immi.homeaffairs.gov.au, canada.ca). We are not responsible for the privacy practices of those websites and encourage you to read their privacy policies. This Privacy Policy applies solely to information collected by iMigrate Migration Solutions.
                   </p>
                 </Section>
 
@@ -256,7 +259,7 @@ export default function PrivacyPolicyPage() {
                     <p><strong className="text-foreground">{COMPANY}</strong></p>
                     <p>{ADDRESS}</p>
                     <p>Email: <a href={`mailto:${EMAIL}`} className="text-primary hover:underline font-medium">{EMAIL}</a></p>
-                    <p>Phone: <a href="tel:+60134940302" className="text-primary hover:underline font-medium">+60134940302</a></p>
+                    <p>Phone: <a href="tel:+60 11-2767 9613" className="text-primary hover:underline font-medium">+60 11-2767 9613</a></p>
                     <p>Website: <a href={`https://${WEBSITE}`} className="text-primary hover:underline font-medium">{WEBSITE}</a></p>
                   </div>
                 </Section>

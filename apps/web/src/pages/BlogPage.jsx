@@ -198,7 +198,7 @@ function BlogPage() {
   return (
     <>
       <Helmet>
-        <title>Immigration Blog &amp; Insights — iMigrate Solutions</title>
+        <title>Immigration Blog &amp; Insights — iMigrate Migration Solutions</title>
         <meta
           name="description"
           content="Expert immigration guides, visa news and success stories for Australia and Canada — from Malaysia, Singapore, India and Vietnam to your new home."
@@ -208,7 +208,7 @@ function BlogPage() {
           content="immigration blog, Australia visa news, Canada immigration guide, Express Entry, skilled migration, C11 work permit, study permit"
         />
         <link rel="canonical" href="https://www.imigratesolution.com/blog" />
-        <meta property="og:title" content="Immigration Blog & Insights — iMigrate Solutions" />
+        <meta property="og:title" content="Immigration Blog & Insights — iMigrate Migration Solutions" />
         <meta property="og:description" content="Expert immigration guides, visa news and success stories for Australia and Canada — from Malaysia, Singapore, India and Vietnam to your new home." />
         <meta property="og:url" content="https://www.imigratesolution.com/blog" />
         <meta property="og:type" content="website" />

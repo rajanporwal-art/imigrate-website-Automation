@@ -8,7 +8,7 @@
  */
 
 export const CONTACT_EMAIL = 'contact@imigratesolution.com';
-export const WHATSAPP_NUMBER = '60134940302';
+export const WHATSAPP_NUMBER = '601127679613';
 
 /** Human-friendly labels for known form field keys. */
 const FIELD_LABELS = {

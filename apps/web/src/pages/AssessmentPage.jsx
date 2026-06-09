@@ -18,7 +18,7 @@ function AssessmentPage() {
   if (isSubmitted) {
     return <>
         <Helmet>
-          <title>Thank You — iMigrate Solutions</title>
+          <title>Thank You — iMigrate Migration Solutions</title>
         </Helmet>
 
         <Header />
@@ -59,11 +59,11 @@ function AssessmentPage() {
   }
   return <>
       <Helmet>
-        <title>Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Solutions</title>
+        <title>Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Migration Solutions</title>
         <meta name="description" content="Get a free immigration eligibility assessment and calculate your points for Australia skilled migration (189/190/491) or Canada Express Entry CRS. Instant estimate plus a personalized expert review." />
         <meta name="keywords" content="Australia points calculator, Canada CRS calculator, immigration assessment, skilled migration points test, Express Entry calculator, eligibility check, Australia PR, Canada PR" />
         <link rel="canonical" href="https://www.imigratesolution.com/assessment" />
-        <meta property="og:title" content="Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Solutions" />
+        <meta property="og:title" content="Free Eligibility Check & Points Calculator | Australia & Canada — iMigrate Migration Solutions" />
         <meta property="og:description" content="Get a free immigration eligibility assessment and calculate your points for Australia skilled migration or Canada Express Entry CRS. Instant estimate plus expert review." />
         <meta property="og:url" content="https://www.imigratesolution.com/assessment" />
         <meta property="og:type" content="website" />
@@ -215,11 +215,11 @@ function AssessmentPage() {
                         <p className="text-[11px] uppercase tracking-wide opacity-80">Success rate</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-extrabold text-accent">15+</p>
+                        <p className="text-2xl font-extrabold text-accent">10+</p>
                         <p className="text-[11px] uppercase tracking-wide opacity-80">Years experience</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-extrabold text-accent">40+</p>
+                        <p className="text-2xl font-extrabold text-accent">20+</p>
                         <p className="text-[11px] uppercase tracking-wide opacity-80">Countries served</p>
                       </div>
                     </div>

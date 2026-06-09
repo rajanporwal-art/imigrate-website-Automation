@@ -1,5 +1,5 @@
 /**
- * Comprehensive, SEO-optimized FAQ database for iMigrate Solutions.
+ * Comprehensive, SEO-optimized FAQ database for iMigrate Migration Solutions.
  * Grouped by category. Each FAQ: { q, a, link? }
  *  - q: question (used in headings + FAQPage JSON-LD)
  *  - a: plain-text answer (used in JSON-LD schema — keep it plain text)

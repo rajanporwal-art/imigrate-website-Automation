@@ -47,11 +47,11 @@ function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact iMigrate Solutions | Free Immigration Consultation</title>
-        <meta name="description" content="Get in touch with iMigrate Solutions. Book an appointment, ask questions, or visit our office in Kuala Lumpur." />
+        <title>Contact iMigrate Migration Solutions | Free Immigration Consultation</title>
+        <meta name="description" content="Get in touch with iMigrate Migration Solutions. Book an appointment, ask questions, or visit our office in Kuala Lumpur." />
         <link rel="canonical" href="https://www.imigratesolution.com/contact" />
-        <meta property="og:title" content="Contact iMigrate Solutions | Free Immigration Consultation" />
-        <meta property="og:description" content="Get in touch with iMigrate Solutions. Book a free consultation, ask questions, or visit our office in Kuala Lumpur." />
+        <meta property="og:title" content="Contact iMigrate Migration Solutions | Free Immigration Consultation" />
+        <meta property="og:description" content="Get in touch with iMigrate Migration Solutions. Book a free consultation, ask questions, or visit our office in Kuala Lumpur." />
         <meta property="og:url" content="https://www.imigratesolution.com/contact" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
@@ -115,8 +115,8 @@ function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">Phone</p>
-                          <a href="tel:+60134940302" className="text-muted-foreground hover:text-primary transition-colors">
-                            +60134940302
+                          <a href="tel:+60 11-2767 9613" className="text-muted-foreground hover:text-primary transition-colors">
+                            +60 11-2767 9613
                           </a>
                         </div>
                       </div>
@@ -168,7 +168,7 @@ function ContactPage() {
                         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-muted hover:bg-primary hover:text-primary-foreground rounded-full flex items-center justify-center transition-all duration-200">
                           <Instagram className="h-5 w-5" />
                         </a>
-                        <a href="https://wa.me/60134940302" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-muted hover:bg-primary hover:text-primary-foreground rounded-full flex items-center justify-center transition-all duration-200">
+                        <a href="https://wa.me/601127679613" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-muted hover:bg-primary hover:text-primary-foreground rounded-full flex items-center justify-center transition-all duration-200">
                           <MessageCircle className="h-5 w-5" />
                         </a>
                       </div>
@@ -190,7 +190,7 @@ function ContactPage() {
                 height="100%"
                 style={{ border: 0 }}
                 loading="lazy"
-                title="iMigrate Solutions KL Eco City Office"
+                title="iMigrate Migration Solutions KL Eco City Office"
               ></iframe>
             </div>
           </div>
