@@ -132,14 +132,18 @@ export function SiteContentProvider({ children }) {
 
   useEffect(() => {
     let active = true;
-    fetch('/content.json', { cache: 'no-cache' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (active && data) setContent(deepMerge(DEFAULT_CONTENT, data));
-      })
-      .catch(() => {
-        /* keep defaults */
-      });
+    // Prefer the CMS override (server-managed, durable) and fall back to the
+    // repo-shipped content.json, then to compiled defaults.
+    (async () => {
+      for (const url of ['/cms-overrides/content.json', '/content.json']) {
+        try {
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (active && data) { setContent(deepMerge(DEFAULT_CONTENT, data)); return; }
+        } catch (e) { /* try next */ }
+      }
+    })();
     return () => {
       active = false;
     };
