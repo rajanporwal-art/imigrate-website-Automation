@@ -1,0 +1,1391 @@
+{
+  "_README": "Visa programs shown on the Visas/Migration pages. Editable in the CMS (Visa Programs). The website reads cms-overrides/visas.json (durable) or this file; icons are referenced by name.",
+  "australia": [
+    {
+      "id": "subclass-189",
+      "pr": true,
+      "title": "Skilled Independent Visa (Subclass 189)",
+      "badge": "Subclass 189",
+      "icon": "Globe",
+      "tagline": "Permanent residence for skilled workers — no employer or state sponsorship required.",
+      "overview": "The Skilled Independent Visa (Subclass 189) is a points-tested permanent residence visa for skilled workers who are not sponsored by an employer, a state or territory, or a family member. It is one of the most sought-after Australia PR visas because it gives you complete freedom to live and work anywhere in Australia, indefinitely. Selection is invitation-based through the SkillSelect Expression of Interest (EOI) system.",
+      "details": [
+        {
+          "heading": "What is the Subclass 189 visa?",
+          "points": [
+            "A permanent residence (PR) visa granted on the strength of your skills, age, English ability and experience.",
+            "No sponsorship, nomination or job offer is required.",
+            "Lets you live, work and study anywhere in Australia with no geographic restrictions.",
+            "Includes a pathway to Australian citizenship once residency requirements are met."
+          ]
+        },
+        {
+          "heading": "Eligibility Criteria",
+          "points": [
+            "Be under 45 years of age at the time of invitation.",
+            "Nominate an occupation on the relevant Skilled Occupation List (MLTSSL).",
+            "Obtain a positive skills assessment from the relevant assessing authority.",
+            "Score at least 65 points on the points test (competitive scores are usually higher).",
+            "Demonstrate Competent English or above.",
+            "Meet health and character requirements."
+          ]
+        },
+        {
+          "heading": "Skills Assessment",
+          "points": [
+            "Your nominated occupation must be assessed as suitable by the designated assessing authority (e.g. EA, ACS, VETASSESS, CPA).",
+            "The assessment verifies that your qualifications and work experience meet Australian standards.",
+            "A positive skills assessment is mandatory before you can be invited to apply."
+          ]
+        },
+        {
+          "heading": "English Language Requirements",
+          "points": [
+            "Minimum Competent English (e.g. IELTS 6.0 in each band or equivalent PTE/TOEFL).",
+            "Proficient English (IELTS 7.0) earns 10 additional points.",
+            "Superior English (IELTS 8.0) earns 20 additional points — a major scoring lever."
+          ]
+        },
+        {
+          "heading": "Points Test Requirements",
+          "points": [
+            "Age (maximum 30 points for ages 25–32).",
+            "English language ability (up to 20 points).",
+            "Skilled employment — Australian and overseas experience (up to 20 points).",
+            "Educational qualifications (up to 20 points).",
+            "Additional points for Australian study, NAATI credentials, professional year and a skilled partner."
+          ]
+        }
+      ],
+      "benefits": [
+        "Full permanent residence from the day your visa is granted.",
+        "Live, work and study anywhere in Australia.",
+        "Access to Medicare — Australia's public health system.",
+        "Sponsor eligible family members for permanent residence.",
+        "Enrol children in school as domestic students.",
+        "Clear pathway to Australian citizenship."
+      ],
+      "keyRequirements": [
+        "Age under 45 at invitation",
+        "Positive skills assessment (MLTSSL occupation)",
+        "Minimum 65 points",
+        "Competent English or higher",
+        "Health & character clearance"
+      ],
+      "processing": [
+        {
+          "title": "Skills assessment & English test",
+          "desc": "Secure a positive skills assessment and sit an approved English test."
+        },
+        {
+          "title": "Submit an Expression of Interest (EOI)",
+          "desc": "Lodge your EOI in SkillSelect with your claimed points."
+        },
+        {
+          "title": "Receive an Invitation to Apply (ITA)",
+          "desc": "Highest-ranked candidates are invited in periodic rounds."
+        },
+        {
+          "title": "Lodge the visa application",
+          "desc": "Submit your application with supporting documents within 60 days of the invitation."
+        },
+        {
+          "title": "Decision & grant",
+          "desc": "Department processing typically takes several months once lodged."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many points do I need for a Subclass 189 visa?",
+          "a": "The minimum is 65 points, but invitations are issued to the highest-ranking candidates, so a competitive score is often 85–90+ depending on your occupation."
+        },
+        {
+          "q": "Do I need a job offer for the 189 visa?",
+          "a": "No. The Skilled Independent visa is completely independent — no employer, state or family sponsorship is required."
+        },
+        {
+          "q": "Is the Subclass 189 a permanent visa?",
+          "a": "Yes. It grants permanent residence immediately on grant, with full work and study rights anywhere in Australia."
+        },
+        {
+          "q": "How long does the 189 visa take to process?",
+          "a": "After you receive an invitation and lodge a complete application, processing commonly takes around 5–12 months, subject to demand and document completeness."
+        }
+      ]
+    },
+    {
+      "id": "subclass-190",
+      "pr": true,
+      "title": "Skilled Nominated Visa (Subclass 190)",
+      "badge": "Subclass 190",
+      "icon": "Building2",
+      "tagline": "Permanent residence with state or territory nomination and 5 bonus points.",
+      "overview": "The Skilled Nominated Visa (Subclass 190) is a points-tested permanent residence visa for skilled workers who are nominated by an Australian state or territory government. State nomination awards an additional 5 points, which can be decisive for being invited. In return, you commit to living and working in the nominating state or territory for a period after arrival.",
+      "details": [
+        {
+          "heading": "What is the Subclass 190 visa?",
+          "points": [
+            "A permanent residence visa requiring nomination by a participating state or territory.",
+            "State nomination adds 5 points to your points-test score.",
+            "You generally agree to settle in the nominating state for around the first two years."
+          ]
+        },
+        {
+          "heading": "State Nomination Process",
+          "points": [
+            "Choose a state/territory whose skilled occupation list includes your occupation.",
+            "Submit an Expression of Interest (EOI) in SkillSelect and a separate state nomination application.",
+            "Each state sets its own eligibility thresholds, occupation lists and ranking criteria.",
+            "If nominated, you receive an invitation to apply for the visa."
+          ]
+        },
+        {
+          "heading": "Eligibility Requirements",
+          "points": [
+            "Be under 45 years of age at invitation.",
+            "Have a positive skills assessment in a nominated occupation.",
+            "Score at least 65 points (including the 5 nomination points).",
+            "Meet Competent English and the specific requirements of the nominating state.",
+            "Satisfy health and character requirements."
+          ]
+        },
+        {
+          "heading": "Occupation Requirements",
+          "points": [
+            "Your occupation must appear on the nominating state/territory's skilled occupation list.",
+            "States prioritise occupations that address local skill shortages.",
+            "Some states require demonstrated work experience or a job offer within the state."
+          ]
+        }
+      ],
+      "benefits": [
+        "Permanent residence on grant.",
+        "Extra 5 points to boost your ranking.",
+        "Access to Medicare and social services.",
+        "Include partner and dependent children in your application.",
+        "Pathway to Australian citizenship.",
+        "Settlement support in regions actively seeking your skills."
+      ],
+      "keyRequirements": [
+        "State / territory nomination",
+        "Age under 45 at invitation",
+        "Positive skills assessment",
+        "Minimum 65 points (incl. nomination)",
+        "Commitment to the nominating state"
+      ],
+      "processing": [
+        {
+          "title": "Skills assessment & English",
+          "desc": "Obtain a positive skills assessment and approved English results."
+        },
+        {
+          "title": "Lodge EOI + state nomination",
+          "desc": "Submit an EOI and apply to your chosen state or territory."
+        },
+        {
+          "title": "Receive nomination & invitation",
+          "desc": "On approval the state nominates you and you are invited to apply."
+        },
+        {
+          "title": "Lodge the visa application",
+          "desc": "Apply within 60 days of the invitation with full documentation."
+        },
+        {
+          "title": "Grant & relocate",
+          "desc": "After grant, settle and work in the nominating state."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the difference between the 189 and 190 visa?",
+          "a": "Both are permanent. The 189 requires no sponsorship, while the 190 requires state/territory nomination, which adds 5 points but asks you to live in that state initially."
+        },
+        {
+          "q": "Can I move to another state after getting a 190 visa?",
+          "a": "The 190 is legally a national PR visa, but you make a moral commitment to live and work in the nominating state — usually for about two years."
+        },
+        {
+          "q": "Does state nomination guarantee a visa?",
+          "a": "No. Nomination gives you the 5 points and an invitation, but the visa is still assessed by the Department of Home Affairs against all criteria."
+        },
+        {
+          "q": "Which states are easiest for 190 nomination?",
+          "a": "It depends entirely on your occupation and points. Our consultants match your profile to the states most likely to nominate you."
+        }
+      ]
+    },
+    {
+      "id": "subclass-491",
+      "pr": true,
+      "title": "Skilled Work Regional (Provisional) Visa (Subclass 491)",
+      "badge": "Subclass 491",
+      "icon": "MapPin",
+      "tagline": "Live and work in regional Australia with a 5-year pathway to permanent residence.",
+      "overview": "The Skilled Work Regional (Provisional) Visa (Subclass 491) is a 5-year provisional visa for skilled workers who want to live and work in regional Australia. It is nominated by a state or territory government or sponsored by an eligible relative living in a designated regional area, and provides a direct pathway to permanent residence through the Subclass 191 visa.",
+      "details": [
+        {
+          "heading": "Regional Migration Benefits",
+          "points": [
+            "An extra 15 points for regional nomination or family sponsorship — the largest single points boost available.",
+            "Lower competition and more accessible occupation lists than metropolitan pathways.",
+            "Access to a wider range of occupations in demand across regional Australia.",
+            "A clear, structured route to permanent residence."
+          ]
+        },
+        {
+          "heading": "Eligibility",
+          "points": [
+            "Be under 45 years of age at invitation.",
+            "Have a positive skills assessment in a nominated occupation.",
+            "Score at least 65 points (including the 15 regional points).",
+            "Be nominated by a state/territory or sponsored by an eligible relative.",
+            "Meet Competent English, health and character requirements."
+          ]
+        },
+        {
+          "heading": "State / Territory Nomination",
+          "points": [
+            "Most Australian states and territories (outside major metro areas) participate.",
+            "Each region publishes its own occupation lists and criteria targeting local shortages.",
+            "You commit to living, working and studying only in a designated regional area."
+          ]
+        },
+        {
+          "heading": "Family Sponsorship Option",
+          "points": [
+            "An eligible relative who is an Australian citizen or permanent resident living in a designated regional area can sponsor you.",
+            "Eligible relatives include a parent, child, sibling, aunt/uncle, niece/nephew or grandparent.",
+            "Family sponsorship also awards the 15 regional points."
+          ]
+        },
+        {
+          "heading": "Pathway to Permanent Residence",
+          "points": [
+            "After holding the 491 for at least 3 years, you can apply for the Subclass 191 permanent visa.",
+            "You must have lived in a designated regional area and met a minimum taxable income requirement.",
+            "The 191 grants full permanent residence with no further regional condition."
+          ]
+        }
+      ],
+      "benefits": [
+        "Five-year provisional visa with full work rights.",
+        "Up to 15 bonus points — a significant advantage.",
+        "Access to Medicare during the provisional period.",
+        "Bring your family with you to regional Australia.",
+        "Direct pathway to permanent residence (Subclass 191).",
+        "Lower cost of living and strong community lifestyle."
+      ],
+      "keyRequirements": [
+        "Regional nomination or eligible family sponsor",
+        "Age under 45 at invitation",
+        "Positive skills assessment",
+        "Minimum 65 points (incl. +15)",
+        "Live & work in a designated regional area"
+      ],
+      "processing": [
+        {
+          "title": "Skills assessment & English",
+          "desc": "Secure a positive assessment and approved English results."
+        },
+        {
+          "title": "EOI + regional nomination / sponsorship",
+          "desc": "Lodge an EOI and apply for state nomination or family sponsorship."
+        },
+        {
+          "title": "Invitation to apply",
+          "desc": "Receive an invitation once nominated or sponsored."
+        },
+        {
+          "title": "Lodge the 491 application",
+          "desc": "Apply for the provisional visa with full documentation."
+        },
+        {
+          "title": "Transition to PR (191)",
+          "desc": "After 3 years of regional living and income, apply for permanent residence."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is the Subclass 491 a permanent visa?",
+          "a": "No, it is a 5-year provisional visa, but it provides a direct pathway to permanent residence through the Subclass 191 visa after three years."
+        },
+        {
+          "q": "What counts as regional Australia?",
+          "a": "Designated regional areas now include everywhere in Australia except Sydney, Melbourne and Brisbane. Many attractive cities such as Perth, Adelaide, the Gold Coast and Canberra qualify."
+        },
+        {
+          "q": "How many extra points does the 491 give?",
+          "a": "Regional state nomination or eligible family sponsorship awards 15 points — the largest points boost of any skilled pathway."
+        },
+        {
+          "q": "What income do I need for the 191 PR visa?",
+          "a": "You must meet a minimum taxable income threshold for at least three years while holding the 491 visa. Our team helps you plan to meet this requirement."
+        }
+      ]
+    },
+    {
+      "id": "employer-sponsored",
+      "pr": false,
+      "title": "Australia Employer Sponsored Visas",
+      "badge": "Subclasses 482 / 186 / 494",
+      "icon": "Briefcase",
+      "tagline": "Work for an approved Australian employer — temporary and permanent options.",
+      "overview": "Australia's employer sponsored visas allow approved Australian businesses to sponsor skilled overseas workers when they cannot fill a position locally. These visas include temporary skill shortage options and direct permanent residence pathways, making them ideal for candidates who already have — or can secure — a genuine job offer from an Australian employer.",
+      "details": [
+        {
+          "heading": "Overview of Employer Sponsored Visas",
+          "points": [
+            "Temporary Skill Shortage visa (Subclass 482) — work for an approved sponsor for up to 4 years.",
+            "Employer Nomination Scheme (Subclass 186) — permanent residence through employer nomination.",
+            "Skilled Employer Sponsored Regional (Subclass 494) — regional employer sponsorship with a PR pathway."
+          ]
+        },
+        {
+          "heading": "Employer Sponsorship Process",
+          "points": [
+            "The employer becomes an approved Standard Business Sponsor.",
+            "The employer nominates a genuine, full-time skilled position.",
+            "The employer must meet labour market testing and salary (TSMIT) obligations.",
+            "You apply for the visa linked to that nomination."
+          ]
+        },
+        {
+          "heading": "Eligible Occupations",
+          "points": [
+            "Your occupation must be on the relevant skilled occupation list for the visa stream.",
+            "A positive skills assessment may be required depending on occupation and stream.",
+            "Occupations span healthcare, engineering, IT, trades, hospitality management and more."
+          ]
+        },
+        {
+          "heading": "Temporary and Permanent Options",
+          "points": [
+            "Start on a Subclass 482 and transition to permanent residence via the 186 Temporary Residence Transition stream.",
+            "Eligible candidates can apply directly for the 186 Direct Entry stream.",
+            "The 494 offers a regional route to PR through the Subclass 191 visa."
+          ]
+        }
+      ],
+      "benefits": [
+        "Secure a recognised job before or soon after arriving.",
+        "Clear progression from temporary to permanent residence.",
+        "Include your partner and children, who gain work and study rights.",
+        "Access to Medicare on permanent streams.",
+        "Employer support throughout the relocation process.",
+        "Pathway to Australian citizenship via the permanent streams."
+      ],
+      "keyRequirements": [
+        "Genuine job offer from an approved sponsor",
+        "Occupation on the relevant list",
+        "Relevant skills & experience",
+        "Competent English",
+        "Health & character clearance"
+      ],
+      "processing": [
+        {
+          "title": "Secure a sponsoring employer",
+          "desc": "Obtain a genuine job offer from an approved Australian business."
+        },
+        {
+          "title": "Sponsorship & nomination",
+          "desc": "The employer lodges sponsorship and nominates your position."
+        },
+        {
+          "title": "Lodge your visa application",
+          "desc": "Apply for the 482, 186 or 494 linked to the nomination."
+        },
+        {
+          "title": "Decision & arrival",
+          "desc": "On grant, begin work for your sponsoring employer in Australia."
+        },
+        {
+          "title": "Transition to PR",
+          "desc": "Move from a temporary visa to permanent residence when eligible."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Do I need a job offer for an employer sponsored visa?",
+          "a": "Yes. A genuine job offer and nomination from an approved Australian sponsor is the foundation of every employer sponsored visa."
+        },
+        {
+          "q": "Can a 482 visa lead to permanent residence?",
+          "a": "Yes. After working for your sponsor, you can usually transition to the Subclass 186 permanent visa through the Temporary Residence Transition stream."
+        },
+        {
+          "q": "How long does employer sponsorship take?",
+          "a": "Timelines vary by stream and occupation, but sponsorship, nomination and visa stages together commonly take several months."
+        },
+        {
+          "q": "Can my family join me?",
+          "a": "Yes. Your partner and dependent children can be included and receive work and study rights in Australia."
+        }
+      ]
+    },
+    {
+      "id": "student-visa",
+      "pr": false,
+      "title": "Australia Student Visa (Subclass 500)",
+      "badge": "Subclass 500",
+      "icon": "GraduationCap",
+      "tagline": "Study at world-class institutions with work rights and post-study pathways.",
+      "overview": "The Australia Student Visa (Subclass 500) lets you live and study full-time in Australia for the duration of your enrolled course. Australia is home to globally ranked universities and vocational colleges, and a student visa can be the first step on a long-term pathway to skilled migration and permanent residence.",
+      "details": [
+        {
+          "heading": "Study Options",
+          "points": [
+            "Universities — undergraduate, postgraduate and research degrees.",
+            "Vocational Education and Training (VET) and diploma programs.",
+            "English Language Intensive Courses (ELICOS).",
+            "School, foundation and pathway programs."
+          ]
+        },
+        {
+          "heading": "Genuine Student Requirements",
+          "points": [
+            "Enrolment confirmed by a Confirmation of Enrolment (CoE) from a registered provider.",
+            "Meet the Genuine Student (GS) requirement, showing a real intention to study.",
+            "Demonstrate sufficient funds for tuition, living costs and travel.",
+            "Hold Overseas Student Health Cover (OSHC) for the visa period.",
+            "Meet the required English language level for your course."
+          ]
+        },
+        {
+          "heading": "Work Rights",
+          "points": [
+            "Work up to 48 hours per fortnight while your course is in session.",
+            "Unlimited working hours during scheduled course breaks.",
+            "Your dependants may also receive limited work rights."
+          ]
+        },
+        {
+          "heading": "Post-Study Opportunities",
+          "points": [
+            "Eligible graduates can apply for the Temporary Graduate visa (Subclass 485).",
+            "Gain valuable Australian work experience after graduation.",
+            "Use Australian study and experience to claim extra points toward skilled migration.",
+            "Progress toward permanent residence through the skilled or employer streams."
+          ]
+        }
+      ],
+      "benefits": [
+        "Study at internationally recognised institutions.",
+        "Work part-time to support your living costs.",
+        "Bring eligible family members with you.",
+        "Gain a globally respected qualification.",
+        "Access post-study work rights (Subclass 485).",
+        "Build a long-term pathway to skilled PR."
+      ],
+      "keyRequirements": [
+        "Confirmation of Enrolment (CoE)",
+        "Genuine Student requirement",
+        "Proof of financial capacity",
+        "Overseas Student Health Cover (OSHC)",
+        "English language proficiency"
+      ],
+      "processing": [
+        {
+          "title": "Choose course & provider",
+          "desc": "Select a registered course matched to your goals and budget."
+        },
+        {
+          "title": "Receive your CoE",
+          "desc": "Accept your offer and obtain a Confirmation of Enrolment."
+        },
+        {
+          "title": "Prepare your application",
+          "desc": "Compile GS statement, finances, OSHC and English evidence."
+        },
+        {
+          "title": "Lodge the Subclass 500",
+          "desc": "Submit your student visa application online."
+        },
+        {
+          "title": "Arrive & study",
+          "desc": "Begin your studies and explore post-study pathways."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many hours can I work on a student visa?",
+          "a": "You can work up to 48 hours per fortnight while your course is in session, and unlimited hours during scheduled course breaks."
+        },
+        {
+          "q": "Can a student visa lead to PR?",
+          "a": "Yes — indirectly. After graduating you can gain a Temporary Graduate visa and use your Australian study and experience to claim points toward skilled migration."
+        },
+        {
+          "q": "What is the Genuine Student requirement?",
+          "a": "It replaced the previous GTE requirement and assesses whether you genuinely intend to study in Australia, based on your circumstances and study plan."
+        },
+        {
+          "q": "Can my family come with me?",
+          "a": "Yes. You can include your partner and dependent children, who may also receive work or study rights."
+        }
+      ]
+    },
+    {
+      "id": "partner-visa",
+      "pr": true,
+      "title": "Australia Partner Visa (Subclasses 820/801 & 309/100)",
+      "badge": "Partner Visa",
+      "icon": "Heart",
+      "tagline": "Join your partner in Australia with a staged pathway to permanent residence.",
+      "overview": "The Australia Partner Visa lets the spouse or de facto partner of an Australian citizen, permanent resident or eligible New Zealand citizen live in Australia. It is generally granted in two stages — a temporary visa followed by a permanent visa — and applies whether you apply from inside Australia (820/801) or offshore (309/100).",
+      "details": [
+        {
+          "heading": "Partner Visa Overview",
+          "points": [
+            "Onshore: Subclass 820 (temporary) leading to Subclass 801 (permanent).",
+            "Offshore: Subclass 309 (temporary) leading to Subclass 100 (permanent).",
+            "For married couples and genuine de facto partners, including same-sex partners."
+          ]
+        },
+        {
+          "heading": "Eligibility Requirements",
+          "points": [
+            "Be the spouse or de facto partner of an eligible Australian sponsor.",
+            "Be in a genuine and continuing relationship to the exclusion of all others.",
+            "De facto applicants generally need 12 months of cohabitation (some exceptions apply).",
+            "Meet health and character requirements."
+          ]
+        },
+        {
+          "heading": "Relationship Evidence",
+          "points": [
+            "Financial aspects — joint accounts, shared assets and expenses.",
+            "Nature of the household — shared living arrangements and responsibilities.",
+            "Social aspects — joint events, friends and family recognition.",
+            "Commitment — knowledge of each other, future plans and time together."
+          ]
+        },
+        {
+          "heading": "Temporary and Permanent Stages",
+          "points": [
+            "Stage 1: The temporary visa (820 or 309) lets you live and work in Australia.",
+            "Stage 2: Around two years later, the permanent visa (801 or 100) is assessed.",
+            "Long-term relationships may be eligible for the permanent stage sooner."
+          ]
+        }
+      ],
+      "benefits": [
+        "Live and work in Australia with your partner.",
+        "Unrestricted work rights from the temporary stage.",
+        "Access to Medicare.",
+        "Study in Australia.",
+        "Include dependent children in your application.",
+        "Pathway to permanent residence and citizenship."
+      ],
+      "keyRequirements": [
+        "Eligible Australian sponsor",
+        "Genuine, continuing relationship",
+        "Strong relationship evidence",
+        "Health & character clearance",
+        "Sponsor obligations met"
+      ],
+      "processing": [
+        {
+          "title": "Confirm eligibility & sponsor",
+          "desc": "Verify the relationship and the sponsor's eligibility."
+        },
+        {
+          "title": "Gather relationship evidence",
+          "desc": "Compile financial, social, household and commitment evidence."
+        },
+        {
+          "title": "Lodge the application",
+          "desc": "Apply for the temporary and permanent visas together."
+        },
+        {
+          "title": "Temporary visa grant",
+          "desc": "Live and work in Australia while the permanent stage is assessed."
+        },
+        {
+          "title": "Permanent visa grant",
+          "desc": "Receive permanent residence after the eligibility period."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long does a partner visa take?",
+          "a": "Processing times vary considerably and can range from many months to a couple of years, depending on the strength of evidence and individual circumstances."
+        },
+        {
+          "q": "Do I get permanent residence straight away?",
+          "a": "Usually no. Most applicants are first granted a temporary partner visa and then assessed for the permanent visa around two years later."
+        },
+        {
+          "q": "Can de facto and same-sex partners apply?",
+          "a": "Yes. De facto partners (including same-sex couples) in a genuine, continuing relationship are eligible, generally after 12 months of living together."
+        },
+        {
+          "q": "Can I work on a temporary partner visa?",
+          "a": "Yes. The temporary partner visa grants full work rights and access to Medicare while your permanent application is processed."
+        }
+      ]
+    },
+    {
+      "id": "business-investor",
+      "pr": false,
+      "title": "Australia Business & Investor Migration",
+      "badge": "Business Innovation & Investment",
+      "icon": "TrendingUp",
+      "tagline": "For business owners, entrepreneurs and investors seeking Australian residence.",
+      "overview": "Australia's Business Innovation and Investment Program is designed for successful business owners, senior managers and investors who want to establish or invest in a business in Australia. These visas reward genuine business and investment activity with provisional residence and a clear pathway to permanent residence. Program settings change periodically, so tailored, up-to-date advice is essential.",
+      "details": [
+        {
+          "heading": "Business Innovation Pathways",
+          "points": [
+            "For owners and operators with a successful business career.",
+            "Requires establishing or managing a qualifying business in Australia.",
+            "Provisional residence first, with a permanent stream once activity benchmarks are met."
+          ]
+        },
+        {
+          "heading": "Investor Pathways",
+          "points": [
+            "For investors prepared to make a designated investment in Australia.",
+            "Significant investor options exist for higher investment thresholds.",
+            "Investments must be held for the required period to qualify for permanence."
+          ]
+        },
+        {
+          "heading": "Eligibility",
+          "points": [
+            "Demonstrated business or investment track record.",
+            "Sufficient net business, personal and investable assets.",
+            "A genuine commitment to business or investment activity in Australia.",
+            "Meet age, health and character requirements (age concessions may apply)."
+          ]
+        },
+        {
+          "heading": "Business Experience Requirements",
+          "points": [
+            "A proven history of successfully owning or managing a qualifying business.",
+            "Evidence of business turnover and ownership percentage.",
+            "Management experience and a credible business plan for Australia."
+          ]
+        },
+        {
+          "heading": "Investment Expectations",
+          "points": [
+            "Make and maintain the required level of qualifying investment.",
+            "Comply with the conditions and timeframes of the chosen stream.",
+            "Satisfy residence and activity requirements before applying for PR."
+          ]
+        },
+        {
+          "heading": "Permanent Residence Opportunities",
+          "points": [
+            "Provisional business/investor visas transition to permanent residence on meeting benchmarks.",
+            "Permanent residence provides full settlement rights for you and your family.",
+            "Pathway to Australian citizenship over time."
+          ]
+        }
+      ],
+      "benefits": [
+        "Grow or invest in a business in a stable, growing economy.",
+        "Provisional residence with a clear PR pathway.",
+        "Include your family in the application.",
+        "Access to world-class infrastructure and markets.",
+        "Lifestyle, education and healthcare benefits of Australian residence.",
+        "Long-term pathway to citizenship."
+      ],
+      "keyRequirements": [
+        "Proven business / investment history",
+        "Sufficient assets & capital",
+        "Qualifying investment or business activity",
+        "Genuine commitment to Australia",
+        "Health & character clearance"
+      ],
+      "processing": [
+        {
+          "title": "Profile & strategy review",
+          "desc": "Assess your assets, history and the best-fit stream."
+        },
+        {
+          "title": "State / territory nomination",
+          "desc": "Where required, secure nomination and lodge an EOI."
+        },
+        {
+          "title": "Provisional visa application",
+          "desc": "Apply for the relevant provisional business/investor visa."
+        },
+        {
+          "title": "Establish business / investment",
+          "desc": "Operate the business or hold the investment as required."
+        },
+        {
+          "title": "Permanent residence",
+          "desc": "Apply for PR once activity and residence benchmarks are met."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How much do I need to invest for an Australian investor visa?",
+          "a": "Investment thresholds vary by stream and change periodically. Our consultants provide the current figures and structure your investment to qualify."
+        },
+        {
+          "q": "Do business migration visas lead to permanent residence?",
+          "a": "Yes. Provisional business and investor visas provide a pathway to permanent residence once you meet the relevant business activity or investment benchmarks."
+        },
+        {
+          "q": "Can I include my family?",
+          "a": "Yes. Your partner and dependent children can be included and enjoy the work, study and healthcare benefits of Australian residence."
+        },
+        {
+          "q": "Is state nomination required for business migration?",
+          "a": "Many business and investment streams require nomination by a state or territory government. We match your profile to the most suitable nominating state."
+        }
+      ]
+    }
+  ],
+  "canada": [
+    {
+      "id": "express-entry",
+      "pr": true,
+      "title": "Canada Express Entry (Skilled Migration)",
+      "badge": "Express Entry",
+      "icon": "Globe",
+      "tagline": "The fastest federal route to Canadian permanent residence for skilled workers.",
+      "overview": "Express Entry is the Canadian government's flagship online system for managing skilled-worker applications for permanent residence. It covers three federal programs — the Federal Skilled Worker Program, the Canadian Experience Class and the Federal Skilled Trades Program. Candidates are ranked by a Comprehensive Ranking System (CRS) score, and the highest-ranked profiles receive an Invitation to Apply (ITA) in regular draws. Many applicants receive PR in around six months once invited.",
+      "details": [
+        {
+          "heading": "Programs managed under Express Entry",
+          "points": [
+            "Federal Skilled Worker Program (FSWP) — for skilled workers with foreign experience.",
+            "Canadian Experience Class (CEC) — for those with skilled Canadian work experience.",
+            "Federal Skilled Trades Program (FSTP) — for qualified tradespeople."
+          ]
+        },
+        {
+          "heading": "Eligibility Criteria",
+          "points": [
+            "Skilled work experience in an eligible occupation (NOC TEER 0, 1, 2 or 3).",
+            "Language ability in English or French (IELTS/CELPIP or TEF) meeting minimum CLB levels.",
+            "Education — Canadian credential or an Educational Credential Assessment (ECA) for foreign study.",
+            "Sufficient settlement funds (unless you have a valid job offer or are already working in Canada)."
+          ]
+        },
+        {
+          "heading": "Comprehensive Ranking System (CRS)",
+          "points": [
+            "Core human capital — age, education, language and work experience.",
+            "Spouse/partner factors where applicable.",
+            "Skill transferability — combinations of education, experience and language.",
+            "Additional points — provincial nomination (+600), French proficiency, Canadian study or a sibling in Canada."
+          ]
+        },
+        {
+          "heading": "Pathway to Permanent Residence",
+          "points": [
+            "Create an Express Entry profile and enter the pool.",
+            "Receive an Invitation to Apply when your CRS meets the draw cut-off.",
+            "Submit a complete PR application within 60 days.",
+            "On approval, receive Confirmation of Permanent Residence (COPR)."
+          ]
+        }
+      ],
+      "benefits": [
+        "Permanent residence for you and your family.",
+        "Fast processing — often around six months after an ITA.",
+        "Live, work and study anywhere in Canada.",
+        "Access to universal healthcare and social benefits.",
+        "Pathway to Canadian citizenship.",
+        "Include your spouse and dependent children."
+      ],
+      "keyRequirements": [
+        "Eligible skilled work experience (NOC)",
+        "Language test (IELTS/CELPIP or TEF)",
+        "ECA for foreign education",
+        "Competitive CRS score",
+        "Proof of settlement funds"
+      ],
+      "processing": [
+        {
+          "title": "Language test & ECA",
+          "desc": "Sit an approved language test and get your credentials assessed."
+        },
+        {
+          "title": "Create Express Entry profile",
+          "desc": "Enter the pool with your CRS score."
+        },
+        {
+          "title": "Receive an ITA",
+          "desc": "Top-ranked candidates are invited in regular draws."
+        },
+        {
+          "title": "Submit PR application",
+          "desc": "Lodge documents within 60 days of the invitation."
+        },
+        {
+          "title": "Confirmation of PR",
+          "desc": "Receive COPR and complete your landing in Canada."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long does Canada Express Entry take?",
+          "a": "Most complete PR applications are processed within about six months after you receive an Invitation to Apply."
+        },
+        {
+          "q": "What CRS score do I need for Express Entry?",
+          "a": "It varies by draw. Recent cut-offs often sit around 470–540, though category-based and provincial draws can be lower. A provincial nomination adds 600 points."
+        },
+        {
+          "q": "Do I need a job offer for Express Entry?",
+          "a": "No. A job offer is not mandatory, though a valid one can add CRS points. Many candidates are invited with no Canadian job offer."
+        },
+        {
+          "q": "Can I include my family?",
+          "a": "Yes. Your spouse or common-law partner and dependent children can be included in the same PR application."
+        }
+      ]
+    },
+    {
+      "id": "pnp",
+      "pr": true,
+      "title": "Provincial Nominee Program (PNP)",
+      "badge": "PNP",
+      "icon": "MapPin",
+      "tagline": "Get nominated by a Canadian province and add 600 CRS points to your profile.",
+      "overview": "The Provincial Nominee Program (PNP) lets Canadian provinces and territories nominate skilled workers who want to settle in their region and meet local labour-market needs. Nearly every province (except Quebec, which runs its own system) operates a PNP. A provincial nomination is one of the most powerful routes to PR — an Express Entry-aligned nomination adds 600 CRS points, effectively guaranteeing an invitation.",
+      "details": [
+        {
+          "heading": "How the PNP works",
+          "points": [
+            "Each province runs streams targeting skilled workers, graduates, semi-skilled workers and entrepreneurs.",
+            "Some streams are \"enhanced\" (linked to Express Entry); others are \"base\" (direct to the province).",
+            "Provinces select candidates from their own pools or from the federal Express Entry pool."
+          ]
+        },
+        {
+          "heading": "Eligibility Requirements",
+          "points": [
+            "Skills, education and experience that match the province's in-demand occupations.",
+            "A genuine intention to live and work in the nominating province.",
+            "Meeting the specific stream's language, work-experience and sometimes job-offer requirements."
+          ]
+        },
+        {
+          "heading": "Enhanced vs base nomination",
+          "points": [
+            "Enhanced (Express Entry-linked) nomination adds 600 CRS points and leads to a fast federal PR application.",
+            "Base nomination is processed directly by IRCC, outside Express Entry, with longer timelines.",
+            "Both lead to the same outcome — Canadian permanent residence."
+          ]
+        }
+      ],
+      "benefits": [
+        "Adds 600 CRS points with an enhanced nomination.",
+        "Access to streams for many skill levels, including semi-skilled roles.",
+        "Permanent residence for you and your family.",
+        "Settle in a province actively seeking your skills.",
+        "Often lower CRS thresholds than federal draws.",
+        "Pathway to Canadian citizenship."
+      ],
+      "keyRequirements": [
+        "Province-specific eligibility match",
+        "Intention to settle in the province",
+        "Language & work-experience criteria",
+        "Express Entry profile (for enhanced streams)",
+        "Sometimes a provincial job offer"
+      ],
+      "processing": [
+        {
+          "title": "Identify the right province",
+          "desc": "Match your profile to a province and stream."
+        },
+        {
+          "title": "Express Interest / apply",
+          "desc": "Submit an EOI or stream application to the province."
+        },
+        {
+          "title": "Receive nomination",
+          "desc": "The province nominates you (enhanced = +600 CRS)."
+        },
+        {
+          "title": "Apply for PR",
+          "desc": "Lodge your PR application with IRCC."
+        },
+        {
+          "title": "Land as a PR",
+          "desc": "Receive your COPR and settle in your province."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Which is better — Express Entry or PNP?",
+          "a": "They work together. If your CRS is below recent cut-offs, a PNP nomination adds 600 points and effectively secures an invitation. We recommend the best route for your profile."
+        },
+        {
+          "q": "Do I have to stay in the nominating province?",
+          "a": "You commit to settling in the nominating province. PR is national, but you should genuinely intend to live and work there, especially initially."
+        },
+        {
+          "q": "Can I apply to a PNP without a job offer?",
+          "a": "Many streams do not require a job offer, though some do. The right stream depends on your occupation, experience and target province."
+        },
+        {
+          "q": "How long does a PNP take?",
+          "a": "Enhanced (Express Entry) nominations are fast — often around six months for the PR stage. Base streams take longer, frequently 12–18 months."
+        }
+      ]
+    },
+    {
+      "id": "work-permits",
+      "pr": false,
+      "title": "Canada Work Permits",
+      "badge": "Work Permits",
+      "icon": "Briefcase",
+      "tagline": "Work in Canada through employer-specific or open work permits.",
+      "overview": "A Canadian work permit allows foreign nationals to work in Canada temporarily and, in many cases, build experience that leads to permanent residence. Work permits fall into two broad categories: employer-specific (tied to one employer, often requiring a Labour Market Impact Assessment) and open (not tied to a specific employer). Canadian work experience is highly valuable for the Canadian Experience Class and many PNP streams.",
+      "details": [
+        {
+          "heading": "Types of work permits",
+          "points": [
+            "Employer-specific work permit — tied to one employer, job and location.",
+            "Open work permit — work for almost any employer (e.g. spouses, graduates, some pilots).",
+            "International Mobility Program (IMP) — LMIA-exempt categories such as intra-company transfers and trade agreements."
+          ]
+        },
+        {
+          "heading": "Labour Market Impact Assessment (LMIA)",
+          "points": [
+            "Many employer-specific permits require the employer to obtain a positive LMIA.",
+            "An LMIA confirms that hiring a foreign worker will not negatively affect the Canadian labour market.",
+            "A positive LMIA can also add CRS points toward Express Entry."
+          ]
+        },
+        {
+          "heading": "Pathways to permanent residence",
+          "points": [
+            "Gain skilled Canadian work experience to qualify for the Canadian Experience Class.",
+            "Use Canadian work experience to boost your CRS score.",
+            "Many PNP streams target workers already employed in the province."
+          ]
+        }
+      ],
+      "benefits": [
+        "Start working and earning in Canada sooner.",
+        "Build Canadian experience that supports PR.",
+        "Spouses may qualify for an open work permit.",
+        "Dependent children can study in Canada.",
+        "Access to a strong, high-wage labour market.",
+        "Stepping stone to permanent residence."
+      ],
+      "keyRequirements": [
+        "Job offer (for employer-specific permits)",
+        "LMIA or LMIA-exemption",
+        "Proof of qualifications & experience",
+        "Intent to leave at permit expiry (temporary)",
+        "Health & security admissibility"
+      ],
+      "processing": [
+        {
+          "title": "Secure a job offer",
+          "desc": "Obtain a genuine offer from a Canadian employer."
+        },
+        {
+          "title": "LMIA / exemption",
+          "desc": "Employer obtains an LMIA or confirms an IMP exemption."
+        },
+        {
+          "title": "Apply for the permit",
+          "desc": "Submit your work permit application with documents."
+        },
+        {
+          "title": "Begin work in Canada",
+          "desc": "Arrive and start your role on a valid permit."
+        },
+        {
+          "title": "Transition to PR",
+          "desc": "Use Canadian experience for Express Entry or a PNP."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can a work permit lead to permanent residence?",
+          "a": "Yes. Skilled Canadian work experience is a strong asset for the Canadian Experience Class and many PNP streams, and can significantly raise your CRS score."
+        },
+        {
+          "q": "What is an open work permit?",
+          "a": "An open work permit lets you work for almost any employer in Canada. It is available to certain groups such as spouses of skilled workers and some graduates."
+        },
+        {
+          "q": "Do I always need an LMIA?",
+          "a": "No. Many roles fall under LMIA-exempt categories of the International Mobility Program, such as intra-company transfers or international agreements."
+        },
+        {
+          "q": "Can my spouse work in Canada too?",
+          "a": "In many cases your spouse can apply for an open work permit while you hold a valid skilled work permit."
+        }
+      ]
+    },
+    {
+      "id": "study-permit",
+      "pr": false,
+      "title": "Canada Study Permit",
+      "badge": "Study Permit",
+      "icon": "GraduationCap",
+      "tagline": "Study at top Canadian institutions with work rights and a PR pathway.",
+      "overview": "A Canada Study Permit lets international students study at a Designated Learning Institution (DLI). Canada is a leading study destination thanks to its world-class universities and colleges, affordable tuition relative to peers, and strong post-graduation pathways. Graduates can obtain a Post-Graduation Work Permit (PGWP) and use their Canadian study and work experience to apply for permanent residence.",
+      "details": [
+        {
+          "heading": "Study options",
+          "points": [
+            "Universities — undergraduate, graduate and doctoral programs.",
+            "Colleges and institutes — diplomas, certificates and applied degrees.",
+            "Language and pathway programs."
+          ]
+        },
+        {
+          "heading": "Eligibility requirements",
+          "points": [
+            "Acceptance at a Designated Learning Institution (DLI).",
+            "Proof of funds for tuition and living costs (and a Provincial Attestation Letter where required).",
+            "Genuine intent to study and ties that support a temporary stay.",
+            "Meet language, academic and admissibility requirements."
+          ]
+        },
+        {
+          "heading": "Work rights & post-study pathways",
+          "points": [
+            "Work part-time during studies and full-time during scheduled breaks (subject to current rules).",
+            "Eligible graduates can obtain a Post-Graduation Work Permit (PGWP).",
+            "Canadian study and work experience strengthen Express Entry and PNP applications."
+          ]
+        }
+      ],
+      "benefits": [
+        "Study at globally ranked institutions.",
+        "Work while you study to support living costs.",
+        "Post-Graduation Work Permit after eligible programs.",
+        "Spouse may be eligible for a work permit.",
+        "Build a clear pathway to permanent residence.",
+        "Experience life in one of the world's most welcoming countries."
+      ],
+      "keyRequirements": [
+        "Acceptance from a DLI",
+        "Proof of sufficient funds",
+        "Provincial Attestation Letter (if applicable)",
+        "Genuine student intent",
+        "Health & security admissibility"
+      ],
+      "processing": [
+        {
+          "title": "Choose a DLI & program",
+          "desc": "Select a designated institution and course."
+        },
+        {
+          "title": "Receive your acceptance",
+          "desc": "Obtain a letter of acceptance and any attestation letter."
+        },
+        {
+          "title": "Prepare finances & documents",
+          "desc": "Show funds and prepare your study plan."
+        },
+        {
+          "title": "Apply for the study permit",
+          "desc": "Submit your application online."
+        },
+        {
+          "title": "Study & transition to PR",
+          "desc": "Study, work, get a PGWP and pursue PR."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can I work while studying in Canada?",
+          "a": "Yes. Study permit holders can usually work part-time during the academic session and full-time during scheduled breaks, subject to current government limits."
+        },
+        {
+          "q": "What is a PGWP?",
+          "a": "The Post-Graduation Work Permit lets eligible graduates of qualifying programs work in Canada for up to three years, building experience that supports PR."
+        },
+        {
+          "q": "Can a study permit lead to PR?",
+          "a": "Yes. Canadian education plus post-graduation work experience are valuable for the Canadian Experience Class and many PNP streams."
+        },
+        {
+          "q": "Can my family come with me?",
+          "a": "Your spouse may be eligible for a work permit and your dependent children can study in Canada, depending on your program and circumstances."
+        }
+      ]
+    },
+    {
+      "id": "family-sponsorship",
+      "pr": true,
+      "title": "Canada Family & Spousal Sponsorship",
+      "badge": "Family Sponsorship",
+      "icon": "Heart",
+      "tagline": "Reunite with your loved ones in Canada through family sponsorship.",
+      "overview": "Canada places a strong emphasis on family reunification. Canadian citizens and permanent residents can sponsor eligible family members — including a spouse, common-law or conjugal partner, dependent children, and parents and grandparents — to become permanent residents. Successfully sponsored family members enjoy the full rights of Canadian PR.",
+      "details": [
+        {
+          "heading": "Who can be sponsored",
+          "points": [
+            "Spouse, common-law partner or conjugal partner.",
+            "Dependent children (including adopted children).",
+            "Parents and grandparents (through dedicated programs).",
+            "In limited circumstances, other relatives."
+          ]
+        },
+        {
+          "heading": "Sponsor eligibility",
+          "points": [
+            "Be a Canadian citizen or permanent resident, at least 18 years old.",
+            "Agree to financially support the sponsored person for a set period.",
+            "Meet income requirements for certain categories (e.g. parents and grandparents).",
+            "Not be subject to certain prohibitions (e.g. undischarged bankruptcy or relevant offences)."
+          ]
+        },
+        {
+          "heading": "Relationship evidence (spousal/partner)",
+          "points": [
+            "Proof of a genuine relationship — photos, communication, joint finances and travel.",
+            "Marriage certificate or proof of cohabitation for common-law partners.",
+            "Consistent, credible documentation across the application."
+          ]
+        }
+      ],
+      "benefits": [
+        "Bring your closest family members to Canada permanently.",
+        "Sponsored persons gain full PR rights.",
+        "Access to healthcare and social benefits.",
+        "Spouses can often apply for an open work permit while the application is processed.",
+        "Build your life together in Canada.",
+        "Pathway to citizenship for sponsored family."
+      ],
+      "keyRequirements": [
+        "Eligible Canadian sponsor (citizen/PR)",
+        "Qualifying relationship",
+        "Financial support undertaking",
+        "Genuine relationship evidence",
+        "Admissibility (health & security)"
+      ],
+      "processing": [
+        {
+          "title": "Confirm eligibility",
+          "desc": "Verify both sponsor and applicant eligibility."
+        },
+        {
+          "title": "Gather evidence",
+          "desc": "Compile relationship and supporting documents."
+        },
+        {
+          "title": "Submit the application",
+          "desc": "Lodge sponsorship and PR applications together."
+        },
+        {
+          "title": "Processing & checks",
+          "desc": "IRCC reviews the relationship and admissibility."
+        },
+        {
+          "title": "PR for your family",
+          "desc": "Sponsored family members become permanent residents."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long does spousal sponsorship take?",
+          "a": "Processing times vary, but spousal/partner applications commonly take around 12 months, depending on completeness and individual circumstances."
+        },
+        {
+          "q": "Can my spouse work while we wait?",
+          "a": "In many inland spousal cases your partner can apply for an open work permit while the application is being processed."
+        },
+        {
+          "q": "Can I sponsor my parents and grandparents?",
+          "a": "Yes, through dedicated programs (such as the Parents and Grandparents Program or the Super Visa for extended visits). Income requirements apply."
+        },
+        {
+          "q": "What proof of relationship is needed?",
+          "a": "Strong, consistent evidence of a genuine relationship — joint finances, communication history, photos, travel and, where relevant, a marriage certificate or proof of cohabitation."
+        }
+      ]
+    },
+    {
+      "id": "business-startup",
+      "pr": true,
+      "title": "Canada Business & Start-up Visa",
+      "badge": "Business & Start-up",
+      "icon": "Rocket",
+      "tagline": "For entrepreneurs and investors building innovative businesses in Canada.",
+      "overview": "Canada actively welcomes entrepreneurs, investors and self-employed individuals who can contribute to its economy. The federal Start-up Visa Program offers permanent residence to founders of innovative businesses backed by a designated organisation, while the Self-Employed Persons Program and various provincial entrepreneur streams provide additional pathways for business migrants.",
+      "details": [
+        {
+          "heading": "Start-up Visa Program",
+          "points": [
+            "For founders of innovative, scalable businesses with growth potential.",
+            "Requires a letter of support from a designated venture capital fund, angel investor group or business incubator.",
+            "Grants permanent residence to qualifying founders (and their families)."
+          ]
+        },
+        {
+          "heading": "Other business pathways",
+          "points": [
+            "Self-Employed Persons Program — for those with relevant experience in cultural or athletic activities.",
+            "Provincial entrepreneur streams — provinces nominate business owners who invest and create jobs.",
+            "Intra-company transfer work permits for establishing a Canadian branch."
+          ]
+        },
+        {
+          "heading": "Eligibility",
+          "points": [
+            "A qualifying business idea and, for the Start-up Visa, support from a designated organisation.",
+            "Sufficient settlement funds.",
+            "Meet language requirements (typically CLB 5 or above).",
+            "Meet health, character and admissibility requirements."
+          ]
+        }
+      ],
+      "benefits": [
+        "Permanent residence for founders and their families (Start-up Visa).",
+        "Build a business in a stable, innovation-friendly economy.",
+        "Access to investors, incubators and global markets.",
+        "No mandatory minimum personal investment for the Start-up Visa.",
+        "Lifestyle, healthcare and education benefits of Canadian residence.",
+        "Pathway to Canadian citizenship."
+      ],
+      "keyRequirements": [
+        "Qualifying / innovative business",
+        "Letter of support (Start-up Visa)",
+        "Sufficient settlement funds",
+        "Language ability (CLB 5+)",
+        "Admissibility (health & security)"
+      ],
+      "processing": [
+        {
+          "title": "Develop your business case",
+          "desc": "Refine your business concept and strategy."
+        },
+        {
+          "title": "Secure designated support",
+          "desc": "Obtain a letter of support from a designated organisation."
+        },
+        {
+          "title": "Apply for PR / nomination",
+          "desc": "Lodge the Start-up Visa or provincial stream application."
+        },
+        {
+          "title": "Establish your business",
+          "desc": "Set up and operate your venture in Canada."
+        },
+        {
+          "title": "Permanent residence",
+          "desc": "Receive PR and grow your business in Canada."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Does the Start-up Visa give permanent residence?",
+          "a": "Yes. The federal Start-up Visa Program grants permanent residence to qualifying founders and their families, provided requirements are met."
+        },
+        {
+          "q": "How much do I need to invest?",
+          "a": "The Start-up Visa has no mandatory minimum personal investment, but you need a letter of support from a designated organisation and enough settlement funds. Provincial entrepreneur streams set their own investment levels."
+        },
+        {
+          "q": "Can my family come with me?",
+          "a": "Yes. Your spouse and dependent children can be included and enjoy the benefits of Canadian residence."
+        },
+        {
+          "q": "What is a designated organisation?",
+          "a": "An approved Canadian venture capital fund, angel investor group or business incubator that agrees to support your start-up."
+        }
+      ]
+    },
+    {
+      "id": "atlantic-regional",
+      "pr": true,
+      "title": "Atlantic Immigration & Regional Pathways",
+      "badge": "Atlantic & Regional",
+      "icon": "Compass",
+      "tagline": "Employer-driven pathways to PR in Atlantic Canada and rural communities.",
+      "overview": "Beyond the main federal and provincial routes, Canada runs targeted regional programs to bring skilled workers and graduates to specific areas. The Atlantic Immigration Program (AIP) supports employers in the four Atlantic provinces, while the Rural and Northern Immigration Pilot (RNIP) and similar community-driven programs help smaller communities attract newcomers — often with lower thresholds and strong settlement support.",
+      "details": [
+        {
+          "heading": "Atlantic Immigration Program (AIP)",
+          "points": [
+            "For New Brunswick, Nova Scotia, Prince Edward Island and Newfoundland and Labrador.",
+            "Employer-driven — requires a job offer from a designated employer.",
+            "Includes a settlement plan to help you and your family integrate."
+          ]
+        },
+        {
+          "heading": "Rural & community pathways",
+          "points": [
+            "Community-driven programs (such as the Rural and Northern Immigration Pilot) help smaller towns attract talent.",
+            "Often feature in-demand occupation lists tailored to local needs.",
+            "A genuine intention to live in the community is required."
+          ]
+        },
+        {
+          "heading": "Eligibility",
+          "points": [
+            "A qualifying job offer from a designated/eligible employer.",
+            "Relevant work experience and education.",
+            "Language ability meeting the program minimum.",
+            "Proof of funds and intention to settle in the region."
+          ]
+        }
+      ],
+      "benefits": [
+        "Direct, employer-supported pathway to permanent residence.",
+        "Often lower entry thresholds than federal draws.",
+        "Strong settlement and community support.",
+        "Affordable cost of living and welcoming communities.",
+        "Bring your family and access healthcare and schooling.",
+        "Pathway to Canadian citizenship."
+      ],
+      "keyRequirements": [
+        "Job offer from a designated employer",
+        "Relevant experience & education",
+        "Language ability (program minimum)",
+        "Intention to settle in the region",
+        "Proof of funds"
+      ],
+      "processing": [
+        {
+          "title": "Find a designated employer",
+          "desc": "Secure a job offer from an eligible regional employer."
+        },
+        {
+          "title": "Endorsement / settlement plan",
+          "desc": "Obtain endorsement and a settlement plan where required."
+        },
+        {
+          "title": "Apply for PR",
+          "desc": "Submit your permanent residence application."
+        },
+        {
+          "title": "Relocate to the region",
+          "desc": "Move to the Atlantic province or community."
+        },
+        {
+          "title": "Settle as a PR",
+          "desc": "Build your life with local settlement support."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the Atlantic Immigration Program?",
+          "a": "An employer-driven PR pathway for the four Atlantic provinces. With a job offer from a designated employer and a settlement plan, skilled workers and graduates can become permanent residents."
+        },
+        {
+          "q": "Are regional programs easier than Express Entry?",
+          "a": "They often have lower thresholds and strong support, but they require a genuine job offer and intention to live in the specific region. We assess which route best fits you."
+        },
+        {
+          "q": "Do I need a job offer for these pathways?",
+          "a": "Yes. Atlantic and most rural/community programs are employer-driven and require a qualifying job offer."
+        },
+        {
+          "q": "Can my family join me?",
+          "a": "Yes. Your spouse and dependent children are included, and Atlantic programs provide settlement support for the whole family."
+        }
+      ]
+    }
+  ]
+}

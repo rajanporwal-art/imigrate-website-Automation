@@ -21,12 +21,13 @@ import FaqTeaser from '@/components/FaqTeaser.jsx';
 import LeadForm from '@/components/LeadForm.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { australiaVisas } from '@/data/australiaVisas';
+import { useVisas } from '@/lib/visaStore';
 import { useSiteContent } from '@/lib/siteContent.jsx';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
 
 function AustraliaMigrationPage() {
   const { contact, australia } = useSiteContent();
+  const australiaVisas = useVisas('australia');
   const { openLeadForm } = useLeadForm();
 
   return (

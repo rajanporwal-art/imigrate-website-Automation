@@ -20,12 +20,13 @@ import FaqTeaser from '@/components/FaqTeaser.jsx';
 import LeadForm from '@/components/LeadForm.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { canadaVisas } from '@/data/canadaVisas';
+import { useVisas } from '@/lib/visaStore';
 import { useSiteContent } from '@/lib/siteContent.jsx';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
 
 function CanadaMigrationPage() {
   const { contact, canada } = useSiteContent();
+  const canadaVisas = useVisas('canada');
   const { openLeadForm } = useLeadForm();
 
   return (
