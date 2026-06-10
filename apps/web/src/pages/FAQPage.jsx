@@ -11,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useFaqs } from '@/lib/faqStore';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
+import { useSiteContent } from '@/lib/siteContent.jsx';
 
 function FAQPage() {
   const faqCategories = useFaqs();
   const { openLeadForm } = useLeadForm();
+  const { faqPage = {} } = useSiteContent();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(faqCategories[0].id);
 
@@ -127,9 +129,9 @@ function FAQPage() {
               transition={{ duration: 0.6 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <h1 className="heading-display mb-6">Immigration FAQs</h1>
+              <h1 className="heading-display mb-6">{faqPage.heading || 'Immigration FAQs'}</h1>
               <p className="text-xl opacity-90 mb-8">
-                Clear, expert answers to the most common questions about migrating to Canada and Australia.
+                {faqPage.subheading || 'Clear, expert answers to the most common questions about migrating to Canada and Australia.'}
               </p>
               <div className="relative max-w-xl mx-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

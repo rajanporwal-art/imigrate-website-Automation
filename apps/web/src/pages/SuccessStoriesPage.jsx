@@ -9,8 +9,8 @@ import StickyConsultationButton from '@/components/StickyConsultationButton.jsx'
 import { useSiteContent } from '@/lib/siteContent.jsx';
 
 function SuccessStoriesPage() {
-  const { stats } = useSiteContent();
-  const successStories = [
+  const { stats, successStoriesPage = {} } = useSiteContent();
+  const DEF_STORIES = [
     {
       name: 'Arjun Mehta',
       country: 'India → Canada',
@@ -68,6 +68,7 @@ function SuccessStoriesPage() {
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
     },
   ];
+  const successStories = Array.isArray(successStoriesPage.stories) && successStoriesPage.stories.length ? successStoriesPage.stories : DEF_STORIES;
 
   return (
     <>
