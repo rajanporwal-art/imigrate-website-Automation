@@ -82,8 +82,26 @@ function prune_versions($verDir, $idxFile, $keep) {
     @file_put_contents($idxFile, $out, LOCK_EX);
 }
 
+/* Objects merge (override wins per key); arrays are replaced wholesale. */
+function cms_deep_merge($base, $ov) {
+    if (!is_array($base) || !is_array($ov)) return $ov;
+    $isAssoc = function ($a) { return array_keys($a) !== range(0, count($a) - 1); };
+    if (!$isAssoc($base) || !$isAssoc($ov)) return $ov; // list → replace
+    $out = $base;
+    foreach ($ov as $k => $v) {
+        $out[$k] = (isset($base[$k]) && is_array($base[$k]) && is_array($v)) ? cms_deep_merge($base[$k], $v) : $v;
+    }
+    return $out;
+}
+
 if ($action === 'load') {
-    $data = is_file($readFile) ? json_decode((string) file_get_contents($readFile), true) : null;
+    // Effective content = base (repo seed, always current) merged with the
+    // server override (durable CMS edits). Ensures newly-shipped page content
+    // surfaces in the CMS even when an older override already exists.
+    $baseData = is_file($base) ? json_decode((string) file_get_contents($base), true) : null;
+    $ovData = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+    if (is_array($baseData) && is_array($ovData)) $data = cms_deep_merge($baseData, $ovData);
+    else $data = $ovData !== null ? $ovData : $baseData;
     echo json_encode(['ok' => true, 'data' => $data, 'mtime' => is_file($readFile) ? date('c', filemtime($readFile)) : null, 'override' => is_file($file)]);
     exit;
 }

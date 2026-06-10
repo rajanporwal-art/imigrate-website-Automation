@@ -218,7 +218,7 @@ function rDashboard(){
 
 /* ---------- Page Content ---------- */
 let pageKey='home';
-const PAGE_LABELS={home:'Home',australia:'Australia PR',canada:'Canada PR',about:'About Us',assessment:'Assessment',contactPage:'Contact',stats:'Stats bar',highlights:'Feature cards'};
+const PAGE_LABELS={home:'Home',about:'About Us',servicesPage:'Services',australia:'Australia PR',canada:'Canada PR',assessment:'Assessment',contactPage:'Contact',stats:'Stats bar',highlights:'Feature cards'};
 function rPages(){
   const keys=Object.keys(PAGE_LABELS).filter(k=>CONTENT[k]!==undefined);
   if(!keys.includes(pageKey))pageKey=keys[0]||'home';
