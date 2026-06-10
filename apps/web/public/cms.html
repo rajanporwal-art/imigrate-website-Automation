@@ -169,6 +169,9 @@ function fieldsEditor(obj,base){
       h+=`<label class="fl">${esc(label)}</label><input value="${esc(v)}" oninput="cmsSet('${path}',this.value)">`;
     }else if(Array.isArray(v)&&v.length&&typeof v[0]==='object'){
       h+=`<div class="card" style="background:var(--bg)"><h3 style="text-transform:capitalize">${esc(label)}</h3>${v.map((it,i)=>`<div class="item"><div class="hd"><strong>#${i+1}</strong><button class="btn btn-sm" onclick="arrRemove('${path}',${i})">Remove</button></div>${fieldsEditor(it,path+'.'+i)}</div>`).join('')}<button class="btn btn-sm" onclick="arrAdd('${path}')">+ Add item</button></div>`;
+    }else if(Array.isArray(v)){
+      /* array of plain strings (bullet lists, occupation lists, etc.) */
+      h+=`<div class="card" style="background:var(--bg)"><h3 style="text-transform:capitalize">${esc(label)}</h3>${v.map((it,i)=>`<div style="display:flex;gap:6px;margin-bottom:6px"><input value="${esc(it)}" oninput="setStrArr('${path}',${i},this.value)"><button class="btn btn-sm" onclick="arrRemove('${path}',${i})">✕</button></div>`).join('')}<button class="btn btn-sm" onclick="strArrAdd('${path}')">+ Add</button></div>`;
     }else if(v&&typeof v==='object'){
       h+=`<div class="card" style="background:var(--bg)"><h3 style="text-transform:capitalize">${esc(label)}</h3>${fieldsEditor(v,path)}</div>`;
     }
@@ -177,6 +180,8 @@ function fieldsEditor(obj,base){
 }
 window.arrRemove=(path,i)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a.splice(i,1);DIRTY=true;render();}};
 window.arrAdd=(path)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){const tpl=a.length?JSON.parse(JSON.stringify(a[0])):{};Object.keys(tpl).forEach(k=>tpl[k]='');a.push(tpl);DIRTY=true;render();}};
+window.setStrArr=(path,i,v)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a[i]=v;DIRTY=true;markDirty();}};
+window.strArrAdd=(path)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a.push('');DIRTY=true;render();}};
 
 function saveBar(domain,label){
   return `<div class="savebar"><span id="dirtyFlag" class="muted" style="font-size:12px">${DIRTY?'● Unsaved changes':'Saved'}</span>
