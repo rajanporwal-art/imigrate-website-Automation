@@ -21,96 +21,37 @@ function HomePage() {
   const { stats, home } = useSiteContent();
   const { openLeadForm } = useLeadForm();
 
-  const benefits = [
-    {
-      icon: Users,
-      title: 'Specialists in Asian applicant profiles',
-      description: 'Deep expertise helping professionals, entrepreneurs, and families from Malaysia, Singapore, India and Vietnam navigate Australian and Canadian immigration.',
-    },
-    {
-      icon: Award,
-      title: '98.6% success rate',
-      description: 'Our track record speaks for itself. 98.6% of our clients receive positive outcomes — backed by our 100% money-back guarantee.',
-    },
-    {
-      icon: Shield,
-      title: 'Zero hidden fees',
-      description: 'Transparent, fixed pricing agreed upfront. No surprises. Pay as you go — spread the cost across your immigration journey.',
-    },
-    {
-      icon: Globe,
-      title: 'End-to-end case management',
-      description: 'A dedicated consultant manages your case from free eligibility check to visa grant — and beyond.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'C11, Express Entry & skilled migration experts',
-      description: 'Specialists in Canada C11 Entrepreneur Work Permit, Express Entry, PNP and Australia skilled migration pathways.',
-    },
+  // Icons are referenced by name so the content is fully CMS-editable (JSON-safe).
+  const ICONS = { Users, Award, Shield, Globe, TrendingUp, CheckCircle, ArrowRight };
+  const DEF_BENEFITS = [
+    { icon: 'Users', title: 'Specialists in Asian applicant profiles', description: 'Deep expertise helping professionals, entrepreneurs, and families from Malaysia, Singapore, India and Vietnam navigate Australian and Canadian immigration.' },
+    { icon: 'Award', title: '98.6% success rate', description: 'Our track record speaks for itself. 98.6% of our clients receive positive outcomes — backed by our 100% money-back guarantee.' },
+    { icon: 'Shield', title: 'Zero hidden fees', description: 'Transparent, fixed pricing agreed upfront. No surprises. Pay as you go — spread the cost across your immigration journey.' },
+    { icon: 'Globe', title: 'End-to-end case management', description: 'A dedicated consultant manages your case from free eligibility check to visa grant — and beyond.' },
+    { icon: 'TrendingUp', title: 'C11, Express Entry & skilled migration experts', description: 'Specialists in Canada C11 Entrepreneur Work Permit, Express Entry, PNP and Australia skilled migration pathways.' },
   ];
+  const DEF_SERVICES = [
+    { icon: 'Globe', title: '🇦🇺 Australian skilled migration', description: 'Navigate the points-based system with expert guidance for skilled independent and state-nominated visas.', link: '/australia-migration' },
+    { icon: 'Globe', title: '🇨🇦 Canadian skilled migration', description: 'Maximize your Express Entry score and explore provincial nominee programs for faster processing.', link: '/canada-immigration' },
+    { icon: 'Users', title: 'Student visas', description: 'Study in world-class institutions while building a pathway to permanent residence.', link: '/services#student' },
+    { icon: 'Shield', title: 'Partner & family visas', description: 'Reunite with your loved ones through spouse, partner, parent, and child visa programs.', link: '/services#family' },
+    { icon: 'TrendingUp', title: 'Business & investor visas', description: 'Establish or invest in businesses while securing your immigration status.', link: '/services#business' },
+    { icon: 'Award', title: 'Employer sponsored visas', description: 'Secure permanent residence through employer sponsorship programs in both countries.', link: '/services#employer' },
+  ];
+  const DEF_TESTIMONIALS = [
+    { name: 'Arjun Mehta', country: 'India → Canada', visaType: 'C11 Entrepreneur Work Permit', testimonial: 'As a business owner from Mumbai, I was looking for a flexible route to Canada. iMigrate Migration Solutions guided me through the C11 process seamlessly. Their expertise in structuring my business plan made all the difference. I am now running my IT consulting firm in Toronto.', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400' },
+    { name: 'Priya Nair', country: 'India → Australia', visaType: 'Skilled Independent Visa (189)', testimonial: "iMigrate Migration Solutions helped me navigate Australia's points system with confidence. Their team reviewed my profile thoroughly and identified the best pathway for my nursing career. The process was transparent and professional from start to finish.", image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400' },
+    { name: 'Rajan Kumar', country: 'Malaysia → Canada', visaType: 'Express Entry', testimonial: 'Coming from Kuala Lumpur, I wanted a reliable partner to handle my Express Entry application. The iMigrate team was professional, responsive and kept me informed throughout the journey. I am grateful for their support in helping me and my family start a new chapter.', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400' },
+  ];
+  const DEF_C11 = { label: 'Featured Program', heading: 'C11 Entrepreneur Work Permit', text: "Canada's most flexible business immigration route. No minimum investment, no language test required — ideal for entrepreneurs from India, Malaysia, Singapore and beyond.", bullets: ['No minimum capital investment required', 'Bring your family to Canada', 'Fast-track path to permanent residence', 'Suitable for a wide range of business types'], image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop', learnMoreText: 'Learn More About C11', consultText: 'Book Free Consultation' };
 
-  const services = [
-    {
-      icon: Globe,
-      title: '🇦🇺 Australian skilled migration',
-      description: 'Navigate the points-based system with expert guidance for skilled independent and state-nominated visas.',
-      link: '/australia-migration',
-    },
-    {
-      icon: Globe,
-      title: '🇨🇦 Canadian skilled migration',
-      description: 'Maximize your Express Entry score and explore provincial nominee programs for faster processing.',
-      link: '/canada-immigration',
-    },
-    {
-      icon: Users,
-      title: 'Student visas',
-      description: 'Study in world-class institutions while building a pathway to permanent residence.',
-      link: '/services#student',
-    },
-    {
-      icon: Shield,
-      title: 'Partner & family visas',
-      description: 'Reunite with your loved ones through spouse, partner, parent, and child visa programs.',
-      link: '/services#family',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Business & investor visas',
-      description: 'Establish or invest in businesses while securing your immigration status.',
-      link: '/services#business',
-    },
-    {
-      icon: Award,
-      title: 'Employer sponsored visas',
-      description: 'Secure permanent residence through employer sponsorship programs in both countries.',
-      link: '/services#employer',
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Arjun Mehta',
-      country: 'India → Canada',
-      visaType: 'C11 Entrepreneur Work Permit',
-      testimonial: 'As a business owner from Mumbai, I was looking for a flexible route to Canada. iMigrate Migration Solutions guided me through the C11 process seamlessly. Their expertise in structuring my business plan made all the difference. I am now running my IT consulting firm in Toronto.',
-      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-    },
-    {
-      name: 'Priya Nair',
-      country: 'India → Australia',
-      visaType: 'Skilled Independent Visa (189)',
-      testimonial: "iMigrate Migration Solutions helped me navigate Australia's points system with confidence. Their team reviewed my profile thoroughly and identified the best pathway for my nursing career. The process was transparent and professional from start to finish.",
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    },
-    {
-      name: 'Rajan Kumar',
-      country: 'Malaysia → Canada',
-      visaType: 'Express Entry',
-      testimonial: 'Coming from Kuala Lumpur, I wanted a reliable partner to handle my Express Entry application. The iMigrate team was professional, responsive and kept me informed throughout the journey. I am grateful for their support in helping me and my family start a new chapter.',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
-    },
-  ];
+  const mapIcon = (x) => ({ ...x, icon: ICONS[x.icon] || Globe });
+  const benefits = (Array.isArray(home.benefits) && home.benefits.length ? home.benefits : DEF_BENEFITS).map(mapIcon);
+  const services = (Array.isArray(home.services) && home.services.length ? home.services : DEF_SERVICES).map(mapIcon);
+  const testimonials = Array.isArray(home.testimonials) && home.testimonials.length ? home.testimonials : DEF_TESTIMONIALS;
+  const c11 = home.c11 || DEF_C11;
+  const faqHeading = home.faqHeading || 'Frequently asked questions';
+  const faqSubheading = home.faqSubheading || 'Quick answers about migrating to Australia and Canada — explore our full FAQ for more.';
 
   return (
     <>
@@ -271,25 +212,25 @@ function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="gold-rule mb-5" />
-                <span className="text-accent font-semibold text-sm uppercase tracking-widest">Featured Program</span>
-                <h2 className="heading-section text-balance mt-2 mb-4">C11 Entrepreneur Work Permit</h2>
-                <p className="text-lg opacity-90 mb-6">Canada's most flexible business immigration route. No minimum investment, no language test required — ideal for entrepreneurs from India, Malaysia, Singapore and beyond.</p>
+                <span className="text-accent font-semibold text-sm uppercase tracking-widest">{c11.label}</span>
+                <h2 className="heading-section text-balance mt-2 mb-4">{c11.heading}</h2>
+                <p className="text-lg opacity-90 mb-6">{c11.text}</p>
                 <ul className="space-y-2 mb-8">
-                  {['No minimum capital investment required', 'Bring your family to Canada', 'Fast-track path to permanent residence', 'Suitable for a wide range of business types'].map(item => (
+                  {(c11.bullets || []).map(item => (
                     <li key={item} className="flex items-center gap-2 opacity-90"><CheckCircle className="h-5 w-5 text-accent flex-shrink-0" />{item}</li>
                   ))}
                 </ul>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="bg-cta text-cta-foreground hover:bg-[hsl(var(--cta-hover))] shadow-md hover:shadow-lg">
-                    <Link to="/c11-entrepreneur-work-permit">Learn More About C11</Link>
+                    <Link to="/c11-entrepreneur-work-permit">{c11.learnMoreText}</Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={() => openLeadForm('C11 Featured — Book Consultation')}>
-                    Book Free Consultation
+                    {c11.consultText}
                   </Button>
                 </div>
               </div>
               <div className="relative">
-                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop" alt="Toronto skyline — Canada business immigration destination" className="rounded-2xl shadow-2xl w-full object-cover" />
+                <img src={c11.image} alt="Toronto skyline — Canada business immigration destination" className="rounded-2xl shadow-2xl w-full object-cover" />
               </div>
             </div>
           </div>
@@ -329,8 +270,8 @@ function HomePage() {
 
         <FaqTeaser
           categoryId="general"
-          heading="Frequently asked questions"
-          subheading="Quick answers about migrating to Australia and Canada — explore our full FAQ for more."
+          heading={faqHeading}
+          subheading={faqSubheading}
         />
 
         <section className="section-spacing bg-primary text-primary-foreground">
