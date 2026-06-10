@@ -13,7 +13,20 @@
   button{font-family:inherit;cursor:pointer}
   .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600}
   .btn:hover{border-color:var(--accent)} .btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)} .btn-sm{padding:4px 9px;font-size:12px} .btn-cta{background:var(--cta);color:#fff;border-color:var(--cta)}
-  input,select{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  input,select,textarea{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  textarea{min-height:110px;resize:vertical;line-height:1.5}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0}
+  .tab{padding:8px 14px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;color:var(--muted);background:transparent;cursor:pointer}
+  .tab.active{color:var(--navy);background:var(--panel);border-color:var(--border);margin-bottom:-1px}
+  .aiout{white-space:pre-wrap;font-size:13px;line-height:1.6;background:#fbfcfe;border:1px solid var(--border);border-radius:8px;padding:14px;max-height:60vh;overflow:auto}
+  .chatwrap{display:flex;flex-direction:column;height:62vh;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .chatlog{flex:1;overflow:auto;padding:14px;background:#fbfcfe}
+  .msg{margin-bottom:12px;display:flex} .msg.u{justify-content:flex-end}
+  .bub{max-width:80%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .msg.u .bub{background:var(--navy);color:#fff;border-bottom-right-radius:3px}
+  .msg.a .bub{background:#fff;border:1px solid var(--border);border-bottom-left-radius:3px}
+  .chatbar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--panel)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(11,31,68,.08);color:var(--navy);margin-right:5px}
   label.fl{font-size:12px;color:var(--muted);display:block;margin:8px 0 3px}
   #gate{max-width:380px;margin:11vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
   #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 16px}
@@ -77,15 +90,15 @@ const esc=(v)=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 const fmtDT=(s)=>(s||'').slice(0,16).replace('T',' ');
 let TOKEN=sessionStorage.getItem('imig_portal_token')||'',SVC='',USER={},PERMS={all:false,perms:{}},VIEW='dashboard';
 
-const MODULE_LABELS={'cms.pages':'Pages','cms.blogs':'Blogs','cms.faqs':'FAQs','cms.media':'Media','cms.menus':'Menus','cms.forms':'Forms','cms.seo':'SEO','cms.settings':'CMS Settings','crm.leads':'Leads','crm.aileads':'AI Leads','crm.reports':'Reports','crm.pipeline':'Pipeline','crm.tasks':'Tasks','crm.documents':'Documents','crm.notes':'Notes','crm.activities':'Activities','mkt.social':'Social Media','mkt.gbp':'Google Business','mkt.email':'Email Campaigns','mkt.emailauto':'Email Automations','mkt.whatsapp':'WhatsApp','mkt.ads':'Ads Manager','mkt.calendar':'Content Calendar','mkt.analytics':'Analytics','int.m365':'Microsoft 365','int.google':'Google','int.hubspot':'HubSpot','int.mailchimp':'Mailchimp','int.activecampaign':'ActiveCampaign','int.whatsappapi':'WhatsApp API','settings.company':'Company','settings.users':'Users','settings.roles':'Roles & Permissions','settings.apikeys':'API Keys','settings.backup':'Backup','settings.security':'Security'};
+const MODULE_LABELS={'cms.pages':'Pages','cms.blogs':'Blogs','cms.faqs':'FAQs','cms.media':'Media','cms.menus':'Menus','cms.forms':'Forms','cms.seo':'SEO','cms.settings':'CMS Settings','crm.leads':'Leads','crm.aileads':'AI Leads','crm.reports':'Reports','crm.pipeline':'Pipeline','crm.tasks':'Tasks','crm.documents':'Documents','crm.notes':'Notes','crm.activities':'Activities','mkt.aistudio':'AI Studio','mkt.social':'Social Media','mkt.gbp':'Google Business','mkt.email':'Email Campaigns','mkt.emailauto':'Email Automations','mkt.whatsapp':'WhatsApp','mkt.ads':'Ads Manager','mkt.calendar':'Content Calendar','mkt.analytics':'Analytics','int.anthropic':'Claude AI (Anthropic)','int.m365':'Microsoft 365','int.google':'Google','int.hubspot':'HubSpot','int.mailchimp':'Mailchimp','int.activecampaign':'ActiveCampaign','int.whatsappapi':'WhatsApp API','settings.company':'Company','settings.users':'Users','settings.roles':'Roles & Permissions','settings.apikeys':'API Keys','settings.backup':'Backup','settings.security':'Security'};
 
 /* nav: [group, [ [moduleKey, label, target] ]]; target: app url (#m=) or 'native' */
 const NAV=[
   [null,[['dashboard','📊 Dashboard','native']]],
   ['Website CMS',[['cms.pages','Pages','cms.html#m=pagelist'],['cms.blogs','Blogs','cms.html#m=blog'],['cms.faqs','FAQs','cms.html#m=faqs'],['cms.media','Media Library','cms.html#m=media'],['cms.menus','Menus','cms.html#m=menus'],['cms.forms','Forms','cms.html#m=forms'],['cms.seo','SEO','cms.html#m=seo'],['cms.settings','Settings','cms.html#m=settings']]],
   ['CRM',[['crm.leads','Leads','crm.html#m=leads'],['crm.aileads','AI Leads','crm.html#m=leads'],['crm.reports','Reports','crm.html#m=reports'],['crm.pipeline','Pipeline','crm.html#m=pipeline'],['crm.tasks','Tasks','crm.html#m=tasks'],['crm.documents','Documents','crm.html#m=leads'],['crm.notes','Notes','crm.html#m=leads'],['crm.activities','Activities','crm.html#m=leads']]],
-  ['Marketing Hub',[['mkt.social','Social Media','native'],['mkt.gbp','Google Business','native'],['mkt.email','Email Campaigns','native'],['mkt.emailauto','Email Automations','native'],['mkt.whatsapp','WhatsApp','native'],['mkt.ads','Ads Manager','native'],['mkt.calendar','Content Calendar','native'],['mkt.analytics','Analytics','native']]],
-  ['Integrations',[['int.m365','Microsoft 365','native'],['int.google','Google','native'],['int.hubspot','HubSpot','native'],['int.mailchimp','Mailchimp','native'],['int.activecampaign','ActiveCampaign','native'],['int.whatsappapi','WhatsApp API','native']]],
+  ['Marketing Hub',[['mkt.aistudio','✨ AI Studio','native'],['mkt.social','Social Media','native'],['mkt.gbp','Google Business','native'],['mkt.email','Email Campaigns','native'],['mkt.emailauto','Email Automations','native'],['mkt.whatsapp','WhatsApp','native'],['mkt.ads','Ads Manager','native'],['mkt.calendar','Content Calendar','native'],['mkt.analytics','Analytics','native']]],
+  ['Integrations',[['int.anthropic','Claude AI','native'],['int.m365','Microsoft 365','native'],['int.google','Google','native'],['int.hubspot','HubSpot','native'],['int.mailchimp','Mailchimp','native'],['int.activecampaign','ActiveCampaign','native'],['int.whatsappapi','WhatsApp API','native']]],
   ['Settings',[['settings.company','Company Info','native'],['settings.users','Users','native'],['settings.roles','Roles & Permissions','native'],['settings.apikeys','API Keys','native'],['settings.backup','Backup','native'],['settings.security','Security','native']]],
 ];
 
@@ -130,6 +143,8 @@ function buildNav(){
 function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
   $('viewTitle').textContent= mod==='dashboard'?'Dashboard':(MODULE_LABELS[mod]||mod);
   if(mod!=='dashboard' && mod.startsWith('settings.')) return renderSettings(mod);
+  if(mod==='mkt.aistudio'){ $('view').style.padding='20px'; return renderAIStudio(); }
+  if(mod==='int.anthropic'){ $('view').style.padding='20px'; return renderAIIntegration(); }
   if(mod!=='dashboard' && (mod.startsWith('mkt.')||mod.startsWith('int.'))) return renderFramework(mod);
   if(mod==='dashboard') return renderDashboard();
   if(tgt!=='native'){ $('view').innerHTML=`<iframe src="/${esc(tgt)}" title="${esc(MODULE_LABELS[mod]||mod)}"></iframe>`; $('view').style.padding='0'; return; }
@@ -139,7 +154,7 @@ function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
 /* ---------- dashboard ---------- */
 function renderDashboard(){
   $('view').style.padding='20px';
-  const CARDS=[['cms.pages','🌐','Website CMS','Pages, blogs, SEO, media','cms.pages'],['crm.leads','📇','CRM','Leads, pipeline, reports','crm.leads'],['mkt.email','📣','Marketing Hub','Campaigns & automations','mkt.email'],['crm.reports','🤖','AI Reports','Assessment reports','crm.reports'],['mkt.email','✉️','Email Marketing','Campaigns & templates','mkt.email'],['mkt.social','📱','Social Media','Posts & scheduling','mkt.social'],['mkt.analytics','📈','Analytics','Traffic & conversions','mkt.analytics'],['int.m365','🔌','Integrations','M365, HubSpot, more','int.m365'],['settings.company','⚙️','Settings','Users, roles, security','settings.company']];
+  const CARDS=[['cms.pages','🌐','Website CMS','Pages, blogs, SEO, media','cms.pages'],['crm.leads','📇','CRM','Leads, pipeline, reports','crm.leads'],['mkt.aistudio','✨','AI Studio','Generate content, ads & SEO with Claude','mkt.aistudio'],['mkt.email','📣','Marketing Hub','Campaigns & automations','mkt.email'],['crm.reports','🤖','AI Reports','Assessment reports','crm.reports'],['mkt.email','✉️','Email Marketing','Campaigns & templates','mkt.email'],['mkt.social','📱','Social Media','Posts & scheduling','mkt.social'],['mkt.analytics','📈','Analytics','Traffic & conversions','mkt.analytics'],['int.m365','🔌','Integrations','M365, HubSpot, more','int.m365'],['settings.company','⚙️','Settings','Users, roles, security','settings.company']];
   const cards=CARDS.filter(c=>can(c[0])).map(c=>`<div class="qcard" onclick="go('${c[4]}')"><div class="ic">${c[1]}</div><h3>${esc(c[2])}</h3><p>${esc(c[3])}</p></div>`).join('');
   $('view').innerHTML=`<p class="muted" style="margin-top:0">Welcome, <strong>${esc(USER.name||'')}</strong> — signed in as <strong>${esc(USER.role||'')}</strong>.</p><div class="cards">${cards}</div>
    <div class="card" style="margin-top:18px"><h3>Two systems, one portal</h3><p class="muted" style="font-size:13px;line-height:1.6">The Website CMS and the CRM run as independent applications with separate data stores and deployment protection — website updates never touch CRM data, and vice-versa. This portal is the shared, role-secured front door.</p></div>`;
@@ -323,6 +338,180 @@ async function setup2fa(){
 }
 async function enable2fa(secret){ const r=await api({action:'2fa.enable',secret,otp:$('tf_otp').value.trim()}); if(r.ok){$('twofaArea').innerHTML='<span class="ok">✓ 2FA enabled.</span>';}else $('tf_msg').textContent=r.error||'Failed'; }
 async function disable2fa(){ if(!confirm('Disable 2FA?'))return; await api({action:'2fa.disable'}); alert('2FA disabled.'); }
+
+/* ================= Claude AI (Anthropic) ================= */
+async function aiApi(body){
+  try{
+    const r=await fetch('/ai.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,user:USER.name||'Admin',role:USER.role||'',...body})});
+    return await r.json();
+  }catch(e){ return {ok:false,error:'Request failed — check your connection.'}; }
+}
+let AI_TAB='create', AI_CHAT=[], AI_DRAFT=null;
+const AI_TYPES=[['blog','Blog article'],['social','Social media posts'],['googleads','Google Search ad'],['metaads','Meta (FB/IG) ad'],['linkedinads','LinkedIn ad'],['landing','Landing page copy'],['email','Marketing email'],['whatsapp','WhatsApp messages'],['seo_meta','SEO meta tags'],['seo_keywords','Keyword research'],['generic','Freeform']];
+function TYPE_LABEL(k){ const f=AI_TYPES.find(x=>x[0]===k); return f?f[1]:k; }
+
+/* ---- Integrations → Claude AI: API key panel ---- */
+async function renderAIIntegration(){
+  $('view').innerHTML='<div class="card"><h3>Claude AI (Anthropic)</h3><p class="muted">Loading…</p></div>';
+  const r=await aiApi({action:'config.get'});
+  const configured=r.ok&&r.configured;
+  $('view').innerHTML=`<div class="card" style="max-width:680px">
+    <div style="font-size:30px">🤖</div>
+    <h3 style="margin:6px 0">Claude AI (Anthropic) ${configured?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</h3>
+    <p style="font-size:13px;line-height:1.6">Powers the <strong>AI Studio</strong> (Marketing Hub) — content, ads, SEO and the admin chat assistant. Your API key is stored server-side in a protected, deploy-excluded file; it is never returned to the browser or shipped in the website code.</p>
+    <label class="fl">Anthropic API key ${configured?`<span class="muted">(saved: ${esc(r.keyHint||'')})</span>`:''}</label>
+    <input id="ai_key" type="password" placeholder="${configured?'Enter a new key to replace the saved one':'sk-ant-...'}" autocomplete="off">
+    <label class="fl">Model</label>
+    <select id="ai_model">${['claude-opus-4-8','claude-sonnet-4-6','claude-haiku-4-5'].map(m=>`<option ${(r.model||'claude-opus-4-8')===m?'selected':''}>${m}</option>`).join('')}</select>
+    <p class="muted" style="font-size:12px;margin-top:6px">Opus = highest quality · Sonnet = balanced · Haiku = fastest &amp; cheapest.</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="aiSaveKey()">Save</button>
+      <button class="btn btn-sm" onclick="aiTestKey()">Test connection</button>
+      ${configured?'<button class="btn btn-sm" onclick="aiClearKey()">Remove key</button>':''}
+      <span id="ai_keymsg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:12px;line-height:1.6">Get a key from <strong>console.anthropic.com → API Keys</strong>. Usage is billed by Anthropic to your own account. For security this app cannot create the key for you — please paste your own.</p>
+  </div>`;
+}
+async function aiSaveKey(){
+  const msg=$('ai_keymsg'); msg.textContent='Saving…'; msg.className='muted';
+  const body={action:'config.set',model:$('ai_model').value};
+  const k=$('ai_key').value.trim(); if(k) body.apiKey=k;
+  const r=await aiApi(body);
+  if(r.ok){ msg.textContent=r.configured?'Saved ✓':'Saved — add a key to enable AI'; msg.className=r.configured?'ok':'muted'; $('ai_key').value=''; if(k)renderAIIntegration(); }
+  else { msg.textContent=r.error||'Save failed'; msg.className='err'; }
+}
+async function aiTestKey(){
+  const msg=$('ai_keymsg'); msg.textContent='Testing…'; msg.className='muted';
+  const k=$('ai_key').value.trim(); if(k){ await aiApi({action:'config.set',apiKey:k,model:$('ai_model').value}); $('ai_key').value=''; }
+  const r=await aiApi({action:'test'});
+  if(r.ok){ msg.textContent='Connected ✓ ('+esc(r.model||'')+')'; msg.className='ok'; }
+  else { msg.textContent=r.error||'Test failed'; msg.className='err'; }
+}
+async function aiClearKey(){ if(!confirm('Remove the saved Anthropic API key? AI features will stop working until a new key is added.'))return; await aiApi({action:'config.set',clearKey:true}); renderAIIntegration(); }
+
+/* ---- Marketing Hub → AI Studio ---- */
+function renderAIStudio(){
+  $('view').innerHTML=`<div class="tabs">${[['create','✍️ Create'],['chat','💬 Assistant'],['drafts','📄 Drafts'],['kb','📚 Knowledge'],['log','🕒 Activity']].map(([k,l])=>`<button class="tab ${AI_TAB===k?'active':''}" onclick="aiTab('${k}')">${l}</button>`).join('')}</div><div id="aiBody"></div>`;
+  aiRenderTab();
+}
+function aiTab(t){ AI_TAB=t; renderAIStudio(); }
+function aiRenderTab(){ if(AI_TAB==='create')return aiCreate(); if(AI_TAB==='chat')return aiChat(); if(AI_TAB==='drafts')return aiDrafts(); if(AI_TAB==='kb')return aiKB(); if(AI_TAB==='log')return aiLog(); }
+
+function aiCreate(){
+  $('aiBody').innerHTML=`<div class="row" style="grid-template-columns:1fr 1fr;align-items:start">
+    <div class="card">
+      <h3>Create content</h3>
+      <label class="fl">What do you want to create?</label>
+      <select id="g_type">${AI_TYPES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+      <label class="fl">Brief — describe the topic, offer or angle</label>
+      <textarea id="g_brief" placeholder="e.g. A blog post explaining Canada Express Entry for IT professionals from Malaysia, highlighting our free eligibility assessment."></textarea>
+      <div class="row"><div><label class="fl">Target keywords (optional)</label><input id="g_keywords" placeholder="canada express entry, IT PR"></div><div><label class="fl">Audience (optional)</label><input id="g_audience" placeholder="IT professionals, Malaysia"></div></div>
+      <div class="row"><div><label class="fl">Tone (optional)</label><input id="g_tone" placeholder="professional, encouraging"></div><div><label class="fl">Language</label><input id="g_lang" value="English"></div></div>
+      <div style="margin-top:12px"><button class="btn btn-primary" id="g_btn" onclick="aiGenerate()">✨ Generate</button> <span id="g_msg" class="muted" style="font-size:12px"></span></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Result</h3><span id="g_meta" class="muted" style="font-size:11px"></span></div>
+      <textarea id="g_out" style="min-height:46vh" placeholder="Generated content appears here — you can edit it before saving as a draft."></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button></div>
+    </div>
+  </div>`;
+}
+async function aiGenerate(){
+  const brief=$('g_brief').value.trim(); const msg=$('g_msg'); const btn=$('g_btn');
+  if(!brief){ msg.textContent='Add a brief first.'; msg.className='err'; return; }
+  btn.disabled=true; msg.textContent='Generating with Claude… (10–40s)'; msg.className='muted';
+  const r=await aiApi({action:'generate',type:$('g_type').value,brief,options:{keywords:$('g_keywords').value,audience:$('g_audience').value,tone:$('g_tone').value,language:$('g_lang').value}});
+  btn.disabled=false;
+  if(!r.ok){ msg.textContent=r.error||'Generation failed'; msg.className='err'; return; }
+  $('g_out').value=r.text||''; msg.textContent='Done ✓'; msg.className='ok';
+  const u=r.usage||{}; $('g_meta').textContent=(r.model||'')+(u.output_tokens?(' · '+u.output_tokens+' tokens'):'');
+}
+async function aiSaveDraft(){
+  const content=$('g_out').value.trim(); if(!content){ alert('Nothing to save yet.'); return; }
+  const type=$('g_type').value;
+  const title=prompt('Title for this draft:', TYPE_LABEL(type)+' — '+($('g_brief').value.trim().slice(0,40)||'untitled'));
+  if(title===null) return;
+  const r=await aiApi({action:'drafts.save',draft:{title:title||'Untitled',type,content}});
+  if(r.ok) alert('Saved to Drafts ✓'); else alert(r.error||'Save failed');
+}
+
+function aiChat(){
+  $('aiBody').innerHTML=`<div class="chatwrap">
+    <div class="chatlog" id="chatlog">${AI_CHAT.length?AI_CHAT.map(m=>chatBubble(m)).join(''):'<p class="muted" style="text-align:center;margin-top:30px">Ask the assistant to draft posts, plan a campaign, improve SEO or write ad copy — anything marketing. It knows your brand.</p>'}</div>
+    <div class="chatbar"><textarea id="chatin" style="min-height:44px;max-height:140px" placeholder="Message the AI marketing assistant…  (Enter to send, Shift+Enter for newline)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiChatSend();}"></textarea><button class="btn btn-primary" id="chatbtn" onclick="aiChatSend()">Send</button></div>
+  </div>
+  <div style="margin-top:8px"><button class="btn btn-sm" onclick="AI_CHAT=[];aiChat()">Clear conversation</button></div>`;
+  const log=$('chatlog'); if(log)log.scrollTop=log.scrollHeight;
+}
+function chatBubble(m){ return `<div class="msg ${m.role==='user'?'u':'a'}"><div class="bub">${esc(m.content)}</div></div>`; }
+async function aiChatSend(){
+  const inp=$('chatin'); const text=inp.value.trim(); if(!text)return;
+  AI_CHAT.push({role:'user',content:text}); inp.value='';
+  const log=$('chatlog'); log.innerHTML=AI_CHAT.map(m=>chatBubble(m)).join('')+'<div class="msg a"><div class="bub muted">Thinking…</div></div>'; log.scrollTop=log.scrollHeight;
+  $('chatbtn').disabled=true;
+  const r=await aiApi({action:'chat',messages:AI_CHAT.slice(-16)});
+  $('chatbtn').disabled=false;
+  AI_CHAT.push({role:'assistant',content:r.ok?(r.reply||''):('⚠️ '+(r.error||'Failed to respond.'))});
+  aiChat();
+}
+
+async function aiDrafts(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading drafts…</p></div>';
+  const r=await aiApi({action:'drafts.list'}); const d=r.drafts||[];
+  $('aiBody').innerHTML=`<div class="card"><h3>Saved drafts (${d.length})</h3>
+    <table><thead><tr><th>Title</th><th>Type</th><th>Updated</th><th>By</th><th>Versions</th><th class="right"></th></tr></thead><tbody>
+    ${d.map(x=>`<tr><td><strong>${esc(x.title)}</strong></td><td><span class="pill">${esc(TYPE_LABEL(x.type))}</span></td><td class="muted">${esc(fmtDT(x.updatedAt))}</td><td class="muted">${esc(x.author||'')}</td><td class="muted">${x.versions}</td><td class="right"><button class="btn btn-sm" onclick="aiOpenDraft('${esc(x.id)}')">Open</button> <button class="btn btn-sm" onclick="aiDelDraft('${esc(x.id)}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted" style="padding:14px">No drafts yet. Generate content in the Create tab and click “Save as draft”.</td></tr>'}
+    </tbody></table></div><div id="draftEditor"></div>`;
+}
+async function aiOpenDraft(id){
+  const r=await aiApi({action:'drafts.get',id}); if(!r.ok){alert(r.error||'Not found');return;}
+  const x=r.draft; AI_DRAFT=x; const vers=(x.versions||[]).slice().reverse();
+  $('draftEditor').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Edit draft</h3><span class="muted" style="font-size:12px">${esc(TYPE_LABEL(x.type))} · ${(x.versions||[]).length} version(s)</span></div>
+    <label class="fl">Title</label><input id="d_title" value="${esc(x.title)}">
+    <label class="fl">Content</label><textarea id="d_content" style="min-height:40vh">${esc(x.content)}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button> <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    ${vers.length>1?`<div style="margin-top:14px"><div class="grp" style="color:var(--muted);margin-left:0">Version history</div>${vers.map(v=>`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;font-size:12px"><span class="muted">${esc(fmtDT(v.ts))} · ${esc(v.note||'')} · ${esc(v.by||'')}</span><button class="btn btn-sm" onclick="aiRestoreVer('${esc(x.id)}','${esc(v.ts)}')">Restore</button></div>`).join('')}</div>`:''}
+  </div>`;
+  $('draftEditor').scrollIntoView({behavior:'smooth'});
+}
+async function aiUpdateDraft(id){
+  const r=await aiApi({action:'drafts.save',draft:{id,title:$('d_title').value,type:AI_DRAFT?AI_DRAFT.type:'generic',content:$('d_content').value}});
+  const m=$('d_msg'); if(r.ok){ m.textContent='Saved ✓'; m.className='ok'; aiDrafts(); } else { m.textContent=r.error||'Failed'; m.className='err'; }
+}
+async function aiDelDraft(id){ if(!confirm('Delete this draft?'))return; await aiApi({action:'drafts.delete',id}); aiDrafts(); }
+async function aiRestoreVer(id,ts){ if(!confirm('Restore this version? Current content is saved to history first.'))return; const r=await aiApi({action:'draft.restore',id,ts}); if(r.ok)aiOpenDraft(id); else alert(r.error||'Failed'); }
+
+async function aiKB(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading knowledge base…</p></div>';
+  const r=await aiApi({action:'kb.get'}); const kb=r.kb||{};
+  const cfg=await aiApi({action:'config.get'});
+  $('aiBody').innerHTML=`<div class="card"><h3>Brand knowledge base</h3>
+    <p style="font-size:13px;line-height:1.6">Claude uses this to keep every piece of content on-brand. It is built from your live website content, blog topics and FAQs. ${kb.builtAt?`<span class="muted">Last built: ${esc(fmtDT(kb.builtAt))}</span>`:'<span class="muted">Not built yet.</span>'}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><button class="btn btn-sm btn-primary" onclick="aiKBBuild(false)">Rebuild from website</button><button class="btn btn-sm" onclick="aiKBBuild(true)">Rebuild + AI brand-voice analysis</button> <span id="kb_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    <label class="fl">Brand facts (auto-extracted)</label><textarea readonly style="min-height:140px;background:#fbfcfe">${esc(kb.facts||'(empty — click “Rebuild from website”)')}</textarea>
+    ${kb.brandVoiceGuide?`<label class="fl">AI brand-voice guide</label><textarea readonly style="min-height:170px;background:#fbfcfe">${esc(kb.brandVoiceGuide)}</textarea>`:''}
+    <label class="fl">Additional brand-voice notes (always applied to generations)</label><textarea id="kb_notes" placeholder="e.g. Always mention our 100% money-back guarantee; avoid jargon.">${esc(cfg.brandVoice||'')}</textarea>
+    <div style="margin-top:8px"><button class="btn btn-sm btn-primary" onclick="aiSaveNotes()">Save notes</button> <span id="kb_nmsg" class="muted" style="font-size:12px"></span></div>
+  </div>`;
+}
+async function aiKBBuild(analyze){
+  const m=$('kb_msg'); m.textContent=analyze?'Building + analysing with Claude…':'Building from website…'; m.className='muted';
+  const r=await aiApi({action:'kb.build',analyze:!!analyze});
+  if(r.ok){ m.textContent='Done ✓'; m.className='ok'; aiKB(); } else { m.textContent=r.error||'Failed'; m.className='err'; }
+}
+async function aiSaveNotes(){ const r=await aiApi({action:'config.set',brandVoice:$('kb_notes').value}); const m=$('kb_nmsg'); m.textContent=r.ok?'Saved ✓':'Failed'; m.className=r.ok?'ok':'err'; }
+
+async function aiLog(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading…</p></div>';
+  const r=await aiApi({action:'log.list'}); const rows=r.log||[];
+  $('aiBody').innerHTML=`<div class="card"><h3>AI activity log</h3><div style="overflow:auto"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+    ${rows.map(e=>`<tr><td class="muted">${esc(fmtDT(e.at))}</td><td>${esc(e.user||'')} <span class="muted">${esc(e.role||'')}</span></td><td>${esc(e.action||'')}</td><td class="muted">${esc(e.detail||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted" style="padding:14px">No AI activity yet.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+function aiCopy(id){ const el=$(id); if(el.select)el.select(); const t=el.value!=null?el.value:el.textContent||''; if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{}); }
+function aiDownload(id){ const el=$(id); const t=el.value!=null?el.value:el.textContent||''; const b=new Blob([t],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-content-'+Date.now()+'.md'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 
 /* ---------- boot ---------- */
 restore();
