@@ -10,10 +10,10 @@ import { useLeadForm } from '@/components/LeadFormModal.jsx';
 function Header() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const { contact, social } = useSiteContent();
+  const { contact, social, nav } = useSiteContent();
   const { openLeadForm } = useLeadForm();
 
-  const navLinks = [
+  const defaultNav = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
@@ -30,6 +30,8 @@ function Header() {
     { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
+  // Menu is editable from the CMS (content.json → "nav"); falls back to the default.
+  const navLinks = Array.isArray(nav) && nav.length ? nav : defaultNav;
 
   const isActive = (path) => location.pathname === path;
   const isChildActive = (link) =>

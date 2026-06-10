@@ -58,10 +58,11 @@ jobs:
           # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
           server-dir: ./
           dangerous-clean-slate: false
-          # Content (content.json, blog.json, faqs.json) is authored in this repo
-          # and SHIPS on deploy — repo is the source of truth for site content.
-          # Only secrets, runtime data, and admin-only integration settings
-          # (forms builder, HubSpot portal config) are preserved on the server.
+          # The CMS (/cms.html) manages website content live on the SERVER, so
+          # all CMS-managed content + media + version history are EXCLUDED from
+          # deploys — code ships from the repo, content is owned by the CMS and
+          # never overwritten. (CRM data in leads/ is likewise protected.)
+          # The repo still contains seed copies of these files for a fresh server.
           exclude: |
             **/.git*
             **/.git*/**
@@ -69,6 +70,14 @@ jobs:
             admin-config.php
             leads/**
             **/*.backup
-            forms.json
             hubspot.json
             m365-config.php
+            content.json
+            blog.json
+            faqs.json
+            forms.json
+            seo.json
+            pages.json
+            media.json
+            media/**
+            cms-versions/**
