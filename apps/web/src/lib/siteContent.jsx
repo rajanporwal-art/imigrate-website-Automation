@@ -132,17 +132,20 @@ export function SiteContentProvider({ children }) {
 
   useEffect(() => {
     let active = true;
-    // Prefer the CMS override (server-managed, durable) and fall back to the
-    // repo-shipped content.json, then to compiled defaults.
+    // Effective content = compiled defaults ← repo-shipped content.json (always
+    // current page content) ← CMS override (durable edits). 3-way merge so newly
+    // added page content appears even when a CMS override already exists.
     (async () => {
-      for (const url of ['/cms-overrides/content.json', '/content.json']) {
-        try {
-          const res = await fetch(url, { cache: 'no-cache' });
-          if (!res.ok) continue;
-          const data = await res.json();
-          if (active && data) { setContent(deepMerge(DEFAULT_CONTENT, data)); return; }
-        } catch (e) { /* try next */ }
-      }
+      let merged = DEFAULT_CONTENT;
+      try {
+        const r = await fetch('/content.json', { cache: 'no-cache' });
+        if (r.ok) { const d = await r.json(); if (d) merged = deepMerge(merged, d); }
+      } catch (e) { /* keep defaults */ }
+      try {
+        const r = await fetch('/cms-overrides/content.json', { cache: 'no-cache' });
+        if (r.ok) { const d = await r.json(); if (d) merged = deepMerge(merged, d); }
+      } catch (e) { /* no override */ }
+      if (active) setContent(merged);
     })();
     return () => {
       active = false;

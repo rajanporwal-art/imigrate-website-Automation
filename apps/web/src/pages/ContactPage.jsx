@@ -18,7 +18,11 @@ import LeadForm from '@/components/LeadForm.jsx';
 
 function ContactPage() {
   const { toast } = useToast();
-  const { contactPage } = useSiteContent();
+  const { contactPage, contact = {} } = useSiteContent();
+  const cPhone = contact.phone || '+60 11-2767 9613';
+  const cEmail = contact.email || 'contact@imigratesolution.com';
+  const cAddress = contact.address || 'KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur';
+  const cHours = contact.businessHours || 'Mon-Sun: 9:00 AM - 9:00 PM';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -115,8 +119,8 @@ function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">Phone</p>
-                          <a href="tel:+60 11-2767 9613" className="text-muted-foreground hover:text-primary transition-colors">
-                            +60 11-2767 9613
+                          <a href={`tel:${cPhone}`} className="text-muted-foreground hover:text-primary transition-colors">
+                            {cPhone}
                           </a>
                         </div>
                       </div>
@@ -127,8 +131,8 @@ function ContactPage() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">Email</p>
-                          <a href="mailto:contact@imigratesolution.com" className="text-muted-foreground hover:text-primary transition-colors break-all">
-                            contact@imigratesolution.com
+                          <a href={`mailto:${cEmail}`} className="text-muted-foreground hover:text-primary transition-colors break-all">
+                            {cEmail}
                           </a>
                         </div>
                       </div>
@@ -140,7 +144,7 @@ function ContactPage() {
                         <div>
                           <p className="font-medium text-foreground">Office Address</p>
                           <p className="text-muted-foreground">
-                            KL Eco City, Levels 19, Boutique Office 1 (B-O1-D), Menara 2, No. 3 Jalan Bangsar, 59200 Kuala Lumpur
+                            {cAddress}
                           </p>
                         </div>
                       </div>

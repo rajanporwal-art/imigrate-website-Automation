@@ -11,28 +11,14 @@ import { useSiteContent } from '@/lib/siteContent.jsx';
 function AboutPage() {
   const { stats, about } = useSiteContent();
 
-  const values = [
-    {
-      icon: Shield,
-      title: 'Integrity',
-      description: 'We operate with complete transparency and honesty in all client interactions.',
-    },
-    {
-      icon: Award,
-      title: 'Excellence',
-      description: 'We maintain the highest professional standards and stay current with immigration law changes.',
-    },
-    {
-      icon: Users,
-      title: 'Client-focused',
-      description: 'Your success is our success. We treat every case with personalized attention.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Results-driven',
-      description: 'Our 98.6% success rate speaks to our commitment to achieving positive outcomes.',
-    },
+  const ICONS = { Target, Eye, Award, Users, Shield, TrendingUp };
+  const DEF_VALUES = [
+    { icon: 'Shield', title: 'Integrity', description: 'We operate with complete transparency and honesty in all client interactions.' },
+    { icon: 'Award', title: 'Excellence', description: 'We maintain the highest professional standards and stay current with immigration law changes.' },
+    { icon: 'Users', title: 'Client-focused', description: 'Your success is our success. We treat every case with personalized attention.' },
+    { icon: 'TrendingUp', title: 'Results-driven', description: 'Our 98.6% success rate speaks to our commitment to achieving positive outcomes.' },
   ];
+  const values = (Array.isArray(about.values) && about.values.length ? about.values : DEF_VALUES).map((x) => ({ ...x, icon: ICONS[x.icon] || Shield }));
 
   return (
     <>

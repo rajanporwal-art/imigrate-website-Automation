@@ -9,100 +9,35 @@ import ServiceCard from '@/components/ServiceCard.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useSiteContent } from '@/lib/siteContent.jsx';
 
 function ServicesPage() {
-  const australianServices = [
-    {
-      icon: Globe,
-      title: 'Skilled Independent Visa (189)',
-      description: 'Points-based permanent residence for skilled workers without employer or state sponsorship.',
-      link: '/australia-migration#subclass-189',
-    },
-    {
-      icon: Globe,
-      title: 'State Nominated Visa (190)',
-      description: 'Permanent residence with state or territory government nomination for additional points.',
-      link: '/australia-migration#subclass-190',
-    },
-    {
-      icon: Briefcase,
-      title: 'Employer Sponsored Visa (186)',
-      description: 'Permanent residence through employer sponsorship for skilled positions.',
-      link: '/australia-migration#employer-sponsored',
-    },
-    {
-      icon: Heart,
-      title: 'Partner Visa (820/801)',
-      description: 'Temporary and permanent visas for partners and spouses of Australian citizens or PR holders.',
-      link: '/australia-migration#partner-visa',
-    },
-    {
-      icon: GraduationCap,
-      title: 'Student Visa (500)',
-      description: 'Study at Australian institutions with pathways to post-study work rights and PR.',
-      link: '/australia-migration#student-visa',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Business & Investor Visa',
-      description: 'Visas for business owners, investors, and entrepreneurs seeking Australian residence.',
-      link: '/australia-migration#business-investor',
-    },
+  const { servicesPage: sp = {} } = useSiteContent();
+  const ICONS = { Globe, Users, TrendingUp, GraduationCap, Heart, Briefcase, CheckCircle, ShieldCheck, CreditCard };
+  const mapIcon = (x) => ({ ...x, icon: ICONS[x.icon] || Globe });
+  const DEF_AU = [
+    { icon: 'Globe', title: 'Skilled Independent Visa (189)', description: 'Points-based permanent residence for skilled workers without employer or state sponsorship.', link: '/australia-migration#subclass-189' },
+    { icon: 'Globe', title: 'State Nominated Visa (190)', description: 'Permanent residence with state or territory government nomination for additional points.', link: '/australia-migration#subclass-190' },
+    { icon: 'Briefcase', title: 'Employer Sponsored Visa (186)', description: 'Permanent residence through employer sponsorship for skilled positions.', link: '/australia-migration#employer-sponsored' },
+    { icon: 'Heart', title: 'Partner Visa (820/801)', description: 'Temporary and permanent visas for partners and spouses of Australian citizens or PR holders.', link: '/australia-migration#partner-visa' },
+    { icon: 'GraduationCap', title: 'Student Visa (500)', description: 'Study at Australian institutions with pathways to post-study work rights and PR.', link: '/australia-migration#student-visa' },
+    { icon: 'TrendingUp', title: 'Business & Investor Visa', description: 'Visas for business owners, investors, and entrepreneurs seeking Australian residence.', link: '/australia-migration#business-investor' },
   ];
-
-  const canadianServices = [
-    {
-      icon: TrendingUp,
-      title: '⭐ C11 Entrepreneur Work Permit',
-      description: 'Our featured program. Work permit for entrepreneurs establishing or purchasing a business in Canada — fast-track to permanent residence.',
-      link: '/c11-entrepreneur-work-permit',
-    },
-    {
-      icon: Globe,
-      title: 'Express Entry',
-      description: 'Fast-track permanent residence through Federal Skilled Worker, Skilled Trades, or Canadian Experience Class.',
-      link: '/canada-immigration#express-entry',
-    },
-    {
-      icon: Globe,
-      title: 'Provincial Nominee Program',
-      description: 'Provincial and territorial programs offering additional pathways to permanent residence.',
-      link: '/canada-immigration#pnp',
-    },
-    {
-      icon: Briefcase,
-      title: 'Start-Up Visa Program',
-      description: 'Permanent residence for innovative entrepreneurs with support from designated organizations.',
-      link: '/canada-immigration#business-startup',
-    },
-    {
-      icon: GraduationCap,
-      title: 'Study Permit',
-      description: 'Study at Canadian institutions with post-graduation work permit opportunities.',
-      link: '/canada-immigration#study-permit',
-    },
-    {
-      icon: Heart,
-      title: 'Family Sponsorship',
-      description: 'Sponsor your spouse, partner, parents, or dependent children for Canadian permanent residence.',
-      link: '/canada-immigration#family-sponsorship',
-    },
+  const DEF_CA = [
+    { icon: 'TrendingUp', title: '⭐ C11 Entrepreneur Work Permit', description: 'Our featured program. Work permit for entrepreneurs establishing or purchasing a business in Canada — fast-track to permanent residence.', link: '/c11-entrepreneur-work-permit' },
+    { icon: 'Globe', title: 'Express Entry', description: 'Fast-track permanent residence through Federal Skilled Worker, Skilled Trades, or Canadian Experience Class.', link: '/canada-immigration#express-entry' },
+    { icon: 'Globe', title: 'Provincial Nominee Program', description: 'Provincial and territorial programs offering additional pathways to permanent residence.', link: '/canada-immigration#pnp' },
+    { icon: 'Briefcase', title: 'Start-Up Visa Program', description: 'Permanent residence for innovative entrepreneurs with support from designated organizations.', link: '/canada-immigration#business-startup' },
+    { icon: 'GraduationCap', title: 'Study Permit', description: 'Study at Canadian institutions with post-graduation work permit opportunities.', link: '/canada-immigration#study-permit' },
+    { icon: 'Heart', title: 'Family Sponsorship', description: 'Sponsor your spouse, partner, parents, or dependent children for Canadian permanent residence.', link: '/canada-immigration#family-sponsorship' },
   ];
-
-  const businessServices = [
-    {
-      icon: TrendingUp,
-      title: 'Business Innovation Visa',
-      description: 'For business owners and entrepreneurs looking to establish or develop a business.',
-      link: '/australia-migration#business-investor',
-    },
-    {
-      icon: Briefcase,
-      title: 'Investor Visa Programs',
-      description: 'Investment-based immigration pathways for high-net-worth individuals.',
-      link: '/canada-immigration#business-startup',
-    },
+  const DEF_BIZ = [
+    { icon: 'TrendingUp', title: 'Business Innovation Visa', description: 'For business owners and entrepreneurs looking to establish or develop a business.', link: '/australia-migration#business-investor' },
+    { icon: 'Briefcase', title: 'Investor Visa Programs', description: 'Investment-based immigration pathways for high-net-worth individuals.', link: '/canada-immigration#business-startup' },
   ];
+  const australianServices = (Array.isArray(sp.australian) && sp.australian.length ? sp.australian : DEF_AU).map(mapIcon);
+  const canadianServices = (Array.isArray(sp.canadian) && sp.canadian.length ? sp.canadian : DEF_CA).map(mapIcon);
+  const businessServices = (Array.isArray(sp.business) && sp.business.length ? sp.business : DEF_BIZ).map(mapIcon);
 
   return (
     <>
