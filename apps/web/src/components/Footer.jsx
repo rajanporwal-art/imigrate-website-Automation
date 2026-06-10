@@ -14,6 +14,23 @@ function Footer() {
   const { toast } = useToast();
   const { contact, social, footer } = useSiteContent();
 
+  // Footer link columns are editable from the CMS (content.json → footer.quickLinks /
+  // footer.serviceLinks); each item is { label, to }. Falls back to the defaults.
+  const quickLinks = Array.isArray(footer.quickLinks) && footer.quickLinks.length ? footer.quickLinks : [
+    { label: 'About Us', to: '/about' },
+    { label: 'Blog', to: '/blog' },
+    { label: 'FAQ', to: '/faq' },
+    { label: 'Success Stories', to: '/success-stories' },
+    { label: 'Book Free Consultation', to: '/assessment' },
+  ];
+  const serviceLinks = Array.isArray(footer.serviceLinks) && footer.serviceLinks.length ? footer.serviceLinks : [
+    { label: 'Australia Migration', to: '/australia-migration' },
+    { label: 'Canada Immigration', to: '/canada-immigration' },
+    { label: 'Student Visas', to: '/services#student' },
+    { label: 'Business Visas', to: '/services#business' },
+    { label: 'Free Eligibility Check', to: '/assessment' },
+  ];
+
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     if (email) {
@@ -63,11 +80,9 @@ function Footer() {
           <div>
             <span className="font-semibold text-lg mb-6 block">Quick Links</span>
             <ul className="space-y-3">
-              <li><Link to="/about" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">About Us</Link></li>
-              <li><Link to="/blog" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Blog</Link></li>
-              <li><Link to="/faq" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">FAQ</Link></li>
-              <li><Link to="/success-stories" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Success Stories</Link></li>
-              <li><Link to="/assessment" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Book Free Consultation</Link></li>
+              {quickLinks.map((l) => (
+                <li key={l.to + l.label}><Link to={l.to} className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">{l.label}</Link></li>
+              ))}
             </ul>
           </div>
 
@@ -75,11 +90,9 @@ function Footer() {
           <div>
             <span className="font-semibold text-lg mb-6 block">Services</span>
             <ul className="space-y-3">
-              <li><Link to="/australia-migration" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Australia Migration</Link></li>
-              <li><Link to="/canada-immigration" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Canada Immigration</Link></li>
-              <li><Link to="/services#student" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Student Visas</Link></li>
-              <li><Link to="/services#business" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Business Visas</Link></li>
-              <li><Link to="/assessment" className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">Free Eligibility Check</Link></li>
+              {serviceLinks.map((l) => (
+                <li key={l.to + l.label}><Link to={l.to} className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-all duration-200">{l.label}</Link></li>
+              ))}
             </ul>
           </div>
 
