@@ -451,19 +451,88 @@ function rSeo(){
 
 /* ===================== Pages registry ===================== */
 function rPageList(){
+  if(builderPath)return rBuilder();
   const reg=PAGES.pages||[];
   const rows=SITE_ROUTES.map(([path,title])=>{const e=reg.find(p=>p.path===path)||{};return{path,title:e.title||title,status:e.status||'published',type:e.type||'system'};});
-  reg.filter(p=>!SITE_ROUTES.find(r=>r[0]===p.path)).forEach(p=>rows.push({path:p.path,title:p.title||p.path,status:p.status||'unpublished',type:p.type||'custom'}));
-  $('view').innerHTML=`<div class="card"><h3>Pages</h3><p class="muted" style="font-size:13px">Every website page. Edit content or SEO, preview, duplicate, or toggle status. Creating brand-new pages with custom layouts (and enforcing unpublish for built-in pages) arrives with the visual page builder in the next phase.</p>
+  reg.filter(p=>!SITE_ROUTES.find(r=>r[0]===p.path)).forEach(p=>rows.push({path:p.path,title:p.title||p.path,status:p.status||'draft',type:p.type||'custom'}));
+  $('view').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Pages</h3><button class="btn btn-primary btn-sm" onclick="newCmsPage()">+ New page (visual builder)</button></div>
+   <p class="muted" style="font-size:13px">Edit content/SEO, preview, duplicate or toggle status. <strong>Custom pages</strong> open the visual block builder; built-in pages link to their content &amp; SEO editors. Unpublish is enforced live for every page.</p>
    <div style="padding:0;overflow:auto"><table><thead><tr><th>Page</th><th>Path</th><th>Type</th><th>Status</th><th class="right">Actions</th></tr></thead><tbody>
    ${rows.map(r=>`<tr><td><strong>${esc(r.title)}</strong></td><td class="muted">${esc(r.path)}</td><td><span class="pill">${esc(r.type)}</span></td><td><span class="badge ${r.status==='published'?'live':'draft'}">${esc(r.status)}</span></td>
-     <td class="right"><button class="btn btn-sm" onclick="pageEditContent('${esc(r.path)}')">Edit</button> <button class="btn btn-sm" onclick="pageSeo('${esc(r.path)}')">SEO</button> <a class="btn btn-sm" href="https://www.imigratesolution.com${esc(r.path)}" target="_blank">Preview</a> <button class="btn btn-sm" onclick="pageToggle('${esc(r.path)}',${JSON.stringify(esc(r.title))},'${esc(r.type)}','${r.status}')">${r.status==='published'?'Unpublish':'Publish'}</button> <button class="btn btn-sm" onclick="pageDup('${esc(r.path)}',${JSON.stringify(esc(r.title))})">Duplicate</button></td></tr>`).join('')}
+     <td class="right"><button class="btn btn-sm" onclick="${r.type==='custom'?`openBuilder('${esc(r.path)}')`:`pageEditContent('${esc(r.path)}')`}">Edit</button> <button class="btn btn-sm" onclick="pageSeo('${esc(r.path)}')">SEO</button> <a class="btn btn-sm" href="https://www.imigratesolution.com${esc(r.path)}" target="_blank">Preview</a> <button class="btn btn-sm" onclick="pageToggle('${esc(r.path)}',${JSON.stringify(esc(r.title))},'${esc(r.type)}','${r.status}')">${r.status==='published'?'Unpublish':'Publish'}</button> <button class="btn btn-sm" onclick="pageDup('${esc(r.path)}',${JSON.stringify(esc(r.title))})">Duplicate</button></td></tr>`).join('')}
    </tbody></table></div></div>`;
 }
 window.pageEditContent=(path)=>{const map={'/':'home','/about':'about','/australia-migration':'australia','/canada-immigration':'canada','/assessment':'assessment','/contact':'contactPage'};if(map[path]){pageKey=map[path];go('pages');}else{alert("This page's text lives in its component — edit its SEO here, or use the page builder (next phase) for full visual control.");pageSeo(path);}};
 window.pageSeo=(path)=>{seoPath=path;go('seo');};
 window.pageToggle=(path,title,type,status)=>{let e=PAGES.pages.find(p=>p.path===path);if(!e){e={path,title,type};PAGES.pages.push(e);}e.status=status==='published'?'unpublished':'published';publish('pages').then(()=>render());};
-window.pageDup=(path,title)=>{const np=prompt('New path for the duplicated page:',path+'-copy');if(!np)return;PAGES.pages.push({path:np,title:title+' (copy)',type:'custom',status:'unpublished',duplicatedFrom:path});publish('pages').then(()=>render());};
+window.pageDup=(path,title)=>{const np=prompt('New path for the duplicated page:',path+'-copy');if(!np)return;const src=(PAGES.pages||[]).find(p=>p.path===path);const blocks=src&&src.blocks?JSON.parse(JSON.stringify(src.blocks)):[];PAGES.pages.push({path:np,title:title+' (copy)',type:'custom',status:'draft',blocks,metaTitle:title,duplicatedFrom:path});publish('pages').then(()=>{builderPath=np;render();});};
+
+/* ===================== Visual block page builder ===================== */
+let builderPath=null;
+const BLOCK_TYPES=['hero','heading','richtext','image','button','cards','testimonials','faq','list','table','banner','cta','spacer'];
+window.curPage=()=>(PAGES.pages||[]).find(p=>p.path===builderPath);
+window.openBuilder=(path)=>{builderPath=path;VIEW='pagelist';buildNav();render();window.scrollTo(0,0);};
+window.builderBack=()=>{builderPath=null;render();};
+window.newCmsPage=()=>{let path=prompt('New page URL path (e.g. /landing-australia):','/new-page');if(!path)return;if(!path.startsWith('/'))path='/'+path;const title=prompt('Page title:','New Page')||'New Page';PAGES.pages.push({path,title,type:'custom',status:'draft',blocks:[],metaTitle:title,metaDescription:''});DIRTY=true;openBuilder(path);};
+window.renamePath=(v)=>{const p=curPage();if(p){p.path=v;builderPath=v;DIRTY=true;}};
+function blockTemplate(t){const d={hero:{type:'hero',heading:'Heading',subheading:'',bgImage:'',ctaText:'',ctaUrl:''},heading:{type:'heading',text:'Heading',level:2},richtext:{type:'richtext',markdown:''},image:{type:'image',url:'',alt:'',caption:''},button:{type:'button',text:'Button',url:'/',style:'solid',newTab:false},cards:{type:'cards',heading:'',items:[{icon:'⭐',title:'Title',text:'Text'}]},testimonials:{type:'testimonials',heading:'',items:[{quote:'',name:'',role:''}]},faq:{type:'faq',heading:'FAQs',items:[{q:'',a:''}]},list:{type:'list',heading:'',items:[]},table:{type:'table',headers:['Column A','Column B'],rows:[['1','2']]},banner:{type:'banner',text:'',bgColor:'#0b1f44'},cta:{type:'cta',heading:'',text:'',buttonText:'',buttonUrl:'/'},spacer:{type:'spacer',size:40}};return JSON.parse(JSON.stringify(d[t]||{type:t}));}
+window.addBlock=()=>{const t=$('newBlockType').value;const p=curPage();p.blocks=p.blocks||[];p.blocks.push(blockTemplate(t));DIRTY=true;rBuilder();};
+window.moveBlock=(bi,d)=>{const a=curPage().blocks,j=bi+d;if(j<0||j>=a.length)return;[a[bi],a[j]]=[a[j],a[bi]];DIRTY=true;rBuilder();};
+window.delBlock=(bi)=>{if(!confirm('Delete this block?'))return;curPage().blocks.splice(bi,1);DIRTY=true;rBuilder();};
+window.setBlock=(bi,f,v)=>{curPage().blocks[bi][f]=v;DIRTY=true;markDirty();};
+window.setBlockItem=(bi,f,ii,fk,v)=>{curPage().blocks[bi][f][ii][fk]=v;DIRTY=true;markDirty();};
+window.blockItemAdd=(bi,f,keys)=>{const o={};(keys||[]).forEach(k=>o[k]='');const b=curPage().blocks[bi];b[f]=b[f]||[];b[f].push(o);DIRTY=true;rBuilder();};
+window.blockItemDel=(bi,f,ii)=>{curPage().blocks[bi][f].splice(ii,1);DIRTY=true;rBuilder();};
+function blockFields(b,bi){
+  const s=(f,lab,long)=>{const v=b[f]==null?'':b[f];return `<label class="fl">${lab}</label>`+(long?`<textarea rows="2" oninput="setBlock(${bi},'${f}',this.value)">${esc(v)}</textarea>`:`<input value="${esc(v)}" oninput="setBlock(${bi},'${f}',this.value)">`);};
+  const items=(f,fields)=>{const arr=Array.isArray(b[f])?b[f]:[];return `<div class="card" style="background:#fff"><strong>Items</strong>${arr.map((it,ii)=>`<div class="item"><div class="hd"><span>#${ii+1}</span><button class="btn btn-sm" onclick="blockItemDel(${bi},'${f}',${ii})">✕</button></div>${fields.map(([fk,flab])=>`<label class="fl">${flab}</label><input value="${esc(it[fk]||'')}" oninput="setBlockItem(${bi},'${f}',${ii},'${fk}',this.value)">`).join('')}</div>`).join('')}<button class="btn btn-sm" onclick='blockItemAdd(${bi},${JSON.stringify(f)},${JSON.stringify(fields.map(x=>x[0]))})'>+ Add item</button></div>`;};
+  switch(b.type){
+    case 'hero': return s('heading','Heading')+s('subheading','Subheading',1)+s('bgImage','Background image URL')+s('ctaText','Button text')+s('ctaUrl','Button URL');
+    case 'heading': return s('text','Text')+`<label class="fl">Level</label><select onchange="setBlock(${bi},'level',this.value)">${[1,2,3,4].map(l=>`<option ${String(b.level)===String(l)?'selected':''}>${l}</option>`).join('')}</select>`;
+    case 'richtext': return mdToolbar('blk'+bi)+`<textarea id="blk${bi}" rows="8" style="font-family:ui-monospace,monospace" oninput="setBlock(${bi},'markdown',this.value)">${esc(b.markdown||'')}</textarea>`;
+    case 'image': return s('url','Image URL')+`<button class="btn btn-sm" onclick="pickBlockImage(${bi})">Pick from media</button>`+s('alt','Alt text (accessibility)')+s('caption','Caption');
+    case 'button': return s('text','Text')+s('url','URL')+`<label class="fl">Style</label><select onchange="setBlock(${bi},'style',this.value)"><option value="solid" ${b.style!=='outline'?'selected':''}>Solid</option><option value="outline" ${b.style==='outline'?'selected':''}>Outline</option></select><label style="display:flex;gap:6px;font-size:13px;margin-top:6px"><input type="checkbox" style="width:auto" ${b.newTab?'checked':''} onchange="setBlock(${bi},'newTab',this.checked)"> Open in new tab</label>`;
+    case 'cards': return s('heading','Section heading')+items('items',[['icon','Icon (emoji)'],['title','Title'],['text','Text']]);
+    case 'testimonials': return s('heading','Section heading')+items('items',[['quote','Quote'],['name','Name'],['role','Role']]);
+    case 'faq': return s('heading','Section heading')+items('items',[['q','Question'],['a','Answer']]);
+    case 'list': return s('heading','Heading')+`<label class="fl">Items (one per line)</label><textarea rows="5" oninput="setBlock(${bi},'items',this.value.split('\\n').map(x=>x.trim()).filter(Boolean))">${esc((b.items||[]).join('\n'))}</textarea>`;
+    case 'table': return `<label class="fl">Headers (comma-separated)</label><input value="${esc((b.headers||[]).join(', '))}" oninput="setBlock(${bi},'headers',this.value.split(',').map(x=>x.trim()))"><label class="fl">Rows (one per line, cells comma-separated)</label><textarea rows="5" oninput="setBlock(${bi},'rows',this.value.split('\\n').filter(Boolean).map(r=>r.split(',').map(c=>c.trim())))">${esc((b.rows||[]).map(r=>(r||[]).join(', ')).join('\n'))}</textarea>`;
+    case 'banner': return s('text','Text')+s('bgColor','Background color (e.g. #0b1f44)');
+    case 'cta': return s('heading','Heading')+s('text','Text',1)+s('buttonText','Button text')+s('buttonUrl','Button URL');
+    case 'spacer': return s('size','Height (px)');
+    default: return '';
+  }
+}
+window.pickBlockImage=(bi)=>{const imgs=MEDIA.filter(m=>m.type==='image');const url=prompt('Paste an image URL (or pick one):\n'+imgs.slice(0,12).map(m=>m.url).join('\n'),imgs[0]?imgs[0].url:'');if(url!=null){setBlock(bi,'url',url);rBuilder();}};
+window.validatePage=()=>{const p=curPage();const issues=[];
+  if(!p.metaTitle)issues.push(['SEO','Missing meta title']);
+  if(!p.metaDescription)issues.push(['SEO','Missing meta description']);
+  if(!/^\//.test(p.path||''))issues.push(['Path','Path should start with /']);
+  if(!(p.blocks||[]).some(b=>b.type==='hero'||b.type==='heading'))issues.push(['Accessibility','Page has no heading — add a Hero or Heading block']);
+  (p.blocks||[]).forEach((b,i)=>{const n='Block '+(i+1)+' ('+b.type+')';
+    if(b.type==='image'&&!b.url)issues.push([n,'Image has no URL']);
+    if(b.type==='image'&&b.url&&!b.alt)issues.push([n,'Image missing alt text (accessibility)']);
+    if(b.type==='button'&&(!b.url||b.url==='#'))issues.push([n,'Button has no link']);
+    if(b.type==='hero'&&b.ctaText&&!b.ctaUrl)issues.push([n,'Hero button text set but no URL']);
+    if(b.type==='cta'&&b.buttonText&&!b.buttonUrl)issues.push([n,'CTA button text set but no URL']);
+  });
+  const rep=$('valReport');
+  if(rep)rep.innerHTML=`<div class="card"><h3>Validation ${issues.length?'— '+issues.length+' issue(s)':'✓ passed'}</h3>${issues.length?`<ul style="font-size:13px;margin:0">${issues.map(([w,m])=>`<li><strong>${esc(w)}:</strong> ${esc(m)}</li>`).join('')}</ul>`:'<p class="ok" style="font-size:13px">No issues found — safe to publish.</p>'}</div>`;
+};
+function rBuilder(){
+  const p=curPage(); if(!p){builderPath=null;return rPageList();}
+  $('view').innerHTML=`<div class="toolbar"><button class="btn btn-sm" onclick="builderBack()">← All pages</button><a class="btn btn-sm" href="https://www.imigratesolution.com${esc(p.path)}" target="_blank">Preview live</a><button class="btn btn-sm" onclick="validatePage()">✓ Validate</button><span class="badge ${p.status==='published'?'live':'draft'}">${esc(p.status||'draft')}</span></div>
+   <div class="card"><h3>Page settings</h3>
+     <div class="row"><div><label class="fl">Title</label><input value="${esc(p.title||'')}" oninput="curPage().title=this.value;DIRTY=true;markDirty()"></div><div><label class="fl">Path (URL)</label><input value="${esc(p.path||'')}" oninput="renamePath(this.value)"></div></div>
+     <label class="fl">Meta title</label><input value="${esc(p.metaTitle||'')}" oninput="curPage().metaTitle=this.value;DIRTY=true;markDirty()">
+     <label class="fl">Meta description</label><textarea rows="2" oninput="curPage().metaDescription=this.value;DIRTY=true;markDirty()">${esc(p.metaDescription||'')}</textarea>
+     <label class="fl">Status</label><select onchange="curPage().status=this.value;DIRTY=true;markDirty()"><option value="draft" ${p.status==='draft'?'selected':''}>Draft (hidden)</option><option value="published" ${p.status==='published'?'selected':''}>Published (live)</option><option value="unpublished" ${p.status==='unpublished'?'selected':''}>Unpublished (404)</option></select>
+   </div>
+   <div id="valReport"></div>
+   ${(p.blocks||[]).map((b,bi)=>`<div class="card"><div class="hd" style="display:flex;justify-content:space-between;align-items:center"><strong style="text-transform:capitalize">${esc(b.type)} block</strong><span><button class="btn btn-sm" onclick="moveBlock(${bi},-1)">↑</button> <button class="btn btn-sm" onclick="moveBlock(${bi},1)">↓</button> <button class="btn btn-sm" onclick="delBlock(${bi})">✕</button></span></div>${blockFields(b,bi)}</div>`).join('')||'<p class="muted">No blocks yet — add your first one below.</p>'}
+   <div class="card"><h3>Add a block</h3><div class="toolbar"><select id="newBlockType">${BLOCK_TYPES.map(t=>`<option>${t}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="addBlock()">+ Add block</button></div></div>
+   ${saveBar('pages')}`;
+}
 </script>
 </body>
 </html>

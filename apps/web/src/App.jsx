@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Route, Routes, BrowserRouter as Router, useLocation } from 'react-router-dom';
 
 // Catches any render error and shows it on screen instead of a blank page
 class ErrorBoundary extends React.Component {
@@ -49,6 +49,8 @@ import TermsPage from './pages/TermsPage.jsx';
 import { Toaster } from '@/components/ui/sonner';
 import { SiteContentProvider } from '@/lib/siteContent.jsx';
 import SeoOverride from '@/components/SeoOverride.jsx';
+import CmsPage from '@/pages/CmsPage.jsx';
+import { findPublishedPage, isUnpublished } from '@/lib/pagesStore';
 import HubSpotTracking from '@/components/HubSpotTracking.jsx';
 import { LeadFormProvider } from '@/components/LeadFormModal.jsx';
 
@@ -69,6 +71,33 @@ function NotFoundPage() {
   );
 }
 
+// Renders a CMS-built page for unknown paths, else the existing 404 page.
+function CmsCatchAll() {
+  const { pathname } = useLocation();
+  const [state, setState] = useState({ loading: true, page: null });
+  useEffect(() => {
+    let active = true;
+    setState({ loading: true, page: null });
+    findPublishedPage(pathname).then((p) => active && setState({ loading: false, page: p }));
+    return () => { active = false; };
+  }, [pathname]);
+  if (state.loading) return <div className="min-h-screen" />;
+  return state.page ? <CmsPage page={state.page} /> : <NotFoundPage />;
+}
+
+// Enforces CMS "unpublish" for any page (built-in or custom): if the current
+// path is marked unpublished in the CMS, show the 404 page instead.
+function CmsGuard({ children }) {
+  const { pathname } = useLocation();
+  const [blocked, setBlocked] = useState(false);
+  useEffect(() => {
+    let active = true;
+    isUnpublished(pathname).then((b) => active && setBlocked(b));
+    return () => { active = false; };
+  }, [pathname]);
+  return blocked ? <NotFoundPage /> : children;
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -77,6 +106,7 @@ function App() {
     <LeadFormProvider>
     <Router>
       <ScrollToTop />
+      <CmsGuard>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
@@ -96,8 +126,9 @@ function App() {
         <Route path="/form/:slug" element={<FormRenderer />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<CmsCatchAll />} />
       </Routes>
+      </CmsGuard>
       <SeoOverride />
       <Toaster />
     </Router>
