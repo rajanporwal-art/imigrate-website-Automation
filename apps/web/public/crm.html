@@ -876,7 +876,10 @@
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Appearance &amp; data</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="toggleTheme()">Toggle dark / light</button>
         <button class="btn" onclick="exportCsv()">⬇ Export all leads (CSV)</button>
-        <a class="btn" href="/admin.html" target="_blank">Open Admin (website content)</a></div>
+        <a class="btn" href="/cms.html" target="_blank">🌐 Open Website CMS</a></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">HubSpot integration</h3>
+        <div id="hubspotPanel"><p class="muted">Loading…</p></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Microsoft 365 integration</h3>
         <div id="m365Status"><p class="muted">Checking connection…</p></div>
@@ -895,7 +898,51 @@
         <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
     m365LoadStatus();
+    hubspotLoad();
   }
+
+  /* ---------- HubSpot integration (moved from the legacy admin) ---------- */
+  let HS={enabled:false,portalId:'',formGuid:'',notifyEmail:'',includeMessageSummary:true,fieldMap:{}};
+  async function hubspotLoad(){
+    const box=$('hubspotPanel'); if(!box) return;
+    try{ const r=await fetch('/hubspot.json?_='+Date.now(),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(j&&typeof j==='object') HS={enabled:!!j.enabled,portalId:j.portalId||'',formGuid:j.formGuid||'',notifyEmail:j.notifyEmail||'',includeMessageSummary:j.includeMessageSummary!==false,fieldMap:j.fieldMap||{}}; } }catch(e){}
+    hubspotRender();
+  }
+  function hubspotRender(){
+    const box=$('hubspotPanel'); if(!box) return;
+    const rows=Object.entries(HS.fieldMap||{}).map(([k,v],i)=>`<div class="toolbar" style="margin-bottom:6px"><input value="${esc(k)}" placeholder="website field (e.g. occupation)" data-hsk="${i}" style="min-width:180px"><span class="muted">→</span><input value="${esc(v)}" placeholder="HubSpot property (e.g. jobtitle)" data-hsv="${i}" style="min-width:180px"><button class="btn btn-sm" onclick="hubspotDelRow(${i})">✕</button></div>`).join('');
+    box.innerHTML=`
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:10px"><input type="checkbox" id="hsEnabled" style="width:auto" ${HS.enabled?'checked':''}> <strong>Enable HubSpot sync</strong> <span class="badge ${HS.enabled?'ready':'cold'}">${HS.enabled?'on':'off'}</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Portal ID</label><input id="hsPortal" value="${esc(HS.portalId)}" placeholder="e.g. 12345678"></div>
+        <div><label class="muted" style="font-size:12px">Form GUID</label><input id="hsForm" value="${esc(HS.formGuid)}" placeholder="e.g. 9f1c…-…"></div>
+        <div><label class="muted" style="font-size:12px">Notify email (optional)</label><input id="hsNotify" value="${esc(HS.notifyEmail)}"></div>
+        <div style="display:flex;align-items:flex-end"><label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="hsIncMsg" style="width:auto" ${HS.includeMessageSummary?'checked':''}> Include a message summary</label></div>
+      </div>
+      <div style="margin-top:12px"><strong style="font-size:13px">Field mapping</strong><p class="muted" style="font-size:12px;margin:2px 0 8px">Map website form fields to HubSpot contact properties. Unmapped fields are still saved in the Message property.</p>${rows}<button class="btn btn-sm" onclick="hubspotAddRow()">+ Add mapping</button></div>
+      <div style="display:flex;gap:8px;margin-top:14px;align-items:center"><button class="btn btn-primary btn-sm" onclick="hubspotSave()">💾 Save HubSpot settings</button><button class="btn btn-sm" onclick="hubspotRetry()">↻ Retry syncing unsynced leads</button><span id="hsMsg" class="muted" style="font-size:12px"></span></div>
+      <p class="muted" style="font-size:12px;margin-top:8px">Portal ID and Form GUID are not secrets. Settings are stored in <code>hubspot.json</code> on the server and used by the lead-capture pipeline.</p>`;
+  }
+  function hubspotCollect(){
+    const box=$('hubspotPanel'); const map={};
+    box.querySelectorAll('[data-hsk]').forEach(el=>{const i=el.getAttribute('data-hsk');const k=el.value.trim();const v=(box.querySelector(`[data-hsv="${i}"]`)||{}).value||'';if(k)map[k]=v.trim();});
+    HS={enabled:$('hsEnabled').checked,portalId:$('hsPortal').value.trim(),formGuid:$('hsForm').value.trim(),notifyEmail:$('hsNotify').value.trim(),includeMessageSummary:$('hsIncMsg').checked,fieldMap:map};
+  }
+  window.hubspotAddRow=()=>{hubspotCollect();HS.fieldMap['']='';hubspotRender();};
+  window.hubspotDelRow=(i)=>{hubspotCollect();const keys=Object.keys(HS.fieldMap);delete HS.fieldMap[keys[i]];hubspotRender();};
+  async function hubspotSave(){
+    hubspotCollect();const msg=$('hsMsg');if(msg)msg.textContent='Saving…';
+    const r=await fetch('/save-content.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),file:'hubspot.json',content:HS})});
+    const j=await r.json().catch(()=>({ok:false}));
+    if(msg)msg.textContent=j.ok?'Saved ✓':(j.error||'Save failed');
+    hubspotRender();
+  }
+  async function hubspotRetry(){
+    const msg=$('hsMsg');if(msg)msg.textContent='Retrying…';
+    const r=await api('/leads-read.php',{action:'retry'});
+    if(msg)msg.textContent=r.ok?`Retried ${r.retried||0}, synced ${r.synced||0}`:'Retry failed';
+  }
+
   async function m365LoadStatus(){
     const box=$('m365Status'); if(!box) return;
     let r; try{ r=await api('/m365.php',{action:'status'}); }catch(e){ r={ok:false}; }
