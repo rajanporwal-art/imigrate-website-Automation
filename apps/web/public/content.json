@@ -303,5 +303,114 @@
         "link": "/canada-immigration#business-startup"
       }
     ]
+  },
+  "c11Page": {
+    "benefits": [
+      {
+        "icon": "TrendingUp",
+        "title": "Fast-track to PR",
+        "description": "The C11 work permit provides a clear and practical pathway to Canadian permanent residence through provincial nominee programs."
+      },
+      {
+        "icon": "Shield",
+        "title": "No minimum investment required",
+        "description": "Unlike many business immigration programs, the C11 work permit does not specify a minimum capital investment, making it accessible to a wider range of entrepreneurs."
+      },
+      {
+        "icon": "Users",
+        "title": "Family inclusion",
+        "description": "Bring your spouse and dependent children to Canada. Your spouse may be eligible for an open work permit."
+      },
+      {
+        "icon": "Briefcase",
+        "title": "Flexible business types",
+        "description": "Suitable for a wide variety of business sectors — retail, professional services, technology, hospitality, and more."
+      },
+      {
+        "icon": "Globe",
+        "title": "Provincial support",
+        "description": "Many Canadian provinces actively welcome C11 entrepreneurs and provide settlement support and networking opportunities."
+      },
+      {
+        "icon": "Award",
+        "title": "Path to citizenship",
+        "description": "After obtaining permanent residence, you can begin your journey toward Canadian citizenship — one of the most valued in the world."
+      }
+    ],
+    "eligibility": [
+      "Intention to establish, purchase, or take over a business in Canada",
+      "Active, day-to-day management of the business in Canada",
+      "Sufficient financial resources to establish and operate the business",
+      "Ability to create or maintain employment for Canadian citizens or permanent residents",
+      "Business plan demonstrating economic benefit to Canada",
+      "No minimum net worth requirement specified in legislation (officer discretion applies)",
+      "Must intend to reside in the province or territory where the business is located"
+    ],
+    "investment": [
+      "Business purchase or establishment costs vary by industry and location",
+      "Working capital sufficient to sustain the business and your family during initial operations",
+      "Provincial business license and registration fees",
+      "Professional fees (legal, accounting, immigration)",
+      "Many applicants invest between CAD $150,000 and $500,000 depending on business type",
+      "Some provinces have specific investment thresholds for regional programs linked to C11"
+    ],
+    "processSteps": [
+      {
+        "step": "1",
+        "title": "Initial profile assessment",
+        "description": "Our team evaluates your business background, financial capacity, and immigration goals to confirm C11 suitability."
+      },
+      {
+        "step": "2",
+        "title": "Business identification and due diligence",
+        "description": "We assist you in identifying a suitable business opportunity in Canada and conduct due diligence on the target business."
+      },
+      {
+        "step": "3",
+        "title": "Business plan preparation",
+        "description": "We prepare a comprehensive business plan tailored to IRCC requirements, demonstrating economic benefit to Canada."
+      },
+      {
+        "step": "4",
+        "title": "Work permit application lodgement",
+        "description": "We compile and submit your C11 work permit application with all supporting documents."
+      },
+      {
+        "step": "5",
+        "title": "Arrival and business establishment",
+        "description": "Upon approval, you travel to Canada and establish or take over operations of your business."
+      },
+      {
+        "step": "6",
+        "title": "Permanent residence pathway",
+        "description": "We guide you through a provincial nominee program or other permanent residence pathway after demonstrating business establishment."
+      }
+    ],
+    "faqs": [
+      {
+        "q": "What is the C11 Entrepreneur Work Permit?",
+        "a": "The C11 Entrepreneur Work Permit is issued under Section C11 of the Immigration and Refugee Protection Regulations (IRPR). It allows foreign nationals to come to Canada to establish or purchase a business, with the work permit itself being the first step toward permanent residence."
+      },
+      {
+        "q": "Is there a minimum investment amount required?",
+        "a": "Canadian legislation does not specify a fixed minimum investment amount for C11 work permits. However, immigration officers assess whether you have sufficient resources to establish a viable business that will create or maintain employment. In practice, most successful applicants invest between CAD $150,000 and $500,000 depending on the business type and province."
+      },
+      {
+        "q": "Can I bring my family to Canada on a C11 permit?",
+        "a": "Yes. Your spouse or common-law partner may be eligible for an open work permit, and your dependent children may study in Canada. Our team can assist with family member applications at the same time as your C11 application."
+      },
+      {
+        "q": "How does the C11 work permit lead to permanent residence?",
+        "a": "After operating your business in Canada for a period of time (typically 12–24 months), you can apply for permanent residence through provincial nominee programs such as the BCPNP Entrepreneur stream, the OINP Entrepreneur stream, or other provincial pathways. iMigrate Migration Solutions guides you through this transition."
+      },
+      {
+        "q": "What types of businesses qualify for a C11 work permit?",
+        "a": "A wide range of business types qualify, including retail, professional services, technology, food and beverage, hospitality, manufacturing, and more. The key criteria are that the business must be genuine, viable, and provide economic benefit to Canada — including employment creation."
+      },
+      {
+        "q": "How long does the C11 work permit process take?",
+        "a": "Processing times vary depending on the visa office processing your application and the completeness of your documentation. iMigrate Migration Solutions prepares thorough applications to minimize delays. We provide realistic timelines based on current processing conditions at the time of your application."
+      }
+    ]
   }
 }

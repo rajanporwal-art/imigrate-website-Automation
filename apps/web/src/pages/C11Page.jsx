@@ -9,41 +9,19 @@ import StickyConsultationButton from '@/components/StickyConsultationButton.jsx'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
+import { useSiteContent } from '@/lib/siteContent.jsx';
 
-const benefits = [
-  {
-    icon: TrendingUp,
-    title: 'Fast-track to PR',
-    description: 'The C11 work permit provides a clear and practical pathway to Canadian permanent residence through provincial nominee programs.',
-  },
-  {
-    icon: Shield,
-    title: 'No minimum investment required',
-    description: 'Unlike many business immigration programs, the C11 work permit does not specify a minimum capital investment, making it accessible to a wider range of entrepreneurs.',
-  },
-  {
-    icon: Users,
-    title: 'Family inclusion',
-    description: 'Bring your spouse and dependent children to Canada. Your spouse may be eligible for an open work permit.',
-  },
-  {
-    icon: Briefcase,
-    title: 'Flexible business types',
-    description: 'Suitable for a wide variety of business sectors — retail, professional services, technology, hospitality, and more.',
-  },
-  {
-    icon: Globe,
-    title: 'Provincial support',
-    description: 'Many Canadian provinces actively welcome C11 entrepreneurs and provide settlement support and networking opportunities.',
-  },
-  {
-    icon: Award,
-    title: 'Path to citizenship',
-    description: 'After obtaining permanent residence, you can begin your journey toward Canadian citizenship — one of the most valued in the world.',
-  },
+const C11_ICONS = { TrendingUp, Users, Globe, Shield, Award, Briefcase, CheckCircle };
+const DEF_BENEFITS = [
+  { icon: 'TrendingUp', title: 'Fast-track to PR', description: 'The C11 work permit provides a clear and practical pathway to Canadian permanent residence through provincial nominee programs.' },
+  { icon: 'Shield', title: 'No minimum investment required', description: 'Unlike many business immigration programs, the C11 work permit does not specify a minimum capital investment, making it accessible to a wider range of entrepreneurs.' },
+  { icon: 'Users', title: 'Family inclusion', description: 'Bring your spouse and dependent children to Canada. Your spouse may be eligible for an open work permit.' },
+  { icon: 'Briefcase', title: 'Flexible business types', description: 'Suitable for a wide variety of business sectors — retail, professional services, technology, hospitality, and more.' },
+  { icon: 'Globe', title: 'Provincial support', description: 'Many Canadian provinces actively welcome C11 entrepreneurs and provide settlement support and networking opportunities.' },
+  { icon: 'Award', title: 'Path to citizenship', description: 'After obtaining permanent residence, you can begin your journey toward Canadian citizenship — one of the most valued in the world.' },
 ];
 
-const eligibilityRequirements = [
+const DEF_ELIG = [
   'Intention to establish, purchase, or take over a business in Canada',
   'Active, day-to-day management of the business in Canada',
   'Sufficient financial resources to establish and operate the business',
@@ -53,7 +31,7 @@ const eligibilityRequirements = [
   'Must intend to reside in the province or territory where the business is located',
 ];
 
-const investmentConsiderations = [
+const DEF_INVEST = [
   'Business purchase or establishment costs vary by industry and location',
   'Working capital sufficient to sustain the business and your family during initial operations',
   'Provincial business license and registration fees',
@@ -62,7 +40,7 @@ const investmentConsiderations = [
   'Some provinces have specific investment thresholds for regional programs linked to C11',
 ];
 
-const processSteps = [
+const DEF_PROCESS = [
   {
     step: '1',
     title: 'Initial profile assessment',
@@ -95,7 +73,7 @@ const processSteps = [
   },
 ];
 
-const faqs = [
+const DEF_FAQS = [
   {
     q: 'What is the C11 Entrepreneur Work Permit?',
     a: 'The C11 Entrepreneur Work Permit is issued under Section C11 of the Immigration and Refugee Protection Regulations (IRPR). It allows foreign nationals to come to Canada to establish or purchase a business, with the work permit itself being the first step toward permanent residence.',
@@ -143,6 +121,12 @@ function FaqItem({ q, a }) {
 
 function C11Page() {
   const { openLeadForm } = useLeadForm();
+  const { c11Page: c11p = {} } = useSiteContent();
+  const benefits = (Array.isArray(c11p.benefits) && c11p.benefits.length ? c11p.benefits : DEF_BENEFITS).map((b) => ({ ...b, icon: C11_ICONS[b.icon] || TrendingUp }));
+  const eligibilityRequirements = Array.isArray(c11p.eligibility) && c11p.eligibility.length ? c11p.eligibility : DEF_ELIG;
+  const investmentConsiderations = Array.isArray(c11p.investment) && c11p.investment.length ? c11p.investment : DEF_INVEST;
+  const processSteps = Array.isArray(c11p.processSteps) && c11p.processSteps.length ? c11p.processSteps : DEF_PROCESS;
+  const faqs = Array.isArray(c11p.faqs) && c11p.faqs.length ? c11p.faqs : DEF_FAQS;
 
   return (
     <>
