@@ -170,7 +170,8 @@ function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
   if(mod==='mkt.dashboard') return renderMarketingDashboard();
   if(mod==='mkt.aistudio') return renderAIStudio();
   if(mod==='int.anthropic') return renderAIIntegration();
-  if(mod==='int.api') return renderSettings('settings.apikeys');
+  if(mod==='int.api') return renderIntegrationsOverview();
+  if(typeof CONNECTORS!=='undefined' && CONNECTORS[mod]) return renderIntegration(mod);
   if(mod==='um.permissions') return renderSettings('settings.roles');
   if(mod==='sys.logs') return renderLogs();
   if(mod.startsWith('consult.')) return renderConsultations(mod);
@@ -354,6 +355,51 @@ function renderFramework(mod){
     <p style="font-size:14px">${f[2]}</p>
     <p class="muted" style="font-size:13px;line-height:1.6">${f[3]}</p>
     <div style="display:flex;gap:8px;margin-top:10px">${extra||'<button class="btn btn-sm" disabled>Connect (needs API credentials)</button>'}</div></div>`;
+}
+
+/* ---------- Integrations: one-click connect with credential entry ---------- */
+const CONNECTORS={
+ 'int.hubspot':{conn:'hubspot',icon:'🟠',title:'HubSpot',desc:'Sync website leads into HubSpot CRM automatically.',help:'In HubSpot: Settings → Account → find your Hub/Portal ID; create a HubSpot form and copy its Form GUID from the embed code or share URL.',fields:[{key:'portalId',label:'Portal / Hub ID',ph:'e.g. 12345678'},{key:'formGuid',label:'Form GUID',ph:'xxxxxxxx-xxxx-xxxx-…'},{key:'notifyEmail',label:'Lead notification email (optional)',ph:'sales@imigratesolution.com'}]},
+ 'int.m365':{conn:'m365',icon:'🔌',title:'Microsoft 365',desc:'Outlook email, Calendar and OneDrive via Microsoft Graph — used by the CRM to send email and back up data.',oauth:true,help:'Register an app at entra.microsoft.com → App registrations. Redirect URI (Web): https://www.imigratesolution.com/m365.php?action=callback. Add Microsoft Graph delegated permissions: Mail.Send, Mail.Read, Calendars.ReadWrite, Files.ReadWrite, User.Read, offline_access. Create a client secret and paste its value below.',fields:[{key:'client_id',label:'Application (client) ID',ph:'GUID'},{key:'client_secret',label:'Client secret value',ph:'paste secret value',secret:true},{key:'tenant',label:'Tenant',ph:'common'},{key:'redirect_uri',label:'Redirect URI',ph:'https://www.imigratesolution.com/m365.php?action=callback'}]},
+ 'int.google':{conn:'google',icon:'🔵',title:'Google',desc:'Google Analytics / Business Profile API access.',help:'Create an API key in Google Cloud Console → APIs & Services → Credentials. For GA4, add your Measurement ID (G-XXXXXXX).',fields:[{key:'apiKey',label:'API key',ph:'AIza…',secret:true},{key:'measurementId',label:'GA4 Measurement ID (optional)',ph:'G-XXXXXXX'}]},
+ 'int.mailchimp':{conn:'mailchimp',icon:'🐵',title:'Mailchimp',desc:'Sync contacts and send Mailchimp campaigns.',help:'Mailchimp → Account → Extras → API keys. The server prefix is the part after the dash in your key (e.g. us21).',fields:[{key:'apiKey',label:'API key',ph:'xxxxxxxx-us21',secret:true},{key:'serverPrefix',label:'Server prefix',ph:'us21'},{key:'audienceId',label:'Audience / List ID (optional)',ph:''}]},
+ 'int.activecampaign':{conn:'activecampaign',icon:'🟦',title:'ActiveCampaign',desc:'Automations and email via ActiveCampaign.',help:'ActiveCampaign → Settings → Developer: copy your API URL and API key.',fields:[{key:'apiUrl',label:'API URL',ph:'https://youracct.api-us1.com'},{key:'apiKey',label:'API key',ph:'paste key',secret:true}]},
+ 'int.whatsappapi':{conn:'whatsapp',icon:'💬',title:'WhatsApp Business API',desc:'Send templated WhatsApp messages programmatically.',help:'Meta Business → WhatsApp → API setup: copy the Phone Number ID and a permanent access token.',fields:[{key:'phoneNumberId',label:'Phone Number ID',ph:''},{key:'accessToken',label:'Access token',ph:'paste token',secret:true},{key:'businessId',label:'Business Account ID (optional)',ph:''}]},
+ 'int.email':{conn:'email',icon:'✉️',title:'Email Settings',desc:'Sender identity and lead-notification address for outbound email.',help:'Outbound email uses Microsoft 365 when connected, otherwise the server mailer.',fields:[{key:'senderName',label:'Sender name',ph:'iMigrate Migration Solutions'},{key:'senderEmail',label:'Sender email',ph:'no-reply@imigratesolution.com'},{key:'notifyEmail',label:'Lead notification email',ph:'sales@imigratesolution.com'}]},
+};
+async function integrationsApi(body){ try{ const r=await fetch('/integrations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'Request failed'}; } }
+async function renderIntegration(mod){
+  const d=CONNECTORS[mod]; if(!d) return renderFramework(mod);
+  $('view').innerHTML=`<div class="card"><h3>${esc(d.title)}</h3><p class="muted">Loading…</p></div>`;
+  const r=await integrationsApi({action:'status'});
+  const st=(r.ok&&r.connectors&&r.connectors[d.conn])||{configured:false,fields:{}};
+  const fv=st.fields||{};
+  const fieldsHtml=d.fields.map(f=>{ const saved=fv[f.key]||''; const ph=(f.secret&&saved)?('Saved ('+esc(saved)+') — leave blank to keep'):esc(f.ph||''); return `<label class="fl">${esc(f.label)}</label><input id="ig_${f.key}" type="${f.secret?'password':'text'}" value="${f.secret?'':esc(saved)}" placeholder="${ph}" autocomplete="off">`; }).join('');
+  let oauth='';
+  if(d.oauth){ oauth=`<div class="card" style="box-shadow:none;background:#fbfcfe;margin-top:12px"><strong style="font-size:13px">Microsoft sign-in</strong> ${r.m365Connected?'<span class="badge active">Signed in</span>':'<span class="badge tag">Not signed in</span>'}<p class="muted" style="font-size:12px;margin:6px 0">${st.configured?'Sign in once to authorise sending email, calendar and OneDrive.':'Save the app credentials above first, then sign in.'}</p>${st.configured?`<a class="btn btn-sm btn-primary" href="${esc(r.m365ConnectUrl||'/m365.php?action=connect')}" target="_blank">Connect Microsoft sign-in →</a>`:''}</div>`; }
+  $('view').innerHTML=`<div class="card" style="max-width:680px"><div style="font-size:30px">${d.icon}</div>
+    <h3 style="margin:6px 0">${esc(d.title)} ${st.configured?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</h3>
+    <p style="font-size:13px">${esc(d.desc)}</p>
+    ${fieldsHtml}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveIntegration('${mod}')">Save &amp; connect</button>${st.configured?`<button class="btn btn-sm" onclick="disconnectIntegration('${mod}')">Disconnect</button>`:''}<span id="ig_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    ${oauth}
+    <p class="muted" style="font-size:12px;margin-top:12px;line-height:1.6">${esc(d.help)}</p>
+    <p class="muted" style="font-size:11px">Credentials are stored server-side in the protected <code>auth/</code> folder — never returned to the browser or shipped in the website code.</p></div>`;
+}
+async function saveIntegration(mod){
+  const d=CONNECTORS[mod]; const msg=$('ig_msg'); msg.textContent='Saving…'; msg.className='muted';
+  const fields={}; d.fields.forEach(f=>{ const el=$('ig_'+f.key); if(el) fields[f.key]=el.value; });
+  const r=await integrationsApi({action:'save',connector:d.conn,fields});
+  if(r.ok){ msg.textContent='Connected ✓'; msg.className='ok'; renderIntegration(mod); } else { msg.textContent=r.error||'Save failed'; msg.className='err'; }
+}
+async function disconnectIntegration(mod){ const d=CONNECTORS[mod]; if(!confirm('Disconnect '+d.title+'? Stored credentials will be cleared.'))return; await integrationsApi({action:'disconnect',connector:d.conn}); renderIntegration(mod); }
+async function renderIntegrationsOverview(){
+  $('view').innerHTML=`<div class="card"><h3>API Connections</h3><p class="muted">Loading…</p></div>`;
+  const r=await integrationsApi({action:'status'});
+  const conns=(r.ok&&r.connectors)||{};
+  const items=Object.entries(CONNECTORS).map(([mod,d])=>{ const c=(conns[d.conn]||{}).configured; return `<div class="qcard" onclick="go('${mod}')"><div class="ic">${d.icon}</div><h3>${esc(d.title)}</h3><p>${c?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</p></div>`; }).join('');
+  const ai=`<div class="qcard" onclick="go('int.anthropic')"><div class="ic">🤖</div><h3>Claude AI</h3><p>AI content, ads &amp; SEO</p></div>`;
+  $('view').innerHTML=`<p class="muted" style="margin-top:0">Connect your tools — enter credentials and you're live. Everything is stored securely server-side; click any card to configure.</p><div class="cards">${items}${ai}</div>`;
 }
 
 /* ---------- new native views (Dashboard extras, Marketing, Consultations, Logs) ---------- */
