@@ -48,6 +48,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage.jsx';
 import TermsPage from './pages/TermsPage.jsx';
 import { Toaster } from '@/components/ui/sonner';
 import { SiteContentProvider } from '@/lib/siteContent.jsx';
+import SeoOverride from '@/components/SeoOverride.jsx';
 import HubSpotTracking from '@/components/HubSpotTracking.jsx';
 import { LeadFormProvider } from '@/components/LeadFormModal.jsx';
 
@@ -97,6 +98,7 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <SeoOverride />
       <Toaster />
     </Router>
     </LeadFormProvider>
