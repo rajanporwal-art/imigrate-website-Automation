@@ -37,9 +37,11 @@ function PopupLeadForm({ source = 'Popup', onSuccess }) {
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/png',
     ];
     if (!allowed.includes(file.type)) {
-      setCvError('Only PDF, DOC, or DOCX accepted.');
+      setCvError('Only PDF, DOC, DOCX, JPG or PNG accepted.');
       setCvFile(null); return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -202,7 +204,7 @@ function PopupLeadForm({ source = 'Popup', onSuccess }) {
               <Upload className="h-3.5 w-3.5" />
               {cvFile ? cvFile.name : 'Choose file…'}
             </label>
-            <input id="plf-cv" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvChange} />
+            <input id="plf-cv" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleCvChange} />
             {cvFile && (
               <button type="button" onClick={() => setCvFile(null)}
                 className="text-xs text-muted-foreground hover:text-destructive transition-colors">

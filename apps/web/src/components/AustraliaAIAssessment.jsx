@@ -41,6 +41,8 @@ function AustraliaAIAssessment() {
   const [occupation, setOccupation] = useState(null);
   const [answers, setAnswers] = useState(() => auDefaults());
   const [lead, setLead] = useState({ fullName: '', email: '', phone: '', consent: false });
+  const [cvFile, setCvFile] = useState(null);
+  const [cvErr, setCvErr] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [report, setReport] = useState(null);
@@ -63,6 +65,16 @@ function AustraliaAIAssessment() {
     setOccupation(o); setQuery(o.name); setOpen(false);
   }
 
+  function handleCv(e) {
+    const file = e.target.files[0];
+    setCvErr('');
+    if (!file) { setCvFile(null); return; }
+    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+    if (!allowed.includes(file.type)) { setCvErr('Only PDF, DOC, DOCX, JPG or PNG accepted.'); setCvFile(null); return; }
+    if (file.size > 5 * 1024 * 1024) { setCvErr('File must be under 5 MB.'); setCvFile(null); return; }
+    setCvFile(file);
+  }
+
   async function submitLead(e) {
     e.preventDefault();
     setError('');
@@ -74,6 +86,14 @@ function AustraliaAIAssessment() {
     setSubmitting(true);
     const rpt = buildReport({ occupation, points, answers, name: lead.fullName });
     const fields = reportLeadFields(rpt, lead);
+    // Optional CV upload — stored filename is linked to the lead so the CRM can view/download it.
+    if (cvFile) {
+      try {
+        const fd = new FormData(); fd.append('cv', cvFile);
+        const up = await fetch('/lead-upload.php', { method: 'POST', body: fd });
+        if (up.ok) { const uj = await up.json(); if (uj && uj.file) { fields.cvFile = uj.file; fields.cvOriginalName = uj.original || cvFile.name || ''; fields.cvFilename = uj.file; } }
+      } catch (_) { /* non-fatal */ }
+    }
     const html = reportToEmailHtml(rpt, lead, BOOKING_URL);
     try {
       // 1) Save the full lead + assessment data + tags to the CRM / lead store.
@@ -262,6 +282,16 @@ function AustraliaAIAssessment() {
                     <label className="block text-sm font-medium mb-1">Mobile / WhatsApp <span className="text-cta">*</span></label>
                     <Input required type="tel" value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} placeholder="+60 1X XXX XXXX" className="h-12" />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Attach your CV / Resume <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <label htmlFor="aia-cv" className="flex items-center justify-between gap-2 h-12 px-4 rounded-md border border-input bg-background cursor-pointer text-sm text-muted-foreground hover:border-accent">
+                    <span className="truncate">{cvFile ? cvFile.name : 'Choose file… (PDF, DOC, DOCX, JPG, PNG)'}</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" />
+                  </label>
+                  <input id="aia-cv" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleCv} />
+                  {cvErr && <p className="text-xs text-cta mt-1">{cvErr}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">Speeds up your assessment — our consultants can review your background in advance.</p>
                 </div>
                 <label className="flex items-start gap-2 text-xs text-muted-foreground">
                   <input type="checkbox" checked={lead.consent} onChange={(e) => setLead({ ...lead, consent: e.target.checked })} className="mt-0.5" />

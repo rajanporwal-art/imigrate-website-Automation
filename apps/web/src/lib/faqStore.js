@@ -21,7 +21,17 @@ export function useFaqs() {
     if (!inflight) {
       inflight = cmsFetchJson('faqs.json')
         .then((j) => {
-          cache = j && Array.isArray(j.categories) && j.categories.length ? j.categories : DEFAULT_FAQS;
+          if (j && Array.isArray(j.categories) && j.categories.length) {
+            // Honour per-FAQ enable/disable + draft status set in the CMS, and
+            // drop categories left with no published questions.
+            const isLive = (f) => f && f.enabled !== false && f.draft !== true && f.status !== 'draft' && f.q;
+            const filtered = j.categories
+              .map((c) => ({ ...c, faqs: (c.faqs || []).filter(isLive) }))
+              .filter((c) => (c.faqs || []).length > 0);
+            cache = filtered.length ? filtered : DEFAULT_FAQS;
+          } else {
+            cache = DEFAULT_FAQS;
+          }
           return cache;
         })
         .catch(() => {

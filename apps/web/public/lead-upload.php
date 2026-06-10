@@ -27,10 +27,10 @@ if ($f['size'] > 5 * 1024 * 1024) {
 
 $orig = preg_replace('/[^A-Za-z0-9._-]/', '_', $f['name']);
 $ext = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
-$allowed = ['pdf', 'doc', 'docx'];
+$allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
 if (!in_array($ext, $allowed, true)) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Only PDF, DOC or DOCX allowed']);
+    echo json_encode(['ok' => false, 'error' => 'Only PDF, DOC, DOCX, JPG or PNG allowed']);
     exit;
 }
 

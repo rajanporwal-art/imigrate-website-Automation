@@ -208,7 +208,7 @@ function markSaved(){const b=$('dirtyFlag');if(b)b.textContent='Saved';}
 function rDashboard(){
   const pages=['home','australia','canada','about','assessment','contactPage'].filter(k=>CONTENT[k]);
   const stat=(n,l,v)=>`<div class="card" style="display:inline-block;min-width:150px;margin-right:12px"><div style="font-size:26px;font-weight:800;color:var(--navy)">${n}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
-  const faqCount=(FAQS.categories||[]).reduce((a,c)=>a+(c.questions||[]).length,0);
+  const faqCount=(FAQS.categories||[]).reduce((a,c)=>a+((c.faqs||c.questions||[]).length),0);
   $('view').innerHTML=`
     <div style="display:flex;flex-wrap:wrap">${stat(pages.length,'Editable pages')}${stat(faqCount,'FAQs')}${stat((FORMS.forms||[]).length,'Forms')}${stat(MEDIA.length,'Media items')}</div>
     <div class="card"><h3>Welcome to the Website CMS</h3>
@@ -298,21 +298,76 @@ window.navMakeDropdown=(i)=>{CONTENT.nav[i].children=[{name:'Item',path:'/'}];de
 window.navAddChild=(i)=>{CONTENT.nav[i].children.push({name:'Item',path:'/'});DIRTY=true;render();};
 window.navSeed=(s)=>{try{CONTENT.nav=JSON.parse(s);DIRTY=true;render();}catch(e){}};
 
-/* ---------- FAQs ---------- */
-function rFaqs(){
+/* ---------- FAQs (full management) ---------- */
+let FAQ_SEARCH='';
+function faqNormalize(){
   if(!Array.isArray(FAQS.categories))FAQS.categories=[];
-  $('view').innerHTML=`<div class="card"><h3>FAQs</h3><p class="muted" style="font-size:13px">Add, edit, reorder or remove questions. The website rebuilds Google FAQ schema automatically.</p>
-    ${FAQS.categories.map((cat,ci)=>`<div class="card" style="background:var(--bg)"><div class="hd" style="display:flex;justify-content:space-between"><input style="max-width:300px;font-weight:700" value="${esc(cat.name||'')}" oninput="FAQS.categories[${ci}].name=this.value;DIRTY=true"><button class="btn btn-sm" onclick="faqDelCat(${ci})">Delete category</button></div>
-      ${(cat.questions||[]).map((q,qi)=>`<div class="item"><div class="hd"><strong>Q${qi+1}</strong><span><button class="btn btn-sm" onclick="faqMove(${ci},${qi},-1)">↑</button> <button class="btn btn-sm" onclick="faqMove(${ci},${qi},1)">↓</button> <button class="btn btn-sm" onclick="faqDel(${ci},${qi})">✕</button></span></div>
-        <input placeholder="Question" value="${esc(q.q||'')}" oninput="FAQS.categories[${ci}].questions[${qi}].q=this.value;DIRTY=true"><textarea rows="2" placeholder="Answer" oninput="FAQS.categories[${ci}].questions[${qi}].a=this.value;DIRTY=true">${esc(q.a||'')}</textarea></div>`).join('')}
-      <button class="btn btn-sm" onclick="faqAdd(${ci})">+ Add question</button></div>`).join('')}
-    <button class="btn btn-sm" onclick="faqAddCat()">+ Add category</button></div>${saveBar('faqs')}`;
+  FAQS.categories.forEach(cat=>{
+    if(!Array.isArray(cat.faqs)){ cat.faqs = Array.isArray(cat.questions)?cat.questions:[]; }
+    delete cat.questions; // unify on the live `faqs` key
+    if(!cat.id)cat.id='cat-'+Math.random().toString(36).slice(2,8);
+    cat.faqs.forEach(q=>{ if(q.enabled===undefined)q.enabled=true; if(!q.status)q.status='published'; if(q.q===undefined)q.q=''; if(q.a===undefined)q.a=''; });
+  });
 }
-window.faqAdd=(ci)=>{FAQS.categories[ci].questions=FAQS.categories[ci].questions||[];FAQS.categories[ci].questions.push({q:'',a:''});DIRTY=true;render();};
-window.faqDel=(ci,qi)=>{FAQS.categories[ci].questions.splice(qi,1);DIRTY=true;render();};
-window.faqMove=(ci,qi,d)=>{const a=FAQS.categories[ci].questions,j=qi+d;if(j<0||j>=a.length)return;[a[qi],a[j]]=[a[j],a[qi]];DIRTY=true;render();};
-window.faqAddCat=()=>{FAQS.categories.push({id:'cat-'+Date.now(),name:'New category',questions:[]});DIRTY=true;render();};
-window.faqDelCat=(ci)=>{if(confirm('Delete this category and its questions?')){FAQS.categories.splice(ci,1);DIRTY=true;render();}};
+function faqMatch(q){ if(!FAQ_SEARCH)return true; const s=FAQ_SEARCH.toLowerCase(); return (q.q||'').toLowerCase().includes(s)||(q.a||'').toLowerCase().includes(s); }
+function rFaqs(){
+  faqNormalize();
+  const searching=!!FAQ_SEARCH;
+  const total=FAQS.categories.reduce((a,c)=>a+(c.faqs||[]).length,0);
+  const live=FAQS.categories.reduce((a,c)=>a+(c.faqs||[]).filter(q=>q.enabled!==false&&q.status!=='draft').length,0);
+  $('view').innerHTML=`<div class="card"><div class="hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0">FAQ Management</h3>
+    <span class="muted" style="font-size:12px">${total} question(s) · ${live} published</span></div>
+    <p class="muted" style="font-size:13px;margin:6px 0 10px">Add, edit, duplicate, reorder (drag the ⠿ handle), categorise, enable/disable and publish FAQs. Disabled or draft FAQs are hidden from the public site; Google FAQ schema is rebuilt automatically on publish.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <input id="faqSearch" placeholder="🔍 Search questions & answers…" value="${esc(FAQ_SEARCH)}" oninput="FAQ_SEARCH=this.value;rFaqs();setTimeout(()=>{const e=document.getElementById('faqSearch');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},0)" style="max-width:320px">
+      <button class="btn btn-sm" onclick="faqAddCat()">+ Add category</button>
+      <button class="btn btn-sm" onclick="faqExport()">⬇ Export JSON</button>
+      <label class="btn btn-sm" style="display:inline-flex;align-items:center;cursor:pointer">⬆ Import JSON<input type="file" accept="application/json,.json" class="hidden" onchange="faqImport(this)"></label>
+    </div>
+    ${FAQS.categories.map((cat,ci)=>{
+      const rows=(cat.faqs||[]).map((q,qi)=>({q,qi})).filter(x=>faqMatch(x.q));
+      if(searching&&!rows.length)return '';
+      const catLive=(cat.faqs||[]).filter(q=>q.enabled!==false&&q.status!=='draft').length;
+      return `<div class="card" style="background:var(--bg)"><div class="hd" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <input style="max-width:280px;font-weight:700" value="${esc(cat.name||'')}" oninput="FAQS.categories[${ci}].name=this.value;DIRTY=true;markDirty&&markDirty()">
+        <span style="display:flex;gap:4px;align-items:center"><span class="muted" style="font-size:11px">${(cat.faqs||[]).length} Q · ${catLive} live</span>
+        <button class="btn btn-sm" title="Move category up" onclick="faqCatMove(${ci},-1)">↑</button>
+        <button class="btn btn-sm" title="Move category down" onclick="faqCatMove(${ci},1)">↓</button>
+        <button class="btn btn-sm" onclick="faqDelCat(${ci})">Delete category</button></span></div>
+      ${rows.map(({q,qi})=>{
+        const st=q.status==='draft'?'draft':'published';
+        return `<div class="item" ${searching?'':`draggable="true" ondragstart="faqDrag(event,${ci},${qi})" ondragover="event.preventDefault()" ondrop="faqDrop(event,${ci},${qi})"`} style="${q.enabled===false?'opacity:.6':''}">
+        <div class="hd" style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+          <span style="display:flex;align-items:center;gap:6px"><span style="cursor:grab" title="Drag to reorder">⠿</span><strong>Q${qi+1}</strong>
+          <span class="badge ${st==='draft'?'draft':'live'}" style="font-size:10px">${st==='draft'?'Draft':'Published'}</span>${q.enabled===false?'<span class="badge draft" style="font-size:10px">Disabled</span>':''}</span>
+          <span style="display:flex;gap:3px;flex-wrap:wrap">
+            <select title="Status" onchange="FAQS.categories[${ci}].faqs[${qi}].status=this.value;DIRTY=true;rFaqs()" style="width:auto;font-size:11px;padding:3px 6px"><option value="published" ${st==='published'?'selected':''}>Published</option><option value="draft" ${st==='draft'?'selected':''}>Draft</option></select>
+            <button class="btn btn-sm" title="${q.enabled===false?'Enable':'Disable'}" onclick="faqToggle(${ci},${qi})">${q.enabled===false?'🚫':'✓'}</button>
+            <button class="btn btn-sm" title="Duplicate" onclick="faqDup(${ci},${qi})">⧉</button>
+            <button class="btn btn-sm" title="Move up" onclick="faqMove(${ci},${qi},-1)">↑</button>
+            <button class="btn btn-sm" title="Move down" onclick="faqMove(${ci},${qi},1)">↓</button>
+            <button class="btn btn-sm" title="Delete" onclick="faqDel(${ci},${qi})">✕</button>
+          </span></div>
+        <input placeholder="Question" value="${esc(q.q||'')}" oninput="FAQS.categories[${ci}].faqs[${qi}].q=this.value;DIRTY=true;markDirty&&markDirty()">
+        <textarea rows="3" placeholder="Answer" oninput="FAQS.categories[${ci}].faqs[${qi}].a=this.value;DIRTY=true;markDirty&&markDirty()">${esc(q.a||'')}</textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px"><input placeholder="Optional link label (e.g. Learn more)" value="${esc((q.link&&q.link.label)||'')}" oninput="faqLink(${ci},${qi},'label',this.value)"><input placeholder="Optional link URL (e.g. /assessment)" value="${esc((q.link&&q.link.to)||'')}" oninput="faqLink(${ci},${qi},'to',this.value)"></div>
+        </div>`;}).join('')}
+      <button class="btn btn-sm" onclick="faqAdd(${ci})">+ Add question</button></div>`;}).join('')||'<p class="muted" style="padding:12px">No matching FAQs.</p>'}
+    </div>${saveBar('faqs')}`;
+}
+window.faqAdd=(ci)=>{FAQS.categories[ci].faqs=FAQS.categories[ci].faqs||[];FAQS.categories[ci].faqs.push({q:'',a:'',enabled:true,status:'published'});DIRTY=true;FAQ_SEARCH='';rFaqs();};
+window.faqDel=(ci,qi)=>{if(confirm('Delete this FAQ?')){FAQS.categories[ci].faqs.splice(qi,1);DIRTY=true;rFaqs();}};
+window.faqDup=(ci,qi)=>{const o=FAQS.categories[ci].faqs[qi];FAQS.categories[ci].faqs.splice(qi+1,0,JSON.parse(JSON.stringify(o)));DIRTY=true;rFaqs();};
+window.faqToggle=(ci,qi)=>{const q=FAQS.categories[ci].faqs[qi];q.enabled=q.enabled===false;DIRTY=true;rFaqs();};
+window.faqMove=(ci,qi,d)=>{const a=FAQS.categories[ci].faqs,j=qi+d;if(j<0||j>=a.length)return;[a[qi],a[j]]=[a[j],a[qi]];DIRTY=true;rFaqs();};
+window.faqLink=(ci,qi,k,v)=>{const q=FAQS.categories[ci].faqs[qi];if(!q.link)q.link={};q.link[k]=v;if(!q.link.label&&!q.link.to)delete q.link;DIRTY=true;};
+window.faqAddCat=()=>{FAQS.categories.push({id:'cat-'+Date.now(),name:'New category',faqs:[]});DIRTY=true;FAQ_SEARCH='';rFaqs();};
+window.faqDelCat=(ci)=>{if(confirm('Delete this category and all its questions?')){FAQS.categories.splice(ci,1);DIRTY=true;rFaqs();}};
+window.faqCatMove=(ci,d)=>{const a=FAQS.categories,j=ci+d;if(j<0||j>=a.length)return;[a[ci],a[j]]=[a[j],a[ci]];DIRTY=true;rFaqs();};
+window.faqDrag=(e,ci,qi)=>{window._faqDrag={ci,qi};e.dataTransfer.effectAllowed='move';};
+window.faqDrop=(e,ci,qi)=>{e.preventDefault();const d=window._faqDrag;if(!d||d.ci!==ci)return;const a=FAQS.categories[ci].faqs;const[m]=a.splice(d.qi,1);a.splice(qi,0,m);window._faqDrag=null;DIRTY=true;rFaqs();};
+window.faqExport=()=>{faqNormalize();const blob=new Blob([JSON.stringify({categories:FAQS.categories},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='imigrate-faqs.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+window.faqImport=(input)=>{const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);const cats=Array.isArray(j)?j:(j.categories||[]);if(!Array.isArray(cats)||!cats.length){alert('No categories found in file.');return;}if(!confirm('Import '+cats.length+' categories? This REPLACES the current FAQ set (you can still review before publishing).'))return;FAQS.categories=cats;faqNormalize();DIRTY=true;FAQ_SEARCH='';rFaqs();}catch(err){alert('Invalid JSON file.');}};rd.readAsText(f);input.value='';};
 
 /* ---------- Forms ---------- */
 function rForms(){

@@ -532,10 +532,17 @@
   function renderInputsTab(c){
     const model=leadFieldModel(c);
     $('tabBody').innerHTML=`<div class="card"><div class="sect">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>User inputs</h3><button class="btn btn-sm btn-primary" onclick="editInputs('${esc(c.ckey)}')">✎ Edit all fields</button></div>
-      ${model.length?`<div style="margin-top:8px">${model.map(m=>`<div class="kv"><span class="k">${esc(m.label)}</span><span>${m.value!==''?esc(m.value):'<span class="muted">—</span>'}${m.pts?` <span class="pts">${esc(m.pts)} pts</span>`:''}</span></div>`).join('')}</div>`:'<p class="muted">No information on file for this lead.</p>'}
-      <p class="muted" style="font-size:12px;margin-top:10px">Every field is editable. Edits are saved as CRM overrides (the original submission is preserved) and recorded in the Activity timeline — who changed what, and when.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lead profile</h3><span class="muted" style="font-size:12px">Edit any field — saved automatically</span></div>
+      ${model.length?`<div class="ui-grid" style="margin-top:10px">${model.map((m,i)=>`<div><label class="muted" style="font-size:11px;display:block;margin-bottom:3px">${esc(m.label)}${m.pts?` <span class="pts">${esc(m.pts)} pts</span>`:''}</label><input id="uin_${i}" data-k="${esc(m.key)}" value="${esc(m.value)}" placeholder="—" onchange="autoField('${esc(c.ckey)}',this)"></div>`).join('')}</div>`:'<p class="muted">No information on file for this lead.</p>'}
+      <p class="muted" style="font-size:12px;margin-top:12px">Every field is editable and saves on change as a CRM override — the original submission is preserved, and each edit is recorded in the Activity timeline (who changed what, and when).</p>
     </div></div>`;
+  }
+  async function autoField(ckey,el){
+    const key=el.getAttribute('data-k'); const c=findByKey(ckey);
+    el.style.borderColor='var(--accent,#c8a24a)';
+    const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields:{[key]:el.value},detail:'Edited '+(FIELD_LABELS[key]||key)});
+    if(r&&r.ok){ META[ckey]=r.meta; buildContacts(); el.style.borderColor='#1a7f37'; setTimeout(()=>{el.style.borderColor='';},1100); }
+    else { el.style.borderColor='#b91c1c'; }
   }
   function editInputs(ckey){
     const c=findByKey(ckey); INPUT_MODEL=leadFieldModel(c);
