@@ -25,10 +25,30 @@ if (!is_array($payload) || !hash_equals($EDIT_PASSWORD, (string) ($payload['pass
 
 $file = __DIR__ . '/leads/leads.ndjson';
 $leads = [];
+$needsHeal = false;
 if (is_file($file)) {
-    foreach (file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        $row = json_decode($line, true);
-        if (is_array($row)) $leads[] = $row;
+    $content = (string) file_get_contents($file);
+    $trim = ltrim($content);
+    if ($trim !== '' && $trim[0] === '[') {
+        // The store was written as a single JSON array (e.g. pretty-printed by a
+        // tool/restore) instead of NDJSON. Parse it and self-heal to NDJSON so
+        // line-by-line reads AND future appends work again.
+        $arr = json_decode($content, true);
+        if (is_array($arr)) { foreach ($arr as $row) { if (is_array($row)) $leads[] = $row; } $needsHeal = true; }
+    } else {
+        // Normal NDJSON — tolerate CR/LF/CRLF line endings.
+        foreach (preg_split('/\r\n|\r|\n/', $content) as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            $row = json_decode($line, true);
+            if (is_array($row)) $leads[] = $row;
+        }
+    }
+    // One-time normalisation back to clean NDJSON when the format was off.
+    if ($needsHeal && $leads) {
+        $out = '';
+        foreach ($leads as $l) $out .= json_encode($l) . "\n";
+        @file_put_contents($file, $out, LOCK_EX);
     }
 }
 

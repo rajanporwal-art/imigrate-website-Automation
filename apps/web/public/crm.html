@@ -915,7 +915,8 @@
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
       <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
@@ -941,6 +942,16 @@
     if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),500); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },900);} else { if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';} }
   }
   async function snapshotNow(){ const m=$('bkMsg'); if(m){m.textContent='Creating snapshot…';m.className='muted';} const r=await api('/crm-backup.php',{action:'snapshot'}); if(m){m.textContent=r&&r.ok?('Snapshot created.'):'Snapshot failed';m.className=r&&r.ok?'ok':'err';} loadBackups(); }
+  async function diagOne(url,body){
+    try{ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})}); const txt=await r.text(); let p=null,cnt='—',ok='?'; try{ p=JSON.parse(txt); ok=String(!!p.ok); const a=p.leads||p.reports||p.tasks||(p.meta?Object.keys(p.meta):null); cnt=Array.isArray(a)?a.length:(a&&typeof a==='object'?Object.keys(a).length:'(none)'); }catch(e){ ok='UNPARSEABLE'; } return {status:r.status,ok,cnt,sample:txt.slice(0,160)}; }catch(e){ return {status:'ERR',ok:e.message,cnt:'—',sample:''}; }
+  }
+  async function diagLoading(){
+    const box=$('bkDiag'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Running diagnostic…</p>';
+    const tests=[['leads-read.php','/leads-read.php',{action:'list'}],['crm-reports.php','/crm-reports.php',{action:'list'}],['crm-meta.php','/crm-meta.php',{action:'list'}],['crm-tasks.php','/crm-tasks.php',{action:'list'}]];
+    const rows=[];
+    for(const [name,url,body] of tests){ const d=await diagOne(url,body); rows.push(`<tr><td><code>${name}</code></td><td>${d.status}</td><td>${esc(String(d.ok))}</td><td><strong>${esc(String(d.cnt))}</strong></td><td class="muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.sample)}</td></tr>`); }
+    if(box)box.innerHTML=`<div class="card" style="background:#fbfcfe;margin-top:10px"><strong style="font-size:13px">Data-loading diagnostic</strong><div style="overflow:auto"><table style="font-size:12px"><thead><tr><th>Endpoint</th><th>HTTP</th><th>ok</th><th>records</th><th>response starts with</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><p class="muted" style="font-size:11px;margin-top:6px">Share these rows with support if leads still don't appear. HTTP 200 + ok=true + records&gt;0 means data is loading; records=0 with a count above in “Current live store” means a format issue (now auto-healed on next load).</p></div>`;
+  }
 
   /* ---------- HubSpot integration (moved from the legacy admin) ---------- */
   let HS={enabled:false,portalId:'',formGuid:'',notifyEmail:'',includeMessageSummary:true,fieldMap:{}};
