@@ -90,12 +90,15 @@ const USER=()=>localStorage.getItem('imig_cms_user')||'Admin';
 const ROLE=()=>localStorage.getItem('imig_cms_role')||'Admin';
 const esc=(v)=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmtDT=(s)=>(s||'').slice(0,16).replace('T',' ');
-let CONTENT={},FAQS={},FORMS={},MEDIA=[],VIEW='dashboard',DIRTY=false;
+let CONTENT={},FAQS={},FORMS={},MEDIA=[],BLOG={posts:[]},SEO={pages:{}},PAGES={pages:[]},VIEW='dashboard',DIRTY=false;
 
 /* Sections + which roles may see them */
 const SECTIONS=[
   ['dashboard','📊 Dashboard',['Admin','Content Editor','SEO Manager','Marketing']],
+  ['pagelist','📑 Pages',['Admin','Content Editor','Marketing']],
   ['pages','📄 Page Content',['Admin','Content Editor','Marketing']],
+  ['blog','✍️ Blogs',['Admin','Marketing']],
+  ['seo','🔍 SEO',['Admin','SEO Manager']],
   ['settings','🏢 Site Settings',['Admin','Content Editor']],
   ['headfoot','🧭 Header & Footer',['Admin','Content Editor']],
   ['menus','🗂️ Menus',['Admin','Content Editor']],
@@ -106,6 +109,8 @@ const SECTIONS=[
   ['versions','🕓 Version History',['Admin']],
   ['rolesettings','⚙️ Settings & Roles',['Admin']],
 ];
+/* Known website routes (for SEO + Pages registry) */
+const SITE_ROUTES=[['/','Home'],['/about','About Us'],['/services','Services'],['/australia-migration','Australia PR'],['/canada-immigration','Canada PR'],['/australia-visas','Australia Visas'],['/canada-visas','Canada Visas'],['/c11-entrepreneur-work-permit','C11 Work Permit'],['/assessment','Assessment'],['/contact','Contact'],['/blog','Blog'],['/faq','FAQ'],['/success-stories','Success Stories'],['/privacy','Privacy Policy'],['/terms','Terms & Conditions']];
 
 /* ---------- auth ---------- */
 async function unlock(){
@@ -126,6 +131,9 @@ async function loadAll(){
     CONTENT=(await loadDomain('content'))||{};
     FAQS=(await loadDomain('faqs'))||{categories:[]};
     FORMS=(await loadDomain('forms'))||{forms:[]};
+    BLOG=(await loadDomain('blog'))||{posts:[]}; if(!Array.isArray(BLOG.posts))BLOG.posts=[];
+    SEO=(await loadDomain('seo'))||{pages:{}}; if(!SEO.pages)SEO.pages={};
+    PAGES=(await loadDomain('pages'))||{pages:[]}; if(!Array.isArray(PAGES.pages))PAGES.pages=[];
     const mr=await api('/cms-media.php',{action:'list'});MEDIA=mr.media||[];
     m.textContent='Loaded';DIRTY=false;render();
   }catch(e){m.textContent='✗ Load failed (PHP enabled?)';}
@@ -140,7 +148,7 @@ function go(v){ if(DIRTY && !confirm('You have unsaved changes. Leave without pu
 function render(){
   const titles=Object.fromEntries(SECTIONS.map(([id,lab])=>[id,lab.replace(/^\S+\s/,'')]));
   $('viewTitle').textContent=titles[VIEW]||'';
-  ({dashboard:rDashboard,pages:rPages,settings:rSettings,headfoot:rHeadFoot,menus:rMenus,faqs:rFaqs,forms:rForms,media:rMedia,search:rSearch,versions:rVersions,rolesettings:rRoleSettings}[VIEW]||rDashboard)();
+  ({dashboard:rDashboard,pagelist:rPageList,pages:rPages,blog:rBlog,seo:rSeo,settings:rSettings,headfoot:rHeadFoot,menus:rMenus,faqs:rFaqs,forms:rForms,media:rMedia,search:rSearch,versions:rVersions,rolesettings:rRoleSettings}[VIEW]||rDashboard)();
 }
 
 /* ---------- path helpers for generic content editing ---------- */
@@ -179,7 +187,7 @@ function saveBar(domain,label){
     <p class="muted" style="font-size:12px">Publishing updates the live website immediately. A version backup is saved automatically — you can roll back anytime from Version History.</p>`;
 }
 async function publish(domain){
-  const data=domain==='content'?CONTENT:domain==='faqs'?FAQS:domain==='forms'?FORMS:null;
+  const data=domain==='content'?CONTENT:domain==='faqs'?FAQS:domain==='forms'?FORMS:domain==='blog'?BLOG:domain==='seo'?SEO:domain==='pages'?PAGES:null;
   if(!data)return;
   const r=await api('/cms-content.php',{action:'save',domain,data});
   if(r.ok){DIRTY=false;$('loadMsg').textContent='Published ✓';markSaved();alert('Saved & published. The live site is updated.');}
@@ -368,6 +376,94 @@ function rRoleSettings(){
     <p class="muted" style="font-size:12px;margin-top:8px">Roles: <strong>Admin</strong> full access · <strong>Content Editor</strong> content only · <strong>SEO Manager</strong> SEO (Phase 2) · <strong>Marketing</strong> blogs &amp; pages. Per-user logins arrive in a later phase; for now all editors share the admin password and self-select a role.</p></div>
     <div class="card"><h3>CRM isolation</h3><p class="muted" style="font-size:13px;line-height:1.6">This CMS edits website content files only (content.json, faqs.json, forms.json, media). The CRM, its lead records, reports, pipelines and automations live in a separate protected store and are never read or modified here. Website content is also excluded from deploys, so publishing changes is safe and persistent.</p></div>`;
 }
+/* ===================== Blog CMS ===================== */
+let blogEdit=null;
+function blogStatus(p){const today=new Date().toISOString().slice(0,10);if(p.draft)return['draft','Draft'];if(p.publishedDate&&p.publishedDate>today)return['draft','Scheduled'];return['live','Published'];}
+function rBlog(){
+  if(blogEdit!==null)return rBlogEditor();
+  const posts=BLOG.posts||[];
+  $('view').innerHTML=`<div class="toolbar"><button class="btn btn-primary btn-sm" onclick="blogNew()">+ New post</button><span class="muted">${posts.length} post(s)</span></div>
+    <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Title</th><th>Status</th><th>Date</th><th>Category</th><th class="right">Actions</th></tr></thead><tbody>
+    ${posts.map((p,i)=>{const[cls,lab]=blogStatus(p);return `<tr><td><strong>${esc(p.title||'(untitled)')}</strong><div class="muted">/blog/${esc(p.slug||'')}</div></td><td><span class="badge ${cls}">${lab}</span></td><td class="muted">${esc(p.publishedDate||'')}</td><td>${esc(p.category||'')}</td><td class="right"><button class="btn btn-sm" onclick="blogEditIdx(${i})">Edit</button> <button class="btn btn-sm" onclick="blogDel(${i})">Delete</button></td></tr>`;}).join('')||'<tr><td colspan="5" class="muted" style="padding:18px">No posts yet.</td></tr>'}
+    </tbody></table></div>`;
+}
+window.blogNew=()=>{BLOG.posts.unshift({title:'',slug:'',excerpt:'',author:'iMigrate Migration Solutions',category:'',tags:[],featuredImage:'',publishedDate:new Date().toISOString().slice(0,10),draft:true,metaTitle:'',metaDescription:'',content:'',faqs:[]});blogEdit=0;DIRTY=true;render();};
+window.blogEditIdx=(i)=>{blogEdit=i;render();};
+window.blogBack=()=>{blogEdit=null;render();};
+window.blogDel=(i)=>{if(confirm('Delete this post? This publishes immediately.')){BLOG.posts.splice(i,1);publish('blog').then(()=>render());}};
+window.slugify=(s)=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function rBlogEditor(){
+  const p=BLOG.posts[blogEdit];if(!p){blogEdit=null;return rBlog();}
+  const set=(k)=>`oninput="BLOG.posts[${blogEdit}].${k}=this.value;DIRTY=true;markDirty()"`;
+  $('view').innerHTML=`<div class="toolbar"><button class="btn btn-sm" onclick="blogBack()">← All posts</button></div>
+   <div class="card">
+    <div class="row"><div><label class="fl">Title</label><input value="${esc(p.title||'')}" oninput="BLOG.posts[${blogEdit}].title=this.value;if(!BLOG.posts[${blogEdit}].slug)BLOG.posts[${blogEdit}].slug=slugify(this.value);DIRTY=true;markDirty()"></div><div><label class="fl">Slug</label><input value="${esc(p.slug||'')}" ${set('slug')}></div></div>
+    <label class="fl">Excerpt</label><textarea rows="2" ${set('excerpt')}>${esc(p.excerpt||'')}</textarea>
+    <div class="row"><div><label class="fl">Author</label><input value="${esc(p.author||'')}" ${set('author')}></div><div><label class="fl">Category</label><input value="${esc(p.category||'')}" ${set('category')}></div></div>
+    <div class="row"><div><label class="fl">Tags (comma-separated)</label><input value="${esc((p.tags||[]).join(', '))}" oninput="BLOG.posts[${blogEdit}].tags=this.value.split(',').map(s=>s.trim()).filter(Boolean);DIRTY=true"></div><div><label class="fl">Publish date (a future date = scheduled)</label><input type="date" value="${esc(p.publishedDate||'')}" ${set('publishedDate')}></div></div>
+    <label class="fl">Featured image URL</label><div style="display:flex;gap:8px"><input value="${esc(p.featuredImage||'')}" ${set('featuredImage')}><button class="btn btn-sm" onclick="pickMedia(${blogEdit})">Pick</button></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-top:8px"><input type="checkbox" style="width:auto" ${p.draft?'checked':''} onchange="BLOG.posts[${blogEdit}].draft=this.checked;DIRTY=true;markDirty()"> Draft (hidden from the website)</label>
+   </div>
+   <div class="card"><h3>SEO</h3><label class="fl">Meta title</label><input value="${esc(p.metaTitle||'')}" ${set('metaTitle')}><label class="fl">Meta description</label><textarea rows="2" ${set('metaDescription')}>${esc(p.metaDescription||'')}</textarea></div>
+   <div class="card"><h3>Content (Markdown — supports headings, bold, lists, links, images, tables)</h3>${mdToolbar('blogContent')}<textarea id="blogContent" rows="16" style="font-family:ui-monospace,monospace" oninput="BLOG.posts[${blogEdit}].content=this.value;DIRTY=true;markDirty()">${esc(p.content||'')}</textarea>
+    <div style="margin-top:6px"><button class="btn btn-sm" onclick="blogPreview()">👁 Preview</button></div></div>
+   ${saveBar('blog')}`;
+}
+window.pickMedia=(i)=>{const imgs=MEDIA.filter(m=>m.type==='image');const url=prompt('Paste an image URL (or pick one):\n'+imgs.slice(0,12).map(m=>m.url).join('\n'),imgs[0]?imgs[0].url:'');if(url!=null){BLOG.posts[i].featuredImage=url;DIRTY=true;render();}};
+window.blogPreview=()=>{const p=BLOG.posts[blogEdit];const w=window.open('','_blank');if(!w){alert('Allow pop-ups to preview.');return;}w.document.write('<!doctype html><meta charset="utf-8"><title>'+esc(p.title||'Preview')+'</title><body style="font-family:Arial,sans-serif;max-width:740px;margin:24px auto;padding:0 16px;color:#222"><h1>'+esc(p.title||'')+'</h1>'+(p.featuredImage?'<img src="'+esc(p.featuredImage)+'" style="max-width:100%;border-radius:8px">':'')+mdRender(p.content||'')+'</body>');w.document.close();};
+function mdToolbar(id){
+  const btn=(lab,b,a)=>`<button class="btn btn-sm" onclick="insertMd('${id}',${JSON.stringify(b)},${JSON.stringify(a||'')})">${lab}</button>`;
+  return `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${btn('Bold','**','**')}${btn('Italic','_','_')}${btn('H2','## ','')}${btn('H3','### ','')}${btn('• List','\n- ','')}${btn('1. List','\n1. ','')}${btn('Link','[','](https://)')}${btn('Image','![alt](','https://)')}${btn('Table','\n| A | B |\n| --- | --- |\n| 1 | 2 |\n','')}</div>`;
+}
+window.insertMd=(id,before,after)=>{const t=document.getElementById(id);if(!t)return;const s=t.selectionStart,e=t.selectionEnd,v=t.value;t.value=v.slice(0,s)+before+v.slice(s,e)+after+v.slice(e);t.dispatchEvent(new Event('input'));t.focus();t.selectionStart=t.selectionEnd=s+before.length;};
+function mdRender(md){return esc(md).replace(/^### (.*)$/gm,'<h3>$1</h3>').replace(/^## (.*)$/gm,'<h2 style="color:#0b1f44">$1</h2>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/_(.+?)_/g,'<em>$1</em>').replace(/!\[(.*?)\]\((.+?)\)/g,'<img alt="$1" src="$2" style="max-width:100%">').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2">$1</a>').replace(/^- (.*)$/gm,'<li>$1</li>').replace(/\n\n/g,'<br><br>');}
+
+/* ===================== SEO Manager ===================== */
+let seoPath='/';
+function seoScore(s){let score=0,recs=[];const t=(s.metaTitle||'').length,d=(s.metaDescription||'').length;
+  if(t>=40&&t<=65)score+=30;else recs.push(`Meta title should be ~50–60 characters (currently ${t}).`);
+  if(d>=120&&d<=165)score+=30;else recs.push(`Meta description should be ~120–160 characters (currently ${d}).`);
+  if(s.keywords)score+=10;else recs.push('Add focus keywords.');
+  if(s.canonical)score+=15;else recs.push('Set a canonical URL.');
+  if(s.ogTitle||s.metaTitle)score+=8;else recs.push('Add an Open Graph title.');
+  if(s.schema)score+=7;else recs.push('Add structured data (JSON-LD schema).');
+  return{score:Math.min(100,score),recs};}
+function recsHtml(recs){return recs.length?`<div class="card" style="background:var(--bg)"><strong>Recommendations</strong><ul style="margin:6px 0 0;font-size:13px">${recs.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:'<p class="ok" style="font-size:13px">✓ All key SEO fields look good.</p>';}
+window.rSeoScore=()=>{const s=SEO.pages[seoPath]||{};const{score,recs}=seoScore(s);const b=$('seoScore');if(b){b.textContent='Score '+score+'/100';b.className='badge '+(score>=70?'live':'draft');}const rc=$('seoRecs');if(rc)rc.innerHTML=recsHtml(recs);};
+function rSeo(){
+  const routes=[...SITE_ROUTES.map(r=>r[0]),...Object.keys(SEO.pages||{})].filter((v,i,a)=>a.indexOf(v)===i);
+  if(!routes.includes(seoPath))seoPath=routes[0]||'/';
+  if(!SEO.pages[seoPath])SEO.pages[seoPath]={};
+  const s=SEO.pages[seoPath];const lab=(SITE_ROUTES.find(r=>r[0]===seoPath)||[])[1]||seoPath;
+  const{score}=seoScore(s);
+  const set=(k)=>`oninput="SEO.pages['${seoPath}'].${k}=this.value;DIRTY=true;markDirty();rSeoScore()"`;
+  $('view').innerHTML=`<div class="toolbar"><span class="muted">Page:</span><select onchange="seoPath=this.value;rSeo()">${routes.map(r=>`<option value="${esc(r)}" ${r===seoPath?'selected':''}>${esc((SITE_ROUTES.find(x=>x[0]===r)||[])[1]||r)} (${esc(r)})</option>`).join('')}</select><a class="btn btn-sm" href="https://www.imigratesolution.com${esc(seoPath)}" target="_blank">Preview</a></div>
+   <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>SEO — ${esc(lab)}</h3><span id="seoScore" class="badge ${score>=70?'live':'draft'}">Score ${score}/100</span></div>
+    <label class="fl">Meta title</label><input value="${esc(s.metaTitle||'')}" ${set('metaTitle')}>
+    <label class="fl">Meta description</label><textarea rows="2" ${set('metaDescription')}>${esc(s.metaDescription||'')}</textarea>
+    <div class="row"><div><label class="fl">URL slug / path</label><input value="${esc(s.slug||seoPath)}" oninput="SEO.pages['${seoPath}'].slug=this.value;DIRTY=true;markDirty()"></div><div><label class="fl">Canonical URL</label><input value="${esc(s.canonical||'')}" ${set('canonical')}></div></div>
+    <label class="fl">Keywords (comma-separated)</label><input value="${esc(s.keywords||'')}" ${set('keywords')}>
+    <div class="row"><div><label class="fl">Open Graph title</label><input value="${esc(s.ogTitle||'')}" ${set('ogTitle')}></div><div><label class="fl">Open Graph description</label><input value="${esc(s.ogDescription||'')}" ${set('ogDescription')}></div></div>
+    <label class="fl">Structured data / schema (JSON-LD)</label><textarea rows="5" style="font-family:ui-monospace,monospace" oninput="SEO.pages['${seoPath}'].schema=this.value;DIRTY=true;markDirty()">${esc(typeof s.schema==='object'?JSON.stringify(s.schema,null,2):(s.schema||''))}</textarea>
+    <div id="seoRecs" style="margin-top:10px">${recsHtml(seoScore(s).recs)}</div>
+   </div>${saveBar('seo')}`;
+}
+
+/* ===================== Pages registry ===================== */
+function rPageList(){
+  const reg=PAGES.pages||[];
+  const rows=SITE_ROUTES.map(([path,title])=>{const e=reg.find(p=>p.path===path)||{};return{path,title:e.title||title,status:e.status||'published',type:e.type||'system'};});
+  reg.filter(p=>!SITE_ROUTES.find(r=>r[0]===p.path)).forEach(p=>rows.push({path:p.path,title:p.title||p.path,status:p.status||'unpublished',type:p.type||'custom'}));
+  $('view').innerHTML=`<div class="card"><h3>Pages</h3><p class="muted" style="font-size:13px">Every website page. Edit content or SEO, preview, duplicate, or toggle status. Creating brand-new pages with custom layouts (and enforcing unpublish for built-in pages) arrives with the visual page builder in the next phase.</p>
+   <div style="padding:0;overflow:auto"><table><thead><tr><th>Page</th><th>Path</th><th>Type</th><th>Status</th><th class="right">Actions</th></tr></thead><tbody>
+   ${rows.map(r=>`<tr><td><strong>${esc(r.title)}</strong></td><td class="muted">${esc(r.path)}</td><td><span class="pill">${esc(r.type)}</span></td><td><span class="badge ${r.status==='published'?'live':'draft'}">${esc(r.status)}</span></td>
+     <td class="right"><button class="btn btn-sm" onclick="pageEditContent('${esc(r.path)}')">Edit</button> <button class="btn btn-sm" onclick="pageSeo('${esc(r.path)}')">SEO</button> <a class="btn btn-sm" href="https://www.imigratesolution.com${esc(r.path)}" target="_blank">Preview</a> <button class="btn btn-sm" onclick="pageToggle('${esc(r.path)}',${JSON.stringify(esc(r.title))},'${esc(r.type)}','${r.status}')">${r.status==='published'?'Unpublish':'Publish'}</button> <button class="btn btn-sm" onclick="pageDup('${esc(r.path)}',${JSON.stringify(esc(r.title))})">Duplicate</button></td></tr>`).join('')}
+   </tbody></table></div></div>`;
+}
+window.pageEditContent=(path)=>{const map={'/':'home','/about':'about','/australia-migration':'australia','/canada-immigration':'canada','/assessment':'assessment','/contact':'contactPage'};if(map[path]){pageKey=map[path];go('pages');}else{alert("This page's text lives in its component — edit its SEO here, or use the page builder (next phase) for full visual control.");pageSeo(path);}};
+window.pageSeo=(path)=>{seoPath=path;go('seo');};
+window.pageToggle=(path,title,type,status)=>{let e=PAGES.pages.find(p=>p.path===path);if(!e){e={path,title,type};PAGES.pages.push(e);}e.status=status==='published'?'unpublished':'published';publish('pages').then(()=>render());};
+window.pageDup=(path,title)=>{const np=prompt('New path for the duplicated page:',path+'-copy');if(!np)return;PAGES.pages.push({path:np,title:title+' (copy)',type:'custom',status:'unpublished',duplicatedFrom:path});publish('pages').then(()=>render());};
 </script>
 </body>
 </html>
