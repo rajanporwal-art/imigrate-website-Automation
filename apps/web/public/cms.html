@@ -532,6 +532,16 @@ function rBuilder(){
    <div class="card"><h3>Add a block</h3><div class="toolbar"><select id="newBlockType">${BLOCK_TYPES.map(t=>`<option>${t}</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="addBlock()">+ Add block</button></div></div>
    ${saveBar('pages')}`;
 }
+
+/* Single sign-on when launched from the Admin Portal: auto-unlock from the shared
+   same-origin session key, honor the portal-assigned role, deep-link to a section (#m=). */
+(async function portalAutoInit(){
+  const pw=sessionStorage.getItem('imig_cms_pw'); if(!pw)return;
+  try{ const r=await fetch('/admin-verify.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}); const j=await r.json().catch(()=>({})); if(!r.ok||!j.ok)return; }catch(e){return;}
+  document.getElementById('gate').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
+  buildNav(); await loadAll();
+  const m=(location.hash.match(/m=([a-zA-Z]+)/)||[])[1]; if(m){ try{ go(m); }catch(e){} }
+})();
 </script>
 </body>
 </html>

@@ -77,3 +77,4 @@ jobs:
             media/**
             cms-versions/**
             cms-overrides/**
+            auth/**

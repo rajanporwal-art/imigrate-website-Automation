@@ -1008,6 +1008,17 @@
   }
   function setTheme(t){document.body.dataset.theme=t;localStorage.setItem('imig_crm_theme',t);$('themeBtn').textContent=t==='dark'?'☀️ Light':'🌙 Dark';}
   function toggleTheme(){setTheme(document.body.dataset.theme==='dark'?'light':'dark');}
+
+  /* Single sign-on when launched from the Admin Portal: auto-unlock from the shared
+     same-origin session key and deep-link to a section (#m=). */
+  (async function portalAutoInit(){
+    const pw=sessionStorage.getItem('imig_crm_pw'); if(!pw)return;
+    try{ const r=await fetch('/admin-verify.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}); const j=await r.json().catch(()=>({})); if(!r.ok||!j.ok)return; }catch(e){return;}
+    document.getElementById('gate').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
+    if(localStorage.getItem('imig_crm_theme')==='dark') setTheme('dark');
+    await loadAll();
+    const m=(location.hash.match(/m=([a-zA-Z]+)/)||[])[1]; if(m){ try{ go(m); }catch(e){} }
+  })();
 </script>
 </body>
 </html>

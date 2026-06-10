@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>iMigrate Admin Portal</title>
+<style>
+  :root{--bg:#f4f6fb;--panel:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--navy:#0b1f44;--accent:#c8a24a;--cta:#e11d2a;--ok:#1a7f37;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  .hidden{display:none!important}
+  button{font-family:inherit;cursor:pointer}
+  .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600}
+  .btn:hover{border-color:var(--accent)} .btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)} .btn-sm{padding:4px 9px;font-size:12px} .btn-cta{background:var(--cta);color:#fff;border-color:var(--cta)}
+  input,select{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  label.fl{font-size:12px;color:var(--muted);display:block;margin:8px 0 3px}
+  #gate{max-width:380px;margin:11vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
+  #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 16px}
+  #app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .sidebar{background:var(--navy);color:#cdd7ea;padding:14px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 12px}
+  .sidebar .brand span{color:var(--accent)}
+  .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7e8aa6;margin:12px 8px 4px}
+  .navitem{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:8px;color:#cdd7ea;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:1px}
+  .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
+  .topbar h2{margin:0;font-size:17px}
+  .who{font-size:12px;color:var(--muted)}
+  .content{padding:20px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .qcard{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);cursor:pointer;transition:transform .08s,border-color .12s}
+  .qcard:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .qcard .ic{font-size:30px} .qcard h3{margin:8px 0 3px;font-size:15px} .qcard p{margin:0;font-size:12px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .card h3{margin:0 0 8px;font-size:15px}
+  table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:600;padding:8px;border-bottom:2px solid var(--border)}td{padding:8px;border-bottom:1px solid var(--border)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .badge.active{background:#dcfce7;color:#166534}.badge.inactive{background:#fee2e2;color:#b91c1c}.badge.tag{background:rgba(11,31,68,.08);color:var(--navy)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .muted{color:var(--muted)}.ok{color:var(--ok)}.err{color:var(--cta)}.right{text-align:right}
+  iframe{width:100%;height:calc(100vh - 54px);border:0;display:block}
+  .permgrid{overflow:auto} .permgrid td,.permgrid th{padding:5px 8px;font-size:12px;white-space:nowrap}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:40}
+  .modal .box{background:var(--panel);border-radius:14px;padding:22px;max-width:460px;width:92%;max-height:88vh;overflow:auto}
+  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto}}
+</style>
+</head>
+<body>
+<div id="gate">
+  <h1>iMigrate <span style="color:var(--accent)">Admin Portal</span></h1>
+  <p>One login for Website CMS &amp; CRM</p>
+  <input id="username" placeholder="Username or email" autocomplete="username" />
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" style="margin-top:8px" onkeydown="if(event.key==='Enter')doLogin()" />
+  <input id="otp" class="hidden" placeholder="6-digit authenticator code" inputmode="numeric" style="margin-top:8px" onkeydown="if(event.key==='Enter')doLogin()" />
+  <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="doLogin()">Sign in</button>
+  <p id="gateMsg" class="err" style="margin-top:12px;font-size:13px"></p>
+</div>
+
+<div id="app" class="hidden">
+  <aside class="sidebar"><div class="brand">iMigrate <span>Portal</span></div><div id="nav"></div></aside>
+  <div class="main">
+    <div class="topbar"><h2 id="viewTitle">Dashboard</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="who" id="whoami"></span>
+        <button class="btn btn-sm" onclick="openProfile()">My account</button>
+        <button class="btn btn-sm" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+    <div id="view" class="content"></div>
+  </div>
+</div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+const esc=(v)=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDT=(s)=>(s||'').slice(0,16).replace('T',' ');
+let TOKEN=sessionStorage.getItem('imig_portal_token')||'',SVC='',USER={},PERMS={all:false,perms:{}},VIEW='dashboard';
+
+const MODULE_LABELS={'cms.pages':'Pages','cms.blogs':'Blogs','cms.faqs':'FAQs','cms.media':'Media','cms.menus':'Menus','cms.forms':'Forms','cms.seo':'SEO','cms.settings':'CMS Settings','crm.leads':'Leads','crm.aileads':'AI Leads','crm.reports':'Reports','crm.pipeline':'Pipeline','crm.tasks':'Tasks','crm.documents':'Documents','crm.notes':'Notes','crm.activities':'Activities','mkt.social':'Social Media','mkt.gbp':'Google Business','mkt.email':'Email Campaigns','mkt.emailauto':'Email Automations','mkt.whatsapp':'WhatsApp','mkt.ads':'Ads Manager','mkt.calendar':'Content Calendar','mkt.analytics':'Analytics','int.m365':'Microsoft 365','int.google':'Google','int.hubspot':'HubSpot','int.mailchimp':'Mailchimp','int.activecampaign':'ActiveCampaign','int.whatsappapi':'WhatsApp API','settings.company':'Company','settings.users':'Users','settings.roles':'Roles & Permissions','settings.apikeys':'API Keys','settings.backup':'Backup','settings.security':'Security'};
+
+/* nav: [group, [ [moduleKey, label, target] ]]; target: app url (#m=) or 'native' */
+const NAV=[
+  [null,[['dashboard','📊 Dashboard','native']]],
+  ['Website CMS',[['cms.pages','Pages','cms.html#m=pagelist'],['cms.blogs','Blogs','cms.html#m=blog'],['cms.faqs','FAQs','cms.html#m=faqs'],['cms.media','Media Library','cms.html#m=media'],['cms.menus','Menus','cms.html#m=menus'],['cms.forms','Forms','cms.html#m=forms'],['cms.seo','SEO','cms.html#m=seo'],['cms.settings','Settings','cms.html#m=settings']]],
+  ['CRM',[['crm.leads','Leads','crm.html#m=leads'],['crm.aileads','AI Leads','crm.html#m=leads'],['crm.reports','Reports','crm.html#m=reports'],['crm.pipeline','Pipeline','crm.html#m=pipeline'],['crm.tasks','Tasks','crm.html#m=tasks'],['crm.documents','Documents','crm.html#m=leads'],['crm.notes','Notes','crm.html#m=leads'],['crm.activities','Activities','crm.html#m=leads']]],
+  ['Marketing Hub',[['mkt.social','Social Media','native'],['mkt.gbp','Google Business','native'],['mkt.email','Email Campaigns','native'],['mkt.emailauto','Email Automations','native'],['mkt.whatsapp','WhatsApp','native'],['mkt.ads','Ads Manager','native'],['mkt.calendar','Content Calendar','native'],['mkt.analytics','Analytics','native']]],
+  ['Integrations',[['int.m365','Microsoft 365','native'],['int.google','Google','native'],['int.hubspot','HubSpot','native'],['int.mailchimp','Mailchimp','native'],['int.activecampaign','ActiveCampaign','native'],['int.whatsappapi','WhatsApp API','native']]],
+  ['Settings',[['settings.company','Company Info','native'],['settings.users','Users','native'],['settings.roles','Roles & Permissions','native'],['settings.apikeys','API Keys','native'],['settings.backup','Backup','native'],['settings.security','Security','native']]],
+];
+
+function can(mod,act){ act=act||'view'; if(PERMS.all)return true; const a=(PERMS.perms||{})[mod]||[]; return a.includes(act); }
+
+async function api(body){ const r=await fetch('/portal.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,...body})}); return r.json().catch(()=>({ok:false})); }
+
+/* ---------- auth ---------- */
+async function doLogin(){
+  const m=$('gateMsg'); m.textContent='Signing in…';
+  const r=await api({action:'login',username:$('username').value.trim(),password:$('password').value,otp:$('otp').value.trim()});
+  if(!r.ok){ if(r.twofa){$('otp').classList.remove('hidden');$('otp').focus();} m.textContent=r.error||'Sign-in failed'; return; }
+  applySession(r);
+}
+function applySession(r){
+  TOKEN=r.token; SVC=r.svc||''; USER=r.user||{}; PERMS=r.permissions||{all:false,perms:{}};
+  sessionStorage.setItem('imig_portal_token',TOKEN);
+  // Single sign-on for the embedded CMS/CRM (same origin): share the service key.
+  if(SVC){ sessionStorage.setItem('imig_cms_pw',SVC); sessionStorage.setItem('imig_crm_pw',SVC); }
+  localStorage.setItem('imig_cms_user',USER.name||'Admin'); localStorage.setItem('imig_crm_user',USER.name||'Admin');
+  localStorage.setItem('imig_cms_role', mapCmsRole(USER.role));
+  $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('whoami').textContent=(USER.name||'')+' · '+(USER.role||'');
+  buildNav(); go('dashboard');
+}
+function mapCmsRole(role){ if(role==='Super Admin'||role==='Website Admin')return 'Admin'; if(role==='Content Editor')return 'Content Editor'; if(role==='Marketing Manager')return 'Marketing'; return 'Content Editor'; }
+async function doLogout(){ await api({action:'logout'}); sessionStorage.removeItem('imig_portal_token'); sessionStorage.removeItem('imig_cms_pw'); sessionStorage.removeItem('imig_crm_pw'); location.reload(); }
+async function restore(){ if(!TOKEN)return false; const r=await api({action:'session'}); if(r.ok){ applySession({token:TOKEN,svc:r.svc,user:r.user,permissions:r.permissions}); return true; } sessionStorage.removeItem('imig_portal_token'); return false; }
+
+/* ---------- nav / routing ---------- */
+function navTargetFor(mod){ for(const [grp,items] of NAV) for(const it of items) if(it[0]===mod) return it[2]; return 'native'; }
+function buildNav(){
+  let h='';
+  for(const [grp,items] of NAV){
+    const visible=items.filter(([mod])=>mod==='dashboard'||can(mod));
+    if(!visible.length)continue;
+    if(grp)h+=`<div class="grp">${esc(grp)}</div>`;
+    h+=visible.map(([mod,lab])=>`<div class="navitem ${VIEW===mod?'active':''}" onclick="go('${mod}')">${esc(lab)}</div>`).join('');
+  }
+  $('nav').innerHTML=h;
+}
+function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
+  $('viewTitle').textContent= mod==='dashboard'?'Dashboard':(MODULE_LABELS[mod]||mod);
+  if(mod!=='dashboard' && mod.startsWith('settings.')) return renderSettings(mod);
+  if(mod!=='dashboard' && (mod.startsWith('mkt.')||mod.startsWith('int.'))) return renderFramework(mod);
+  if(mod==='dashboard') return renderDashboard();
+  if(tgt!=='native'){ $('view').innerHTML=`<iframe src="/${esc(tgt)}" title="${esc(MODULE_LABELS[mod]||mod)}"></iframe>`; $('view').style.padding='0'; return; }
+  $('view').style.padding='20px';
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard(){
+  $('view').style.padding='20px';
+  const CARDS=[['cms.pages','🌐','Website CMS','Pages, blogs, SEO, media','cms.pages'],['crm.leads','📇','CRM','Leads, pipeline, reports','crm.leads'],['mkt.email','📣','Marketing Hub','Campaigns & automations','mkt.email'],['crm.reports','🤖','AI Reports','Assessment reports','crm.reports'],['mkt.email','✉️','Email Marketing','Campaigns & templates','mkt.email'],['mkt.social','📱','Social Media','Posts & scheduling','mkt.social'],['mkt.analytics','📈','Analytics','Traffic & conversions','mkt.analytics'],['int.m365','🔌','Integrations','M365, HubSpot, more','int.m365'],['settings.company','⚙️','Settings','Users, roles, security','settings.company']];
+  const cards=CARDS.filter(c=>can(c[0])).map(c=>`<div class="qcard" onclick="go('${c[4]}')"><div class="ic">${c[1]}</div><h3>${esc(c[2])}</h3><p>${esc(c[3])}</p></div>`).join('');
+  $('view').innerHTML=`<p class="muted" style="margin-top:0">Welcome, <strong>${esc(USER.name||'')}</strong> — signed in as <strong>${esc(USER.role||'')}</strong>.</p><div class="cards">${cards}</div>
+   <div class="card" style="margin-top:18px"><h3>Two systems, one portal</h3><p class="muted" style="font-size:13px;line-height:1.6">The Website CMS and the CRM run as independent applications with separate data stores and deployment protection — website updates never touch CRM data, and vice-versa. This portal is the shared, role-secured front door.</p></div>`;
+}
+
+/* ---------- settings modules ---------- */
+function renderSettings(mod){
+  $('view').style.padding='20px';
+  if(mod==='settings.users')return rUsers();
+  if(mod==='settings.roles')return rRoles();
+  if(mod==='settings.security')return rSecurity();
+  if(mod==='settings.company')return rCompany();
+  if(mod==='settings.backup')return rBackup();
+  if(mod==='settings.apikeys')return rApiKeys();
+}
+
+/* Users */
+let ROLE_NAMES=[];
+async function rUsers(){
+  if(!can('settings.users')){ $('view').innerHTML='<div class="card">You do not have access to user management.</div>'; return; }
+  const r=await api({action:'users.list'}); const users=r.users||[];
+  const rr=await api({action:'roles.list'}); ROLE_NAMES=Object.keys(rr.roles||{});
+  $('view').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Users</h3><button class="btn btn-primary btn-sm" onclick="userModal()">+ Add user</button></div>
+    <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last login</th><th>Status</th><th>2FA</th><th class="right"></th></tr></thead><tbody>
+    ${users.map(u=>`<tr><td><strong>${esc(u.name||'')}</strong></td><td class="muted">${esc(u.email||'')}</td><td><span class="badge tag">${esc(u.role||'')}</span></td><td class="muted">${u.lastLogin?esc(fmtDT(u.lastLogin)):'—'}</td><td><span class="badge ${u.status==='active'?'active':'inactive'}">${esc(u.status||'active')}</span></td><td>${u.twofaEnabled?'🔐':'—'}</td><td class="right"><button class="btn btn-sm" onclick='userModal(${JSON.stringify(u)})'>Edit</button> <button class="btn btn-sm" onclick="userDeact('${esc(u.id)}','${u.status==='active'?'inactive':'active'}')">${u.status==='active'?'Deactivate':'Activate'}</button> <button class="btn btn-sm" onclick="userDel('${esc(u.id)}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted" style="padding:16px">No users yet. Add your team.</td></tr>'}
+    </tbody></table>
+    <p class="muted" style="font-size:12px;margin-top:8px">Until you add the first user, the legacy admin password signs you in as Super Admin (bootstrap).</p></div>`;
+}
+function userModal(u){
+  u=u||{name:'',email:'',username:'',role:'Viewer',status:'active',id:''};
+  const roleOpts=ROLE_NAMES.map(rn=>`<option ${rn===u.role?'selected':''}>${esc(rn)}</option>`).join('');
+  const m=document.createElement('div');m.className='modal';m.id='userM';
+  m.innerHTML=`<div class="box"><h3 style="margin-top:0">${u.id?'Edit user':'Add user'}</h3>
+    <label class="fl">Full name</label><input id="u_name" value="${esc(u.name||'')}">
+    <div class="row"><div><label class="fl">Email</label><input id="u_email" value="${esc(u.email||'')}"></div><div><label class="fl">Username</label><input id="u_username" value="${esc(u.username||'')}" placeholder="defaults to email"></div></div>
+    <label class="fl">Role</label><select id="u_role">${roleOpts}</select>
+    <label class="fl">${u.id?'New password (leave blank to keep)':'Password'}</label><input id="u_pass" type="text" placeholder="min 8 chars, 1 number, 1 uppercase">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="userSave('${esc(u.id)}')">Save</button></div>
+    <p id="u_msg" class="err" style="font-size:12px"></p></div>`;
+  document.body.appendChild(m);
+}
+function closeModal(){ const m=$('userM')||$('genM'); if(m)m.remove(); }
+async function userSave(id){
+  const user={id,name:$('u_name').value.trim(),email:$('u_email').value.trim(),username:$('u_username').value.trim(),role:$('u_role').value};
+  if($('u_pass').value)user.password=$('u_pass').value;
+  const r=await api({action:'users.save',user});
+  if(r.ok){closeModal();rUsers();}else $('u_msg').textContent=r.error||'Save failed';
+}
+async function userDel(id){ if(!confirm('Delete this user?'))return; await api({action:'users.delete',id}); rUsers(); }
+async function userDeact(id,status){ await api({action:'users.save',user:{id,status}}); rUsers(); }
+
+/* Roles & Permissions (custom permission builder) */
+async function rRoles(){
+  if(!can('settings.roles')&&!PERMS.all){ $('view').innerHTML='<div class="card">No access to roles.</div>'; return; }
+  const r=await api({action:'roles.list'}); const roles=r.roles||{},MODULES=r.modules||[],ACTIONS=r.actions||[];
+  window._ROLES=roles;window._MODS=MODULES;window._ACTS=ACTIONS;
+  const list=Object.entries(roles).map(([name,def])=>`<tr><td><strong>${esc(name)}</strong>${def.system?' <span class="badge tag">built-in</span>':''}<div class="muted" style="font-size:12px">${esc(def.desc||'')}</div></td><td>${def.all?'<span class="badge active">All access</span>':Object.keys(def.perms||{}).length+' modules'}</td><td class="right">${def.system?'<span class="muted">view</span>':`<button class="btn btn-sm" onclick="roleEdit('${esc(name)}')">Edit</button> <button class="btn btn-sm" onclick="roleDel('${esc(name)}')">Delete</button>`}</td></tr>`).join('');
+  $('view').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Roles &amp; Permissions</h3><button class="btn btn-primary btn-sm" onclick="roleEdit('')">+ New custom role</button></div>
+    <table><thead><tr><th>Role</th><th>Scope</th><th class="right"></th></tr></thead><tbody>${list}</tbody></table>
+    <p class="muted" style="font-size:12px;margin-top:8px">Built-in roles are fixed. Create custom roles with exactly the permissions you want.</p></div>
+    <div id="roleEditor"></div>`;
+}
+function roleEdit(name){
+  const roles=window._ROLES||{},MODULES=window._MODS||[],ACTIONS=window._ACTS||[];
+  const def=name?(roles[name]||{perms:{}}):{perms:{}};
+  const rows=MODULES.map(mod=>`<tr><td>${esc(MODULE_LABELS[mod]||mod)} <span class="muted">${esc(mod)}</span></td>${ACTIONS.map(a=>{const on=((def.perms||{})[mod]||[]).includes(a);return `<td style="text-align:center"><input type="checkbox" style="width:auto" data-mod="${mod}" data-act="${a}" ${on?'checked':''}></td>`;}).join('')}</tr>`).join('');
+  $('roleEditor').innerHTML=`<div class="card"><h3>${name?'Edit role: '+esc(name):'New custom role'}</h3>
+    <div class="row"><div><label class="fl">Role name</label><input id="r_name" value="${esc(name)}" ${name?'readonly':''}></div><div><label class="fl">Description</label><input id="r_desc" value="${esc(def.desc||'')}"></div></div>
+    <div class="permgrid" style="margin-top:12px"><table><thead><tr><th>Module</th>${ACTIONS.map(a=>`<th style="text-transform:capitalize">${esc(a)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary btn-sm" onclick="roleSave()">Save role</button><button class="btn btn-sm" onclick="document.getElementById('roleEditor').innerHTML=''">Cancel</button><span id="r_msg" class="err" style="font-size:12px"></span></div></div>`;
+  $('roleEditor').scrollIntoView({behavior:'smooth'});
+}
+async function roleSave(){
+  const name=$('r_name').value.trim(); if(!name){$('r_msg').textContent='Name required';return;}
+  const perms={}; document.querySelectorAll('#roleEditor input[type=checkbox]').forEach(cb=>{ if(cb.checked){const m=cb.getAttribute('data-mod');(perms[m]=perms[m]||[]).push(cb.getAttribute('data-act'));} });
+  const r=await api({action:'roles.save',name,desc:$('r_desc').value,perms});
+  if(r.ok){$('roleEditor').innerHTML='';rRoles();}else $('r_msg').textContent=r.error||'Save failed';
+}
+async function roleDel(name){ if(!confirm('Delete role '+name+'?'))return; const r=await api({action:'roles.delete',name}); if(r.ok)rRoles(); else alert(r.error||'Failed'); }
+
+/* Security + Audit log */
+async function rSecurity(){
+  const s=(await api({action:'security.get'})).security||{};
+  const a=(await api({action:'audit.list',limit:120})).audit||[];
+  $('view').innerHTML=`<div class="card"><h3>Security policy</h3>
+    <div class="row"><div><label class="fl">Session timeout (minutes)</label><input id="s_timeout" type="number" value="${esc(s.sessionTimeoutMins||480)}"></div><div><label class="fl">Min password length</label><input id="s_minlen" type="number" value="${esc(s.passwordMinLen||8)}"></div></div>
+    <label style="display:flex;gap:6px;font-size:13px;margin-top:8px"><input type="checkbox" id="s_num" style="width:auto" ${s.passwordRequireNumber!==false?'checked':''}> Require a number</label>
+    <label style="display:flex;gap:6px;font-size:13px"><input type="checkbox" id="s_up" style="width:auto" ${s.passwordRequireUpper!==false?'checked':''}> Require an uppercase letter</label>
+    <label style="display:flex;gap:6px;font-size:13px"><input type="checkbox" id="s_notify" style="width:auto" ${s.loginNotifications?'checked':''}> Email a notification on each sign-in</label>
+    <label class="fl">IP allowlist (comma-separated, blank = allow all)</label><input id="s_ips" value="${esc((s.ipAllowlist||[]).join(', '))}">
+    <div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="securitySave()">Save security policy</button> <span id="s_msg" class="muted" style="font-size:12px"></span></div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Two-factor authentication is per-user — set it up under “My account”.</p></div>
+    <div class="card"><h3>Audit log</h3><div style="overflow:auto"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th><th>IP</th></tr></thead><tbody>
+    ${a.map(e=>`<tr><td class="muted">${esc(fmtDT(e.at))}</td><td>${esc(e.user||'')} <span class="muted">${esc(e.role||'')}</span></td><td>${esc(e.action||'')}${e.detail?' — '+esc(e.detail):''}</td><td class="muted">${esc(e.module||'')}</td><td class="muted">${esc(e.ip||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted" style="padding:14px">No activity yet.</td></tr>'}
+    </tbody></table></div></div>`;
+}
+async function securitySave(){
+  const security={sessionTimeoutMins:parseInt($('s_timeout').value)||480,passwordMinLen:parseInt($('s_minlen').value)||8,passwordRequireNumber:$('s_num').checked,passwordRequireUpper:$('s_up').checked,loginNotifications:$('s_notify').checked,ipAllowlist:$('s_ips').value.split(',').map(x=>x.trim()).filter(Boolean)};
+  const r=await api({action:'security.set',security}); $('s_msg').textContent=r.ok?'Saved ✓':'Failed';
+}
+
+/* Company */
+async function rCompany(){
+  const c=(await api({action:'company.get'})).company||{};
+  const f=(lab,id,v)=>`<label class="fl">${lab}</label><input id="c_${id}" value="${esc(v||'')}">`;
+  $('view').innerHTML=`<div class="card"><h3>Company information</h3>
+    ${f('Company name','name',c.name||'iMigrate Migration Solutions')}
+    <div class="row">${f('Phone','phone',c.phone)}${f('Email','email',c.email)}</div>
+    <div class="row">${f('WhatsApp','whatsapp',c.whatsapp)}${f('Business hours','hours',c.hours)}</div>
+    ${f('Address','address',c.address)}
+    <div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="companySave()">Save</button> <span id="c_msg" class="muted" style="font-size:12px"></span></div>
+    <p class="muted" style="font-size:12px;margin-top:8px">This is the portal's company record. Public website contact details are managed in CMS → Site Settings.</p></div>`;
+}
+async function companySave(){ const company={name:$('c_name').value,phone:$('c_phone').value,email:$('c_email').value,whatsapp:$('c_whatsapp').value,hours:$('c_hours').value,address:$('c_address').value}; const r=await api({action:'company.set',company}); $('c_msg').textContent=r.ok?'Saved ✓':'Failed'; }
+
+/* Backup + API keys (framework) */
+function rBackup(){
+  $('view').innerHTML=`<div class="card"><h3>Backup &amp; recovery</h3>
+    <p class="muted" style="font-size:13px;line-height:1.7">Each system keeps its own automatic, restorable backups — independent of the other:</p>
+    <ul style="font-size:13px;line-height:1.8">
+      <li><strong>Website CMS</strong> — every publish snapshots the content; restore from <em>CMS → Version History</em>.</li>
+      <li><strong>CRM</strong> — point-in-time snapshots of leads/notes/tasks/reports; <em>CRM → Settings</em> and the pre-deploy snapshot.</li>
+      <li><strong>User roles &amp; portal settings</strong> — stored in the protected <code>auth/</code> store, excluded from deploys.</li>
+    </ul>
+    <p class="muted" style="font-size:13px">Website and CRM deployments never overwrite each other's data — both data layers are excluded from deploys.</p></div>`;
+}
+function rApiKeys(){
+  $('view').innerHTML=`<div class="card"><h3>API keys &amp; integrations</h3>
+    <p class="muted" style="font-size:13px;line-height:1.7">Integration credentials are stored server-side, never in the website code:</p>
+    <ul style="font-size:13px;line-height:1.8">
+      <li><strong>Microsoft 365</strong> — Azure app in <code>m365-config.php</code> (CRM → Settings → Connect).</li>
+      <li><strong>HubSpot</strong> — Portal ID + Form GUID in CRM → Settings → HubSpot.</li>
+      <li><strong>Other integrations</strong> — configured per-connector under <em>Integrations</em>.</li>
+    </ul></div>`;
+}
+
+/* ---------- Marketing Hub + Integrations framework ---------- */
+const FRAMEWORK={
+  'mkt.social':['📱','Social Media','Schedule and publish posts to Facebook, Instagram and LinkedIn.','Connect each network (OAuth) to enable scheduling. Requires registered apps + access tokens.'],
+  'mkt.gbp':['📍','Google Business Profile','Manage your Google Business listing, posts and reviews.','Connect a Google account with Business Profile API access.'],
+  'mkt.email':['✉️','Email Campaigns','Create and send email campaigns to your lead segments.','Sending uses Microsoft 365 (when connected) or the server mailer; segments come from the CRM. Compose & per-lead sends are available now in CRM → lead profile.'],
+  'mkt.emailauto':['🔁','Email Automations','Drip sequences and triggered follow-ups.','Runs on the scheduled-email cron (CRM → Settings). Visual sequence builder connects here.'],
+  'mkt.whatsapp':['💬','WhatsApp Automations','Automated WhatsApp messages and templates.','Requires WhatsApp Business API credentials (see Integrations).'],
+  'mkt.ads':['📊','Ads Manager','Manage Google &amp; Meta ad campaigns and view spend.','Connect Google Ads and Meta Ads accounts (OAuth + API access).'],
+  'mkt.calendar':['🗓️','Content Calendar','Plan blogs, social posts and campaigns on a calendar.','Pulls scheduled blogs (CMS) and campaigns; full drag-drop calendar connects here.'],
+  'mkt.analytics':['📈','Analytics','Traffic, leads and conversion analytics.','Connect Google Analytics; CRM lead/report counts are summarised here.'],
+  'int.m365':['🔌','Microsoft 365','Outlook email, Calendar and OneDrive via Microsoft Graph.','Built — connect in CRM → Settings → Microsoft 365 (Azure app required).'],
+  'int.google':['🔵','Google','Google account: Analytics, Business Profile, Ads.','Connect a Google account (OAuth) to enable Google modules.'],
+  'int.hubspot':['🟠','HubSpot','Sync website leads to HubSpot CRM.','Built — configure Portal ID + Form GUID in CRM → Settings → HubSpot.'],
+  'int.mailchimp':['🐵','Mailchimp','Sync contacts and send Mailchimp campaigns.','Add a Mailchimp API key to connect.'],
+  'int.activecampaign':['🟦','ActiveCampaign','Automations and email via ActiveCampaign.','Add an ActiveCampaign API URL + key to connect.'],
+  'int.whatsappapi':['💬','WhatsApp Business API','Send templated WhatsApp messages programmatically.','Add WhatsApp Business API phone number ID + token to connect.'],
+};
+function renderFramework(mod){
+  const f=FRAMEWORK[mod]; if(!f){ $('view').innerHTML='<div class="card">Module.</div>'; return; }
+  const built=f[3].startsWith('Built');
+  let extra='';
+  if(mod==='int.m365'||mod==='int.hubspot')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Open in CRM →</a>`;
+  if(mod==='mkt.email')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Compose in CRM →</a>`;
+  if(mod==='mkt.analytics')extra=`<button class="btn btn-sm" onclick="go('crm.reports')">View CRM reports</button>`;
+  $('view').innerHTML=`<div class="card"><div style="font-size:34px">${f[0]}</div><h3 style="margin:6px 0">${esc(f[1])} ${built?'<span class="badge active">Available</span>':'<span class="badge tag">Connect to enable</span>'}</h3>
+    <p style="font-size:14px">${f[2]}</p>
+    <p class="muted" style="font-size:13px;line-height:1.6">${f[3]}</p>
+    <div style="display:flex;gap:8px;margin-top:10px">${extra||'<button class="btn btn-sm" disabled>Connect (needs API credentials)</button>'}</div></div>`;
+}
+
+/* ---------- My account (password + 2FA) ---------- */
+function openProfile(){
+  const m=document.createElement('div');m.className='modal';m.id='genM';
+  m.innerHTML=`<div class="box"><h3 style="margin-top:0">My account</h3>
+    <p class="muted" style="font-size:13px">${esc(USER.name||'')} · ${esc(USER.email||'')} · <strong>${esc(USER.role||'')}</strong></p>
+    <div class="card" style="box-shadow:none"><h3 style="font-size:14px">Two-factor authentication</h3><div id="twofaArea"><button class="btn btn-sm" onclick="setup2fa()">Set up 2FA (authenticator app)</button> <button class="btn btn-sm" onclick="disable2fa()">Disable 2FA</button></div></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeModal()">Close</button></div></div>`;
+  document.body.appendChild(m);
+}
+async function setup2fa(){
+  const r=await api({action:'2fa.setup'}); if(!r.ok)return;
+  $('twofaArea').innerHTML=`<p style="font-size:13px">In your authenticator app, add this secret:</p><code style="font-size:14px;word-break:break-all">${esc(r.secret)}</code>
+    <p class="muted" style="font-size:12px;margin-top:6px">or use the otpauth URL: <span style="word-break:break-all">${esc(r.otpauth)}</span></p>
+    <label class="fl">Enter the 6-digit code to confirm</label><input id="tf_otp" inputmode="numeric"><button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="enable2fa('${esc(r.secret)}')">Enable 2FA</button><span id="tf_msg" class="err" style="font-size:12px"></span>`;
+}
+async function enable2fa(secret){ const r=await api({action:'2fa.enable',secret,otp:$('tf_otp').value.trim()}); if(r.ok){$('twofaArea').innerHTML='<span class="ok">✓ 2FA enabled.</span>';}else $('tf_msg').textContent=r.error||'Failed'; }
+async function disable2fa(){ if(!confirm('Disable 2FA?'))return; await api({action:'2fa.disable'}); alert('2FA disabled.'); }
+
+/* ---------- boot ---------- */
+restore();
+</script>
+</body>
+</html>
