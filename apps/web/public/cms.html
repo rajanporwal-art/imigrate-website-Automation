@@ -89,13 +89,16 @@ const USER=()=>localStorage.getItem('imig_cms_user')||'Admin';
 const ROLE=()=>localStorage.getItem('imig_cms_role')||'Admin';
 const esc=(v)=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmtDT=(s)=>(s||'').slice(0,16).replace('T',' ');
-let CONTENT={},FAQS={},FORMS={},MEDIA=[],BLOG={posts:[]},SEO={pages:{}},PAGES={pages:[]},VIEW='dashboard',DIRTY=false;
+let CONTENT={},FAQS={},FORMS={},MEDIA=[],BLOG={posts:[]},SEO={pages:{}},PAGES={pages:[]},VISAS={},VIEW='dashboard',DIRTY=false;
+let EDIT_TARGET=null;                 // generic editor target (defaults to CONTENT)
+function etgt(){return EDIT_TARGET||CONTENT;}
 
 /* Sections + which roles may see them */
 const SECTIONS=[
   ['dashboard','📊 Dashboard',['Admin','Content Editor','SEO Manager','Marketing']],
   ['pagelist','📑 Pages',['Admin','Content Editor','Marketing']],
   ['pages','📄 Page Content',['Admin','Content Editor','Marketing']],
+  ['visas','🛂 Visa Programs',['Admin','Content Editor']],
   ['blog','✍️ Blogs',['Admin','Marketing']],
   ['seo','🔍 SEO',['Admin','SEO Manager']],
   ['settings','🏢 Site Settings',['Admin','Content Editor']],
@@ -133,6 +136,7 @@ async function loadAll(){
     BLOG=(await loadDomain('blog'))||{posts:[]}; if(!Array.isArray(BLOG.posts))BLOG.posts=[];
     SEO=(await loadDomain('seo'))||{pages:{}}; if(!SEO.pages)SEO.pages={};
     PAGES=(await loadDomain('pages'))||{pages:[]}; if(!Array.isArray(PAGES.pages))PAGES.pages=[];
+    VISAS=(await loadDomain('visas'))||{};
     const mr=await api('/cms-media.php',{action:'list'});MEDIA=mr.media||[];
     m.textContent='Loaded';DIRTY=false;render();
   }catch(e){m.textContent='✗ Load failed (PHP enabled?)';}
@@ -147,14 +151,15 @@ function go(v){ if(DIRTY && !confirm('You have unsaved changes. Leave without pu
 function render(){
   const titles=Object.fromEntries(SECTIONS.map(([id,lab])=>[id,lab.replace(/^\S+\s/,'')]));
   $('viewTitle').textContent=titles[VIEW]||'';
-  ({dashboard:rDashboard,pagelist:rPageList,pages:rPages,blog:rBlog,seo:rSeo,settings:rSettings,headfoot:rHeadFoot,menus:rMenus,faqs:rFaqs,forms:rForms,media:rMedia,search:rSearch,versions:rVersions,rolesettings:rRoleSettings}[VIEW]||rDashboard)();
+  if(VIEW!=='visas')EDIT_TARGET=null;  // generic editor edits CONTENT unless in Visa Programs
+  ({dashboard:rDashboard,pagelist:rPageList,pages:rPages,visas:rVisas,blog:rBlog,seo:rSeo,settings:rSettings,headfoot:rHeadFoot,menus:rMenus,faqs:rFaqs,forms:rForms,media:rMedia,search:rSearch,versions:rVersions,rolesettings:rRoleSettings}[VIEW]||rDashboard)();
 }
 
 /* ---------- path helpers for generic content editing ---------- */
 function getPath(o,path){return path.split('.').reduce((a,k)=>a==null?a:a[k],o);}
 function setPath(o,path,val){const ks=path.split('.');let a=o;for(let i=0;i<ks.length-1;i++){if(a[ks[i]]==null||typeof a[ks[i]]!=='object')a[ks[i]]={};a=a[ks[i]];}a[ks[ks.length-1]]=val;DIRTY=true;markDirty();}
 function markDirty(){const b=$('dirtyFlag');if(b)b.textContent='● Unsaved changes';}
-window.cmsSet=(path,val)=>setPath(CONTENT,path,val);
+window.cmsSet=(path,val)=>setPath(etgt(),path,val);
 
 /* Generic editor: renders inputs for all string fields under an object (one level of nesting + arrays of objects). */
 function fieldsEditor(obj,base){
@@ -178,10 +183,10 @@ function fieldsEditor(obj,base){
   }
   return h;
 }
-window.arrRemove=(path,i)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a.splice(i,1);DIRTY=true;render();}};
-window.arrAdd=(path)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){const tpl=a.length?JSON.parse(JSON.stringify(a[0])):{};Object.keys(tpl).forEach(k=>tpl[k]='');a.push(tpl);DIRTY=true;render();}};
-window.setStrArr=(path,i,v)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a[i]=v;DIRTY=true;markDirty();}};
-window.strArrAdd=(path)=>{const a=getPath(CONTENT,path);if(Array.isArray(a)){a.push('');DIRTY=true;render();}};
+window.arrRemove=(path,i)=>{const a=getPath(etgt(),path);if(Array.isArray(a)){a.splice(i,1);DIRTY=true;render();}};
+window.arrAdd=(path)=>{const a=getPath(etgt(),path);if(Array.isArray(a)){const tpl=a.length?JSON.parse(JSON.stringify(a[0])):{};Object.keys(tpl).forEach(k=>{if(typeof tpl[k]==='string')tpl[k]='';else if(Array.isArray(tpl[k]))tpl[k]=[];});a.push(tpl);DIRTY=true;render();}};
+window.setStrArr=(path,i,v)=>{const a=getPath(etgt(),path);if(Array.isArray(a)){a[i]=v;DIRTY=true;markDirty();}};
+window.strArrAdd=(path)=>{const a=getPath(etgt(),path);if(Array.isArray(a)){a.push('');DIRTY=true;render();}};
 
 function saveBar(domain,label){
   return `<div class="savebar"><span id="dirtyFlag" class="muted" style="font-size:12px">${DIRTY?'● Unsaved changes':'Saved'}</span>
@@ -191,7 +196,7 @@ function saveBar(domain,label){
     <p class="muted" style="font-size:12px">Publishing updates the live website immediately. A version backup is saved automatically — you can roll back anytime from Version History.</p>`;
 }
 async function publish(domain){
-  const data=domain==='content'?CONTENT:domain==='faqs'?FAQS:domain==='forms'?FORMS:domain==='blog'?BLOG:domain==='seo'?SEO:domain==='pages'?PAGES:null;
+  const data=domain==='content'?CONTENT:domain==='faqs'?FAQS:domain==='forms'?FORMS:domain==='blog'?BLOG:domain==='seo'?SEO:domain==='pages'?PAGES:domain==='visas'?VISAS:null;
   if(!data)return;
   const r=await api('/cms-content.php',{action:'save',domain,data});
   if(r.ok){DIRTY=false;$('loadMsg').textContent='Published ✓';markSaved();alert('Saved & published. The live site is updated.');}
@@ -227,6 +232,18 @@ function rPages(){
   const body=Array.isArray(obj)?fieldsEditor({[pageKey]:obj},''):fieldsEditor(obj,pageKey);
   $('view').innerHTML=`<div class="toolbar"><span class="muted">Page:</span> ${sel} <a class="btn btn-sm" href="https://www.imigratesolution.com" target="_blank">Preview live</a></div>
     <div class="card">${body||'<p class="muted">No editable fields.</p>'}</div>${saveBar('content')}`;
+}
+
+/* ---------- Visa Programs (Australia/Canada Visas + Migration pages) ---------- */
+let visaCountry='australia';
+function rVisas(){
+  EDIT_TARGET=VISAS;
+  if(!Array.isArray(VISAS[visaCountry]))VISAS[visaCountry]=[];
+  const sel=`<select style="width:auto" onchange="visaCountry=this.value;rVisas()"><option value="australia" ${visaCountry==='australia'?'selected':''}>Australia</option><option value="canada" ${visaCountry==='canada'?'selected':''}>Canada</option></select>`;
+  const previewUrl=visaCountry==='canada'?'/canada-visas':'/australia-visas';
+  $('view').innerHTML=`<div class="toolbar"><span class="muted">Country:</span> ${sel}<span class="muted">${VISAS[visaCountry].length} visa program(s)</span><a class="btn btn-sm" href="https://www.imigratesolution.com${previewUrl}" target="_blank">Preview live</a></div>
+    <p class="muted" style="font-size:12px">Edit the visa programs shown on the Visas &amp; Migration pages — title, badge, overview, details, benefits, requirements, processing steps, FAQs and icon name. (Display only — the AI assessment is unaffected.)</p>
+    <div class="card">${fieldsEditor({[visaCountry]:VISAS[visaCountry]},'')}</div>${saveBar('visas')}`;
 }
 
 /* ---------- Site Settings ---------- */

@@ -10,13 +10,14 @@ import VisaCategorySection from '@/components/VisaCategorySection.jsx';
 import CTABanner from '@/components/CTABanner.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { canadaVisas } from '@/data/canadaVisas';
+import { useVisas } from '@/lib/visaStore';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
 
 const CANONICAL = 'https://www.imigratesolution.com/canada-visas';
 
 function CanadaVisasPage() {
   const { openLeadForm } = useLeadForm();
+  const canadaVisas = useVisas('canada');
   const visaList = canadaVisas.filter((v) => !v.pr);
 
   return (

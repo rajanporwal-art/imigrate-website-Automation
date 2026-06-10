@@ -10,13 +10,14 @@ import VisaCategorySection from '@/components/VisaCategorySection.jsx';
 import CTABanner from '@/components/CTABanner.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { australiaVisas } from '@/data/australiaVisas';
+import { useVisas } from '@/lib/visaStore';
 import { useLeadForm } from '@/components/LeadFormModal.jsx';
 
 const CANONICAL = 'https://www.imigratesolution.com/australia-visas';
 
 function AustraliaVisasPage() {
   const { openLeadForm } = useLeadForm();
+  const australiaVisas = useVisas('australia');
   const visaList = australiaVisas.filter((v) => !v.pr);
 
   return (

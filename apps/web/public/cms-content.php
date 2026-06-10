@@ -36,6 +36,7 @@ $DOMAINS = [
     'seo'     => 'seo.json',
     'pages'   => 'pages.json',
     'media'   => 'media.json',
+    'visas'   => 'visas.json',
 ];
 $domain = (string) ($p['domain'] ?? '');
 if (!isset($DOMAINS[$domain])) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Unknown domain']); exit; }
