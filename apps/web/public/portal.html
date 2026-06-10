@@ -413,7 +413,7 @@ function aiCreate(){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center"><h3>Result</h3><span id="g_meta" class="muted" style="font-size:11px"></span></div>
       <textarea id="g_out" style="min-height:46vh" placeholder="Generated content appears here — you can edit it before saving as a draft."></textarea>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('g_out').value,$('g_brief').value,$('g_type').value)" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}</div>
     </div>
   </div>`;
 }
@@ -470,7 +470,7 @@ async function aiOpenDraft(id){
   $('draftEditor').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Edit draft</h3><span class="muted" style="font-size:12px">${esc(TYPE_LABEL(x.type))} · ${(x.versions||[]).length} version(s)</span></div>
     <label class="fl">Title</label><input id="d_title" value="${esc(x.title)}">
     <label class="fl">Content</label><textarea id="d_content" style="min-height:40vh">${esc(x.content)}</textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button> <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('d_content').value,$('d_title').value,AI_DRAFT?AI_DRAFT.type:'')" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''} <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
     ${vers.length>1?`<div style="margin-top:14px"><div class="grp" style="color:var(--muted);margin-left:0">Version history</div>${vers.map(v=>`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;font-size:12px"><span class="muted">${esc(fmtDT(v.ts))} · ${esc(v.note||'')} · ${esc(v.by||'')}</span><button class="btn btn-sm" onclick="aiRestoreVer('${esc(x.id)}','${esc(v.ts)}')">Restore</button></div>`).join('')}</div>`:''}
   </div>`;
   $('draftEditor').scrollIntoView({behavior:'smooth'});
@@ -512,6 +512,46 @@ async function aiLog(){
 
 function aiCopy(id){ const el=$(id); if(el.select)el.select(); const t=el.value!=null?el.value:el.textContent||''; if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{}); }
 function aiDownload(id){ const el=$(id); const t=el.value!=null?el.value:el.textContent||''; const b=new Blob([t],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-content-'+Date.now()+'.md'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+
+/* ---- Publish an AI blog draft into the Blogs CMS (via the CMS's own API) ---- */
+function aiCanBlog(){ return PERMS.all || can('cms.blogs','create'); }
+async function cmsApi(body){ try{ const r=await fetch('/cms-content.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'CMS request failed'}; } }
+function aiSlugify(s){ return (s||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,80); }
+function aiParseBlog(md, fallbackTitle){
+  md=md||''; let title='', metaTitle='', metaDescription='';
+  for(const l of md.split('\n')){ const m=l.match(/^#\s+(.+)/); if(m){ title=m[1].trim(); break; } }
+  if(!title) title=(fallbackTitle||'Untitled').slice(0,120);
+  let body=md;
+  const seoIdx=md.search(/\n#{1,6}\s*SEO\b/i);
+  if(seoIdx>=0){ const seo=md.slice(seoIdx); body=md.slice(0,seoIdx).trim();
+    const mt=seo.match(/meta\s*title[^\n:]*[:\-]\s*(.+)/i); if(mt) metaTitle=mt[1].replace(/\(\s*\d+[^)]*\)/g,'').replace(/["'`*]/g,'').trim();
+    const md2=seo.match(/meta\s*desc[^\n:]*[:\-]\s*(.+)/i); if(md2) metaDescription=md2[1].replace(/\(\s*\d+[^)]*\)/g,'').replace(/["'`*]/g,'').trim();
+  }
+  body=body.replace(/^#\s+.+(\n|$)/,'').trim();
+  const plain=body.replace(/\[(.*?)\]\(.*?\)/g,'$1').replace(/[#*_`>]/g,' ').replace(/\s+/g,' ').trim();
+  const excerpt=plain.slice(0,180);
+  if(!metaTitle) metaTitle=title.slice(0,60);
+  if(!metaDescription) metaDescription=excerpt.slice(0,155);
+  return {title,metaTitle,metaDescription,content:body,excerpt};
+}
+async function aiToBlog(content, fallbackTitle, type){
+  if(!aiCanBlog()){ alert('You do not have permission to create blog posts.'); return; }
+  if(!content||!content.trim()){ alert('No content to publish yet — generate or open something first.'); return; }
+  if(type && type!=='blog' && !confirm('This content was created as “'+TYPE_LABEL(type)+'”. Create a BLOG draft from it anyway?')) return;
+  const cat=prompt('Blog category for this draft:', 'Immigration News'); if(cat===null) return;
+  const meta=aiParseBlog(content, fallbackTitle);
+  const today=new Date().toISOString().slice(0,10);
+  const words=(content.match(/\S+/g)||[]).length; const readTime=Math.max(1,Math.round(words/200));
+  const load=await cmsApi({action:'load',domain:'blog'});
+  if(!load.ok){ alert('Could not reach the Blogs CMS: '+(load.error||'')); return; }
+  const data=(load.data&&Array.isArray(load.data.posts))?load.data:{posts:[]};
+  let slug=aiSlugify(meta.title)||('post-'+Date.now()), base=slug, n=2;
+  while(data.posts.some(x=>x.slug===slug)){ slug=base+'-'+n; n++; }
+  data.posts.unshift({ title:meta.title, slug, excerpt:meta.excerpt, author:USER.name||'iMigrate Migration Solutions', category:cat||'Immigration News', tags:[], featuredImage:'', imageAlt:meta.title, readTime, publishedDate:today, draft:true, metaTitle:meta.metaTitle, metaDescription:meta.metaDescription, content:meta.content, faqs:[] });
+  const save=await cmsApi({action:'save',domain:'blog',data,editor:(USER.name||'AI Studio')});
+  if(save.ok){ if(confirm('Saved to Blogs CMS as a DRAFT ✓\n\nIt stays hidden from the public site until you publish it. Open the Blogs CMS now to review & publish?')) window.open('/cms.html#m=blog','_blank'); }
+  else alert('Save to Blogs CMS failed: '+(save.error||''));
+}
 
 /* ---------- boot ---------- */
 restore();
