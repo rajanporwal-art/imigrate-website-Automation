@@ -30,6 +30,20 @@ jobs:
       - name: Build (Vite → dist/apps/web)
         run: npm run build
 
+      # Take a point-in-time snapshot of the live CRM record store BEFORE
+      # deploying, so lead data can be restored if anything goes wrong.
+      # Best-effort: requires the CRM_BACKUP_KEY secret (matches $CRON_SECRET in
+      # admin-config.php). CRM data (leads/**) is excluded from deploys anyway.
+      - name: Snapshot CRM data before deploy (best-effort)
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "Requesting pre-deploy CRM snapshot…"
+            curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "Snapshot request failed (non-blocking)"
+          else
+            echo "CRM_BACKUP_KEY not set — skipping pre-deploy CRM snapshot (CRM data is excluded from deploys regardless)."
+          fi
+
       - name: Deploy dist/apps/web to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

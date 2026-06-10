@@ -119,16 +119,25 @@ if ($action === 'set-stage') {
     if ($prev !== $stage) log_activity($meta[$key], 'Stage changed', $prev . ' → ' . $stage, $author);
 
 } elseif ($action === 'save-fields') {
+    // Any lead/user-input field is editable. Keys are validated to a safe
+    // character set; values are length-capped. Original submissions are never
+    // mutated — edits are stored as overrides + logged to the activity timeline.
     $fields = isset($p['fields']) && is_array($p['fields']) ? $p['fields'] : [];
-    $allowed = ['fullName', 'email', 'phone', 'whatsapp', 'country', 'occupation',
-                'anzscoCode', 'pointsScore', 'eligibleVisaSubclasses', 'nationality', 'residence'];
     $changed = [];
+    $count = 0;
     foreach ($fields as $k => $v) {
-        if (!in_array($k, $allowed, true)) continue;
-        $meta[$key]['overrides'][$k] = is_scalar($v) ? substr((string) $v, 0, 300) : '';
-        $changed[] = $k;
+        if (++$count > 80) break;
+        if (!preg_match('/^[A-Za-z0-9 _:\-]{1,40}$/', (string) $k)) continue;
+        $new = is_scalar($v) ? substr((string) $v, 0, 500) : '';
+        $old = isset($meta[$key]['overrides'][$k]) ? (string) $meta[$key]['overrides'][$k] : null;
+        $meta[$key]['overrides'][$k] = $new;
+        if ($old !== $new) $changed[] = $k;
     }
-    if ($changed) log_activity($meta[$key], 'Fields updated', implode(', ', $changed), $author);
+    if ($changed) {
+        // Prefer a human-readable change summary from the client when provided.
+        $detail = isset($p['detail']) && is_string($p['detail']) ? substr($p['detail'], 0, 400) : implode(', ', $changed);
+        log_activity($meta[$key], 'Fields updated', $detail, $author);
+    }
 
 } elseif ($action === 'add-note') {
     $note = trim(substr((string) ($p['note'] ?? ''), 0, 4000));

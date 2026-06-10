@@ -149,6 +149,9 @@
   let PROFILE_KEY = null, PROFILE_TAB = 'contact';
 
   const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
+  // Display-only relabel — stored stage VALUES are unchanged (data integrity); only the UI label differs.
+  const STAGE_LABELS={'Assessment Completed':'Lead Assessed'};
+  const stageLabel=(s)=>STAGE_LABELS[s]||s;
 
   /* Immigration email templates. {{name}} {{occupation}} {{points}} {{visas}} are filled per lead. */
   const EMAIL_TEMPLATES = {
@@ -245,7 +248,15 @@
       let cat='Cold'; if(score>=60)cat='Sales Ready'; else if(score>=40)cat='Hot'; else if(score>=20)cat='Warm';
       const hot = score>=40 || (points>=65 && visasCount>2);
       const storedReports = REPORTS.filter(r=>r.ckey===c.ckey || (c.email && (r.leadEmail||'').toLowerCase()===c.email));
+      // Every submitted field (latest non-empty value wins) — for "all submitted fields".
+      const rawFields={}; c.submissions.forEach(s=>{ const f=s.fields||{}; Object.keys(f).forEach(k=>{ if(f[k]!=null&&f[k]!=='') rawFields[k]=f[k]; }); });
+      // Current CV: a CRM replacement (override) wins; else the website-uploaded CV unless hidden.
+      const cvHidden = ov.cvHidden==='1'||ov.cvHidden===1;
+      let currentCv=null;
+      if(ov.cvDocId){ currentCv={type:'doc',id:ov.cvDocId,name:ov.cvFileName||'CV'}; }
+      else { const webcv=c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile})).pop(); if(webcv&&!cvHidden) currentCv={type:'web',file:webcv.file,name:webcv.name}; }
       return {
+        rawFields, currentCv, destination:g('destination'),
         ckey:c.ckey, email:c.email, name:g('fullName','name')||'(no name)', phone:g('phone'),
         whatsapp:g('whatsapp')||g('phone'), country:g('nationality')||g('citizenship')||g('residence')||g('country')||'',
         occupation:g('occupation'), anzsco:g('anzscoCode'), points, visas, visasCount,
@@ -266,7 +277,7 @@
   /* ---------- nav / render ---------- */
   function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'AI Assessment Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
+    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
     ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,settings:renderSettings}[VIEW]||renderDashboard)();
@@ -293,7 +304,7 @@
         ${stat(total,'Total Leads',"dashGo({})")}
         ${stat(neu,'New (7 days)',"dashGo({sort:'new'})")}
         ${stat(hot,'🔥 Hot Leads',"dashGo({cat:'Hot'})")}
-        ${stat(ai,'AI Assessment Leads',"dashGo({type:'AI'})")}
+        ${stat(ai,'AI Leads',"dashGo({type:'AI'})")}
         ${stat(std,'Standard Leads',"dashGo({type:'Standard'})")}
         ${stat(reports,'Reports Generated',"go('reports')")}
         ${stat(consults,'Consultations',"dashGo({stage:'Consultation Booked'})")}
@@ -309,7 +320,7 @@
   /* ---------- leads list ---------- */
   let leadFilter={q:'',stage:'',cat:'',type:'',sort:''};
   function renderLeads(){
-    const stageOpts=['',...STAGES].map(s=>`<option value="${s}" ${s===leadFilter.stage?'selected':''}>${s||'All stages'}</option>`).join('');
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
     const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
     const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
     let rows=CONTACTS.filter(c=>{
@@ -338,7 +349,7 @@
           <td>${esc(c.email||'—')}<div class="muted">${esc(c.phone)}</div></td>
           <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
           <td>${c.points||'—'}</td>
-          <td><span class="pill">${esc(c.stage)}</span></td>
+          <td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
           <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
           <td class="muted">${esc(c.source||'—')}</td>
           <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted" style="padding:20px">No leads match.</td></tr>'}</tbody></table>
@@ -377,11 +388,11 @@
     if(!c){ $('content').innerHTML='<p class="muted">Lead not found. <button class="btn btn-sm" onclick="go(\'leads\')">Back to leads</button></p>'; return; }
     const myTasks=TASKS.filter(t=>t.leadEmail && c.email && t.leadEmail.toLowerCase()===c.email);
     const tabs=[
-      ['contact','Contact'],['assessment','Assessment'],['inputs','User Inputs'],['recs','AI Recommendations'],
+      ['contact','Contact'],['assessment','Lead Details'],['inputs','User Inputs'],['recs','AI Recommendations'],
       ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
       ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
     ];
-    const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option ${s===c.stage?'selected':''}>${s}</option>`).join('')}</select>`;
+    const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}</option>`).join('')}</select>`;
     $('content').innerHTML=`
       <button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>
       <div class="pf-head" style="margin-top:12px">
@@ -407,20 +418,18 @@
     const kv=(k,v)=>`<div class="kv"><span class="k">${k}</span><span>${v?esc(v):'<span class="muted">—</span>'}</span></div>`;
     if(PROFILE_TAB==='contact'){
       b.innerHTML=`<div class="card"><div class="sect"><h3>Contact information</h3>
-        ${kv('Full Name',c.name)}${kv('Email',c.email)}${kv('Mobile',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}
+        ${kv('Full Name',c.name)}${kv('Email',c.email)}${kv('Mobile',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}${kv('Destination',c.destination)}
         ${kv('Lead source',c.source)}${kv('First seen',c.firstDate)}${kv('Last activity',c.latestDate)}</div>
-        <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit contact &amp; assessment fields</button></div></div>`;
+        <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit contact &amp; lead fields</button></div></div>
+        <div class="card" style="margin-top:14px"><div class="sect"><h3>CV / Résumé</h3>${cvSection(c)}</div></div>`;
     } else if(PROFILE_TAB==='assessment'){
-      b.innerHTML=`<div class="card"><div class="sect"><h3>Assessment details</h3>
+      b.innerHTML=`<div class="card"><div class="sect"><h3>Lead details</h3>
         ${kv('Occupation',c.occupation)}${kv('ANZSCO Code',c.anzsco)}${kv('Points Score',c.points||'')}
-        ${kv('Visa Subclasses',c.visas)}${kv('Eligibility status',c.eligibilityStatus)}${kv('Assessment Date',c.assessmentDate)}
+        ${kv('Visa Subclasses',c.visas)}${kv('Eligibility status',c.eligibilityStatus)}${kv('Lead Date',c.assessmentDate)}
         ${kv('Lead Source',c.source)}</div>
         <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit fields</button></div></div>`;
     } else if(PROFILE_TAB==='inputs'){
-      const items=parseUserInputs(c.userInputs);
-      b.innerHTML=`<div class="card"><div class="sect"><h3>User inputs (assessment answers)</h3>
-        ${items.length?`<div class="ui-grid">${items.map(i=>`<div class="ui-item"><div class="lab">${esc(i.label)}</div><div class="val">${esc(i.choice)}</div>${i.points?`<div class="pts">${esc(i.points)} pts</div>`:''}</div>`).join('')}</div>`:'<p class="muted">No structured assessment answers on file for this lead.</p>'}
-        </div></div>`;
+      renderInputsTab(c);
     } else if(PROFILE_TAB==='recs'){
       const recs=parseRecs(c.recommendations);
       const visas=(c.visas||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -469,7 +478,7 @@
       b.innerHTML=`<div class="card"><div class="sect"><h3>Documents</h3>
         <div class="toolbar">
           <input type="file" id="docFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="width:auto">
-          <select id="docCat" style="width:auto"><option value="">Category…</option><option>CV / Résumé</option><option>Passport</option><option>Educational Certificate</option><option>Employment Document</option><option>Assessment Report</option><option>Other</option></select>
+          <select id="docCat" style="width:auto"><option value="">Category…</option><option>CV / Résumé</option><option>Passport</option><option>Educational Certificate</option><option>Employment Document</option><option>Lead Report</option><option>Other</option></select>
           <button class="btn btn-sm btn-primary" onclick="uploadDoc('${esc(c.ckey)}','${esc(c.email)}')">⬆ Upload</button>
           <span id="docMsg" class="muted" style="font-size:12px"></span>
         </div>
@@ -502,6 +511,76 @@
     const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields});
     if(r.ok){ META[ckey]=r.meta; buildContacts(); PROFILE_TAB='contact'; renderProfile(); }
     else alert('Could not save.');
+  }
+
+  /* ---------- unified lead field model + editable User Inputs ---------- */
+  const FIELD_LABELS={fullName:'Full Name',name:'Full Name',email:'Email',phone:'Mobile',whatsapp:'WhatsApp',nationality:'Nationality',citizenship:'Citizenship',residence:'Country of Residence',country:'Country',destination:'Destination',occupation:'Occupation',anzscoCode:'ANZSCO Code',pointsScore:'Points Score',eligibleVisaSubclasses:'Visa Subclasses',education:'Education',experience:'Work Experience',maritalStatus:'Marital Status',english:'English Score',age:'Age',program:'Program of Interest',investment:'Investment Budget',linkedinUrl:'LinkedIn URL',message:'Message',leadSource:'Lead Source',eligibilityStatus:'Eligibility Status',assessmentDate:'Lead Date'};
+  const HIDDEN_KEYS=new Set(['cvFile','cvOriginalName','cvFilename','tags','aiRecommendations','userInputs','sourcePage','website','hutk','cvDocId','cvFileName','cvHidden','source']);
+  function prettyKey(k){ return FIELD_LABELS[k]||k.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()); }
+  let INPUT_MODEL=[];
+  function leadFieldModel(c){
+    const ov=c.overrides||{}, raw=c.rawFields||{};
+    const val=(k)=> (ov[k]!=null&&ov[k]!=='')?ov[k]:(raw[k]!=null?raw[k]:'');
+    const model=[], seen=new Set();
+    const order=['fullName','email','phone','whatsapp','nationality','citizenship','residence','country','destination','occupation','anzscoCode','pointsScore','eligibleVisaSubclasses','education','experience','maritalStatus','english','age','program','investment','linkedinUrl','message','leadSource'];
+    order.forEach(k=>{ if(HIDDEN_KEYS.has(k))return; const v=val(k); if(v!==''||['fullName','email','phone','occupation'].includes(k)){ model.push({key:k,label:FIELD_LABELS[k]||prettyKey(k),value:v}); seen.add(k);} });
+    parseUserInputs(c.userInputs).forEach(a=>{ const key='ans:'+a.label; if(seen.has(key))return; const v=(ov[key]!=null&&ov[key]!=='')?ov[key]:a.choice; model.push({key,label:a.label,value:v,pts:a.points}); seen.add(key); });
+    Object.keys(raw).forEach(k=>{ if(seen.has(k)||HIDDEN_KEYS.has(k))return; model.push({key:k,label:prettyKey(k),value:val(k)}); seen.add(k); });
+    return model;
+  }
+  function renderInputsTab(c){
+    const model=leadFieldModel(c);
+    $('tabBody').innerHTML=`<div class="card"><div class="sect">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>User inputs</h3><button class="btn btn-sm btn-primary" onclick="editInputs('${esc(c.ckey)}')">✎ Edit all fields</button></div>
+      ${model.length?`<div style="margin-top:8px">${model.map(m=>`<div class="kv"><span class="k">${esc(m.label)}</span><span>${m.value!==''?esc(m.value):'<span class="muted">—</span>'}${m.pts?` <span class="pts">${esc(m.pts)} pts</span>`:''}</span></div>`).join('')}</div>`:'<p class="muted">No information on file for this lead.</p>'}
+      <p class="muted" style="font-size:12px;margin-top:10px">Every field is editable. Edits are saved as CRM overrides (the original submission is preserved) and recorded in the Activity timeline — who changed what, and when.</p>
+    </div></div>`;
+  }
+  function editInputs(ckey){
+    const c=findByKey(ckey); INPUT_MODEL=leadFieldModel(c);
+    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Edit user inputs</h3>
+      <div class="ui-grid">${INPUT_MODEL.map((m,i)=>`<div><label class="muted" style="font-size:12px">${esc(m.label)}</label><input id="ui_${i}" value="${esc(m.value)}"></div>`).join('')}</div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm btn-primary" onclick="saveInputs('${esc(ckey)}')">Save changes</button><button class="btn btn-sm" onclick="setTab('inputs')">Cancel</button></div>
+    </div></div>`;
+  }
+  async function saveInputs(ckey){
+    const c=findByKey(ckey); const fields={}, changes=[];
+    INPUT_MODEL.forEach((m,i)=>{ const el=$('ui_'+i); if(!el)return; const nv=el.value; if(String(nv)!==String(m.value)){ fields[m.key]=nv; changes.push(`${m.label}: "${m.value||''}" → "${nv}"`); } });
+    if(!Object.keys(fields).length){ setTab('inputs'); return; }
+    const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields,detail:changes.slice(0,8).join('; ')});
+    if(r.ok){ applyMeta(ckey,r); PROFILE_TAB='inputs'; renderProfile(); } else alert('Could not save.');
+  }
+  function applyMeta(ckey,r){ if(r&&r.ok&&r.meta){ META[ckey]=r.meta; buildContacts(); } }
+
+  /* ---------- CV / résumé (view / download / replace / delete) ---------- */
+  function cvSection(c){
+    const ctrl=`<input type="file" id="cvReplaceInput" accept=".pdf,.doc,.docx" style="display:none" onchange="cvReplace('${esc(c.ckey)}','${esc(c.email)}')">`;
+    if(!c.currentCv){ return `<p><strong>No CV Uploaded</strong></p><div style="margin-top:8px"><button class="btn btn-sm" onclick="document.getElementById('cvReplaceInput').click()">⬆ Upload CV</button></div>${ctrl}`; }
+    const cv=c.currentCv;
+    return `<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>📄 ${esc(cv.name)} <span class="muted">(${cv.type==='doc'?'CRM upload':'website upload'})</span></span>
+      <span style="white-space:nowrap"><button class="btn btn-sm" onclick="cvOpen('${esc(c.ckey)}')">View</button> <button class="btn btn-sm" onclick="cvDownload('${esc(c.ckey)}')">Download</button> <button class="btn btn-sm" onclick="document.getElementById('cvReplaceInput').click()">Replace</button> <button class="btn btn-sm" onclick="cvDelete('${esc(c.ckey)}')">Delete</button></span></div>${ctrl}`;
+  }
+  async function cvBlob(c){
+    const cv=c.currentCv; if(!cv)return null;
+    const body=cv.type==='web'?{password:PW(),file:cv.file}:{password:PW(),action:'download',id:cv.id};
+    const url=cv.type==='web'?'/lead-file.php':'/crm-docs.php';
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    return r.ok?await r.blob():null;
+  }
+  async function cvOpen(ckey){ const c=findByKey(ckey); const b=await cvBlob(c); if(!b){alert('CV not available.');return;} window.open(URL.createObjectURL(b),'_blank'); }
+  async function cvDownload(ckey){ const c=findByKey(ckey); const b=await cvBlob(c); if(!b){alert('CV not available.');return;} const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(c.currentCv&&c.currentCv.name)||'cv';a.click(); }
+  async function cvReplace(ckey,email){
+    const inp=$('cvReplaceInput'); if(!inp||!inp.files.length)return;
+    const fd=new FormData(); fd.append('password',PW()); fd.append('author',CRM_USER()); fd.append('ckey',ckey); fd.append('leadEmail',email||''); fd.append('category','CV / Résumé'); fd.append('file',inp.files[0]);
+    const r=await fetch('/crm-docs.php',{method:'POST',body:fd}); const j=await r.json().catch(()=>({ok:false}));
+    if(j.ok&&j.doc){ const mr=await api('/crm-meta.php',{action:'save-fields',key:ckey,email,fields:{cvDocId:j.doc.id,cvFileName:j.doc.name,cvHidden:''},detail:'CV replaced: '+j.doc.name}); applyMeta(ckey,mr); renderProfile(); }
+    else alert('Upload failed.');
+  }
+  async function cvDelete(ckey){
+    const c=findByKey(ckey); if(!c.currentCv)return; if(!confirm('Delete this CV?'))return;
+    if(c.currentCv.type==='doc'){ await fetch('/crm-docs.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'delete',id:c.currentCv.id})}); const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c.email,fields:{cvDocId:'',cvFileName:''},detail:'CV deleted'}); applyMeta(ckey,r); }
+    else { const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c.email,fields:{cvHidden:'1'},detail:'CV deleted (website upload hidden)'}); applyMeta(ckey,r); }
+    renderProfile();
   }
 
   /* ---------- stage / notes ---------- */
@@ -712,7 +791,7 @@
       <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','${esc(id||'')}')">PDF</button>
       <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','${esc(id||'')}')">Email</button>
       ${id?`<button class="btn btn-sm" onclick="addReportNote('${esc(id)}','${esc(c.ckey)}')">Add note</button>`:''}`;
-    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Assessment reports</h3>
+    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Lead reports</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <button class="btn btn-sm btn-primary" onclick="viewReport('${esc(c.ckey)}','')">📄 View current report</button>
         <button class="btn btn-sm" onclick="regenerateReport('${esc(c.ckey)}')">♻ Regenerate &amp; save version</button>
@@ -720,20 +799,20 @@
       </div>
       ${reps.length?`<table><thead><tr><th>Version</th><th>Source</th><th>Points</th><th>Date</th><th>Notes</th><th class="right">Actions</th></tr></thead>
         <tbody>${reps.map(r=>`<tr><td>v${esc(r.version)} <span class="muted">${esc(r.origin||'')}</span></td><td class="muted">${esc(r.source||'')}</td><td>${esc(r.points||'—')}</td><td class="muted">${esc((r.at||'').slice(0,10))}</td><td>${(r.notes||[]).length||0}</td><td class="right">${actions(r.id)}</td></tr>`).join('')}</tbody></table>`
-        :'<p class="muted">No stored report versions yet. Use “View current report” to generate one from the assessment data, or “Regenerate &amp; save version” to store a copy. New website assessments are stored automatically.</p>'}
+        :'<p class="muted">No stored report versions yet. Use “View current report” to generate one from the lead data, or “Regenerate &amp; save version” to store a copy. New website assessments are stored automatically.</p>'}
       </div></div>`;
   }
 
   /* ---------- reports view (global) ---------- */
   function renderReports(){
     const reps=CONTACTS.filter(c=>c.isAI || c.reports.length || c.storedReports.length);
-    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} lead(s) with assessment reports · ${REPORTS.length} stored version(s)</span></div>
+    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} lead(s) with reports · ${REPORTS.length} stored version(s)</span></div>
       <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Lead</th><th>Type</th><th>Occupation</th><th>Points</th><th>Visa pathways</th><th>Versions</th><th>Stage</th><th class="right">Actions</th></tr></thead>
       <tbody>${reps.map(c=>`<tr>
         <td class="clk" onclick="openProfile('${esc(c.ckey)}')"><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}<div class="muted">${esc(c.email||'')}</div></td>
         <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
         <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
-        <td>${c.storedReports.length||'—'}</td><td><span class="pill">${esc(c.stage)}</span></td>
+        <td>${c.storedReports.length||'—'}</td><td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
         <td class="right"><button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','')">View</button>
         <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','')">PDF</button>
         <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">Email</button>
@@ -746,7 +825,7 @@
     const cols=STAGES.map(stage=>{
       const cards=CONTACTS.filter(c=>c.stage===stage);
       return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
-        <h4><span>${stage}</span><span class="pill">${cards.length}</span></h4>
+        <h4><span>${esc(stageLabel(stage))}</span><span class="pill">${cards.length}</span></h4>
         <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
           <div class="nm">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}" style="font-size:9px">${c.sourceType}</span></div>
           <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
