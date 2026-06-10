@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { cmsFetchJson } from '@/lib/cmsFetch';
 import { Card, CardContent } from '@/components/ui/card';
 import { submitLead } from '@/lib/leads';
 
@@ -25,8 +26,7 @@ function FormRenderer() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    fetch('/forms.json?_=' + Date.now(), { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
+    cmsFetchJson('forms.json')
       .then((data) => {
         const f = (data && data.forms ? data.forms : []).find((x) => x.slug === slug);
         setForm(f || null);

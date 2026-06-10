@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
+import { cmsFetchJson } from '@/lib/cmsFetch';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { mdToHtml } from '@/lib/markdown.js';
@@ -23,8 +24,7 @@ function BlogPostPage() {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const res = await fetch('/blog.json?_=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
+        const data = (await cmsFetchJson('blog.json')) || { posts: [] };
         const all = data.posts || [];
         const currentPost = all.find((p) => p.slug === slug);
 

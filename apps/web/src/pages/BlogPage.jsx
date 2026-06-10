@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import StickyConsultationButton from '@/components/StickyConsultationButton.jsx';
+import { cmsFetchJson } from '@/lib/cmsFetch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -161,8 +162,7 @@ function BlogPage() {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch('/blog.json?_=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
+        const data = (await cmsFetchJson('blog.json')) || { posts: [] };
         const today = new Date().toISOString().slice(0, 10);
         const visible = (data.posts || [])
           .filter((p) => !p.draft && (!p.publishedDate || p.publishedDate <= today))

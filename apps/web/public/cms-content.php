@@ -39,7 +39,18 @@ $DOMAINS = [
 ];
 $domain = (string) ($p['domain'] ?? '');
 if (!isset($DOMAINS[$domain])) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Unknown domain']); exit; }
-$file = __DIR__ . '/' . $DOMAINS[$domain];
+
+// DURABILITY: the CMS reads/writes a SERVER-ONLY override file in cms-overrides/.
+// The repo file ($base) is the seed/default that ships on deploy and is never
+// modified here; the override is never in the repo, so the FTP mirror can never
+// delete or overwrite it. The website reads the override when present, else the
+// base — so published edits survive every future deploy.
+$base = __DIR__ . '/' . $DOMAINS[$domain];
+$ovDir = __DIR__ . '/cms-overrides';
+if (!is_dir($ovDir)) { @mkdir($ovDir, 0755, true); }
+$file = $ovDir . '/' . $DOMAINS[$domain];
+// Effective-read source: override if it exists, else the shipped base.
+$readFile = is_file($file) ? $file : $base;
 
 $verRoot = __DIR__ . '/cms-versions';
 $verDir = $verRoot . '/' . $domain;
@@ -72,8 +83,8 @@ function prune_versions($verDir, $idxFile, $keep) {
 }
 
 if ($action === 'load') {
-    $data = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
-    echo json_encode(['ok' => true, 'data' => $data, 'mtime' => is_file($file) ? date('c', filemtime($file)) : null]);
+    $data = is_file($readFile) ? json_decode((string) file_get_contents($readFile), true) : null;
+    echo json_encode(['ok' => true, 'data' => $data, 'mtime' => is_file($readFile) ? date('c', filemtime($readFile)) : null, 'override' => is_file($file)]);
     exit;
 }
 
@@ -97,7 +108,7 @@ if ($action === 'save') {
     if (!is_array($data)) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Data must be an object or array']); exit; }
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if ($json === false) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Could not encode JSON']); exit; }
-    snapshot_current($file, $verDir, $idxFile, $editor, 'pre-save');
+    snapshot_current($readFile, $verDir, $idxFile, $editor, 'pre-save'); // back up current effective content
     if (@file_put_contents($file, $json, LOCK_EX) === false) { http_response_code(500); echo json_encode(['ok' => false, 'error' => 'Could not write file (check permissions)']); exit; }
     prune_versions($verDir, $idxFile, $KEEP);
     echo json_encode(['ok' => true, 'mtime' => date('c'), 'bytes' => strlen($json)]);
@@ -108,7 +119,7 @@ if ($action === 'restore') {
     $ts = preg_replace('/[^0-9A-Za-z\-]/', '', (string) ($p['ts'] ?? ''));
     $vf = $verDir . '/' . $ts . '.json';
     if (!is_file($vf)) { http_response_code(404); echo json_encode(['ok' => false, 'error' => 'Version not found']); exit; }
-    snapshot_current($file, $verDir, $idxFile, $editor, 'pre-restore');
+    snapshot_current($readFile, $verDir, $idxFile, $editor, 'pre-restore');
     if (@copy($vf, $file) === false) { http_response_code(500); echo json_encode(['ok' => false, 'error' => 'Restore failed']); exit; }
     prune_versions($verDir, $idxFile, $KEEP);
     echo json_encode(['ok' => true, 'restored' => $ts]);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { faqCategories as DEFAULT_FAQS } from '@/data/faqs';
+import { cmsFetchJson } from '@/lib/cmsFetch';
 
 /**
  * Loads FAQ categories from /faqs.json at runtime (editable via /admin.html),
@@ -18,8 +19,7 @@ export function useFaqs() {
       return;
     }
     if (!inflight) {
-      inflight = fetch('/faqs.json?_=' + Date.now(), { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : null))
+      inflight = cmsFetchJson('faqs.json')
         .then((j) => {
           cache = j && Array.isArray(j.categories) && j.categories.length ? j.categories : DEFAULT_FAQS;
           return cache;

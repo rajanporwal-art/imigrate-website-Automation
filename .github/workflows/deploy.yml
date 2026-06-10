@@ -58,11 +58,12 @@ jobs:
           # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
           server-dir: ./
           dangerous-clean-slate: false
-          # The CMS (/cms.html) manages website content live on the SERVER, so
-          # all CMS-managed content + media + version history are EXCLUDED from
-          # deploys — code ships from the repo, content is owned by the CMS and
-          # never overwritten. (CRM data in leads/ is likewise protected.)
-          # The repo still contains seed copies of these files for a fresh server.
+          # IMPORTANT: this FTP action MIRRORS state — excluding a file that was
+          # previously uploaded DELETES it from the server. So repo-shipped content
+          # (content.json, blog.json, faqs.json) must NOT be excluded, or it gets
+          # wiped. The CMS keeps edits durable instead by writing SERVER-ONLY
+          # override files that are never in the repo (so the mirror never touches
+          # them) — see cms-content.php. Only never-in-repo dirs are excluded here.
           exclude: |
             **/.git*
             **/.git*/**
@@ -70,14 +71,9 @@ jobs:
             admin-config.php
             leads/**
             **/*.backup
+            forms.json
             hubspot.json
             m365-config.php
-            content.json
-            blog.json
-            faqs.json
-            forms.json
-            seo.json
-            pages.json
-            media.json
             media/**
             cms-versions/**
+            cms-overrides/**
