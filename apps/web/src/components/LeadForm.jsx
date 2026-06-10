@@ -56,7 +56,8 @@ function LeadForm({ source = 'Website', onSuccess }) {
     if (website) { setSubmitted(true); return; }
     setSubmitting(true);
 
-    let cvFilename = '';
+    let cvStored = '';
+    let cvOriginal = '';
     if (cvFile) {
       try {
         const fd = new FormData();
@@ -64,7 +65,8 @@ function LeadForm({ source = 'Website', onSuccess }) {
         const res = await fetch('/lead-upload.php', { method: 'POST', body: fd });
         if (res.ok) {
           const json = await res.json();
-          cvFilename = json.filename || '';
+          cvStored = json.file || '';
+          cvOriginal = json.original || cvFile.name || '';
         }
       } catch (_) { /* non-fatal */ }
     }
@@ -73,7 +75,10 @@ function LeadForm({ source = 'Website', onSuccess }) {
       formName: source || 'Lead form',
       fields: {
         ...data,
-        cvFilename,
+        // Stored filename + original name so the CRM can link, view and download the CV.
+        cvFile: cvStored,
+        cvOriginalName: cvOriginal,
+        cvFilename: cvStored, // back-compat
         sourcePage: typeof window !== 'undefined' ? window.location.pathname : '',
       },
     });
