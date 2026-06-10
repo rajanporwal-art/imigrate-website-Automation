@@ -913,12 +913,34 @@
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="cvReconcileScan()">🔍 Scan for orphaned CVs</button><span id="cvReconMsg" class="muted" style="font-size:13px"></span></div>
         <div id="cvReconResult" style="margin-top:10px"></div>
       </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
+      </div>
       <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
     m365LoadStatus();
     hubspotLoad();
+    loadBackups();
   }
+  async function loadBackups(){
+    const box=$('bkList'); if(box)box.innerHTML='<p class="muted">Loading…</p>';
+    const r=await api('/crm-backup.php',{action:'list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not load backups ('+esc((r&&r.error)||'')+').</p>'; return; }
+    const cur=(r.current&&r.current.leads)||0;
+    const rows=(r.backups||[]).map(b=>`<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><strong>${b.leads||0}</strong></td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm" onclick="restoreBackup('${esc(b.ts)}',${b.leads||0})" ${b.leads?'':'disabled'}>Restore</button></td></tr>`).join('');
+    if(box)box.innerHTML=`<p style="font-size:13px;margin:0 0 6px">Current live store: <strong>${cur}</strong> lead(s).${cur===0?' <span class="err">Empty — restore a snapshot below.</span>':''}</p>
+      <div style="overflow:auto"><table><thead><tr><th>Snapshot (taken)</th><th>Leads</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="muted" style="padding:12px">No snapshots found.</td></tr>'}</tbody></table></div>`;
+  }
+  async function restoreBackup(ts,leads){
+    if(!confirm('Restore the snapshot from '+ts+' ('+leads+' leads)?\n\nThis replaces the current CRM records with that snapshot. Your current state is snapshotted first, so you can undo.'))return;
+    const m=$('bkMsg'); if(m){m.textContent='Restoring…';m.className='muted';}
+    const r=await api('/crm-backup.php',{action:'restore',ts});
+    if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),500); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },900);} else { if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';} }
+  }
+  async function snapshotNow(){ const m=$('bkMsg'); if(m){m.textContent='Creating snapshot…';m.className='muted';} const r=await api('/crm-backup.php',{action:'snapshot'}); if(m){m.textContent=r&&r.ok?('Snapshot created.'):'Snapshot failed';m.className=r&&r.ok?'ok':'err';} loadBackups(); }
 
   /* ---------- HubSpot integration (moved from the legacy admin) ---------- */
   let HS={enabled:false,portalId:'',formGuid:'',notifyEmail:'',includeMessageSummary:true,fieldMap:{}};

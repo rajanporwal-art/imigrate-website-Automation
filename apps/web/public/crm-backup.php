@@ -75,11 +75,18 @@ function make_snapshot($dir, $backupRoot) {
     return ['ts' => $ts, 'files' => $files, 'bytes' => $bytes];
 }
 
+function snap_leadcount($d) {
+    $f = $d . '/leads.ndjson';
+    if (!is_file($f)) return 0;
+    $n = 0;
+    foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) { if (trim($line) !== '') $n++; }
+    return $n;
+}
 function list_snapshots($backupRoot) {
     $out = [];
     foreach (glob($backupRoot . '/*', GLOB_ONLYDIR) ?: [] as $d) {
         $m = @json_decode((string) @file_get_contents($d . '/_manifest.json'), true);
-        $out[] = ['ts' => basename($d), 'files' => $m['files'] ?? count(glob($d . '/*') ?: []), 'bytes' => $m['bytes'] ?? 0, 'at' => $m['at'] ?? ''];
+        $out[] = ['ts' => basename($d), 'files' => $m['files'] ?? count(glob($d . '/*') ?: []), 'bytes' => $m['bytes'] ?? 0, 'at' => $m['at'] ?? '', 'leads' => snap_leadcount($d)];
     }
     usort($out, fn($a, $b) => strcmp($b['ts'], $a['ts']));
     return $out;
@@ -105,7 +112,7 @@ if ($action === 'snapshot') {
 
 if ($action === 'list') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
-    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot)]);
+    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot), 'current' => ['leads' => snap_leadcount($dir)]]);
     exit;
 }
 
