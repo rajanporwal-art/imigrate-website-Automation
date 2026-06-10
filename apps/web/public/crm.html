@@ -254,6 +254,7 @@
       const cvHidden = ov.cvHidden==='1'||ov.cvHidden===1;
       let currentCv=null;
       if(ov.cvDocId){ currentCv={type:'doc',id:ov.cvDocId,name:ov.cvFileName||'CV'}; }
+      else if(ov.cvWebFile && !cvHidden){ currentCv={type:'web',file:ov.cvWebFile,name:ov.cvWebName||ov.cvWebFile}; }
       else { const webcv=c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile})).pop(); if(webcv&&!cvHidden) currentCv={type:'web',file:webcv.file,name:webcv.name}; }
       return {
         rawFields, currentCv, destination:g('destination'),
@@ -885,6 +886,11 @@
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Scheduled emails (cron)</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Scheduled emails dispatch via <code>crm-cron.php</code>. In Hostinger → Advanced → Cron Jobs, add (every 5 min):<br><code>php /home/USER/domains/imigratesolution.com/public_html/crm-cron.php</code><br>Set <code>$CRON_SECRET</code> in <code>admin-config.php</code> if calling it by URL.</p>
       </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Recover orphaned CVs</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">CVs uploaded before the field-name fix were saved on the server but not linked to a lead. This scans <code>leads/uploads/</code> and matches each orphan to a lead by upload time (within a few minutes of submission), then attaches it as an override — without touching original records.</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="cvReconcileScan()">🔍 Scan for orphaned CVs</button><span id="cvReconMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="cvReconResult" style="margin-top:10px"></div>
+      </div>
       <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
@@ -925,6 +931,25 @@
     alert(r&&r.ok?('Backed up '+CONTACTS.length+' leads to OneDrive › iMigrate CRM › '+name):'Backup failed (check Microsoft 365 connection).');
   }
   async function m365Disconnect(){ if(!confirm('Disconnect Microsoft 365?'))return; await api('/m365.php',{action:'disconnect'}); m365LoadStatus(); $('m365Inbox').innerHTML=''; }
+
+  /* ---------- orphaned-CV reconciliation ---------- */
+  async function cvReconcileScan(){
+    const msg=$('cvReconMsg'), box=$('cvReconResult'); if(msg)msg.textContent='Scanning…'; if(box)box.innerHTML='';
+    const r=await api('/crm-reconcile-cv.php',{action:'scan'});
+    if(!r||!r.ok){ if(msg)msg.textContent='Scan failed.'; return; }
+    if(msg)msg.textContent=`${r.orphans} orphan file(s), ${r.confident} confident match(es).`;
+    const rows=(r.matches||[]).map(m=>`<tr><td class="muted">${esc(m.file)}</td><td>${esc((m.uploadTime||'').slice(0,16).replace('T',' '))}</td><td>${m.match?esc(m.match.name||m.match.email||m.match.ckey):'<span class="muted">no match</span>'}</td><td>${m.match?esc(m.match.deltaSeconds)+'s':'—'}</td><td>${m.confident?'<span class="badge ready">confident</span>':(m.match?'<span class="badge warm">ambiguous ('+m.candidates+')</span>':'<span class="badge cold">none</span>')}</td></tr>`).join('');
+    if(box) box.innerHTML = (r.matches&&r.matches.length)
+      ? `<div class="card" style="background:var(--bg);padding:0;overflow:auto"><table><thead><tr><th>File</th><th>Uploaded</th><th>Best match</th><th>Δt</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+         ${r.confident>0?`<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="cvReconcileApply()">✔ Attach ${r.confident} confident match(es)</button>`:''}`
+      : '<p class="muted">No orphaned CVs found — nothing to recover.</p>';
+  }
+  async function cvReconcileApply(){
+    if(!confirm('Attach the confident CV matches to their leads? Originals are not modified; a backup of crm-meta is taken first.'))return;
+    const r=await api('/crm-reconcile-cv.php',{action:'apply'});
+    if(r&&r.ok){ alert('Attached '+r.applied+' CV(s) to leads.'); await loadAll(); go('settings'); cvReconcileScan(); }
+    else alert('Apply failed.');
+  }
 
   /* ---------- export / theme ---------- */
   function exportCsv(){
