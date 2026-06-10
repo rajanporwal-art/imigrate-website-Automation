@@ -485,7 +485,7 @@ function aiCreate(){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center"><h3>Result</h3><span id="g_meta" class="muted" style="font-size:11px"></span></div>
       <textarea id="g_out" style="min-height:46vh" placeholder="Generated content appears here — you can edit it before saving as a draft."></textarea>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('g_out').value,$('g_brief').value,$('g_type').value)" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('g_out').value,$('g_brief').value,$('g_type').value)" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}${aiCanEmail()?`<button class="btn btn-sm" onclick="aiToEmailTemplate($('g_out').value,$('g_brief').value)" title="Save as a reusable CRM email template">📧 Send to CRM templates</button>`:''}</div>
     </div>
   </div>`;
 }
@@ -542,7 +542,7 @@ async function aiOpenDraft(id){
   $('draftEditor').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Edit draft</h3><span class="muted" style="font-size:12px">${esc(TYPE_LABEL(x.type))} · ${(x.versions||[]).length} version(s)</span></div>
     <label class="fl">Title</label><input id="d_title" value="${esc(x.title)}">
     <label class="fl">Content</label><textarea id="d_content" style="min-height:40vh">${esc(x.content)}</textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('d_content').value,$('d_title').value,AI_DRAFT?AI_DRAFT.type:'')" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''} <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('d_content').value,$('d_title').value,AI_DRAFT?AI_DRAFT.type:'')" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}${aiCanEmail()?`<button class="btn btn-sm" onclick="aiToEmailTemplate($('d_content').value,$('d_title').value)" title="Save as a reusable CRM email template">📧 Send to CRM templates</button>`:''} <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
     ${vers.length>1?`<div style="margin-top:14px"><div class="grp" style="color:var(--muted);margin-left:0">Version history</div>${vers.map(v=>`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;font-size:12px"><span class="muted">${esc(fmtDT(v.ts))} · ${esc(v.note||'')} · ${esc(v.by||'')}</span><button class="btn btn-sm" onclick="aiRestoreVer('${esc(x.id)}','${esc(v.ts)}')">Restore</button></div>`).join('')}</div>`:''}
   </div>`;
   $('draftEditor').scrollIntoView({behavior:'smooth'});
@@ -623,6 +623,34 @@ async function aiToBlog(content, fallbackTitle, type){
   const save=await cmsApi({action:'save',domain:'blog',data,editor:(USER.name||'AI Studio')});
   if(save.ok){ if(confirm('Saved to Blogs CMS as a DRAFT ✓\n\nIt stays hidden from the public site until you publish it. Open the Blogs CMS now to review & publish?')) window.open('/cms.html#m=blog','_blank'); }
   else alert('Save to Blogs CMS failed: '+(save.error||''));
+}
+
+/* ---- Save an AI email draft as a reusable CRM email template (via the CRM API) ---- */
+function aiCanEmail(){ return PERMS.all || can('mkt.email','create') || can('crm.leads','create'); }
+async function crmEmailApi(body){ try{ const r=await fetch('/crm-email.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'CRM request failed'}; } }
+function aiEmailParse(md, fallbackName){
+  md=(md||'').replace(/\r/g,''); const lines=md.split('\n');
+  let subject='';
+  for(const l of lines){ const m=l.match(/subject(?:\s*line)?\s*\d*\s*[:)\-]\s*(.+)/i); if(m){ subject=m[1].replace(/[*"'`]/g,'').replace(/\(\s*\d+[^)]*\)/g,'').trim(); break; } }
+  if(!subject){ const h=lines.find(l=>/^#{1,6}\s+/.test(l)); if(h)subject=h.replace(/^#{1,6}\s+/,'').replace(/[*"'`]/g,'').trim(); }
+  if(!subject)subject=(fallbackName||'iMigrate email').slice(0,120);
+  const skip=/^\s*(?:[-*]\s*|\d+[.)]\s*)?(subject|preview|preheader|pre-header)\b/i;
+  const bodyLines=lines.filter(l=>!skip.test(l));
+  const escH=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fmt=(s)=>escH(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\[(.+?)\]\((https?:[^)]+)\)/g,'<a href="$2">$1</a>');
+  const blocks=bodyLines.join('\n').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const html=blocks.map(b=>/^#{1,6}\s+/.test(b)?('<p><strong>'+fmt(b.replace(/^#{1,6}\s+/,''))+'</strong></p>'):('<p>'+fmt(b).replace(/\n/g,'<br>')+'</p>')).join('\n');
+  return { subject:subject.slice(0,200), html: html||'<p></p>' };
+}
+async function aiToEmailTemplate(content, fallbackName){
+  if(!aiCanEmail()){ alert('You do not have permission to manage email templates.'); return; }
+  if(!content||!content.trim()){ alert('No content to save yet — generate or open an email first.'); return; }
+  const name=prompt('Template name (shown in the CRM compose dropdown):', (fallbackName||'AI email').slice(0,60));
+  if(name===null||!name.trim()) return;
+  const {subject,html}=aiEmailParse(content, name);
+  const r=await crmEmailApi({action:'template-save',name:name.trim(),subject,body:html,source:'ai',author:USER.name||'AI Studio'});
+  if(r&&r.ok){ alert('Saved to CRM email templates ✓\n\nIt now appears in CRM → lead → Emails → Template dropdown. Use {{name}} {{occupation}} {{points}} {{visas}} for per-lead personalisation.'); }
+  else alert('Save failed: '+((r&&r.error)||''));
 }
 
 /* ---------- boot ---------- */

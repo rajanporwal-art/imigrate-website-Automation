@@ -649,9 +649,13 @@
   }
 
   /* ---------- emails (compose, templates, send, tracking) ---------- */
+  let CUSTOM_TEMPLATES={};
   async function renderEmailsTab(c){
     const b=$('tabBody'); if(!b) return;
-    const tplOpts=['',...Object.keys(EMAIL_TEMPLATES)].map(t=>`<option value="${esc(t)}">${t||'Blank / no template'}</option>`).join('');
+    try{ const tr=await api('/crm-email.php',{action:'templates-list'}); if(tr&&tr.ok&&tr.templates) CUSTOM_TEMPLATES=tr.templates; }catch(e){}
+    const MERGED=Object.assign({},EMAIL_TEMPLATES,CUSTOM_TEMPLATES); window._MERGED_TPL=MERGED;
+    const custNames=Object.keys(CUSTOM_TEMPLATES);
+    const tplOpts=['',...Object.keys(MERGED)].map(t=>`<option value="${esc(t)}">${t?(esc(t)+(CUSTOM_TEMPLATES[t]?' (custom)':'')):'Blank / no template'}</option>`).join('');
     b.innerHTML=`<div class="card"><div class="sect"><h3>Send email</h3>
       ${c.email?'':'<p class="err" style="font-size:13px">This lead has no email address. Add one in the Contact tab to send email.</p>'}
       <div style="display:grid;gap:8px;max-width:680px">
@@ -667,14 +671,22 @@
       </div>
       <p class="muted" style="font-size:12px;margin-top:8px">Opens &amp; link clicks are tracked. Delivery uses Microsoft 365 when connected, otherwise the server mailer. Scheduled emails require the cron job (see Settings).</p>
       </div></div>
+      ${custNames.length?`<div class="card" style="margin-top:14px"><div class="sect"><h3>Custom templates <span class="muted" style="font-size:12px">(from AI Content Studio)</span></h3>
+        ${custNames.map(n=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>✉️ ${esc(n)}<div class="t">${esc((CUSTOM_TEMPLATES[n].subject||'').slice(0,80))}</div></span><button class="btn btn-sm" onclick="deleteTemplate('${esc(n).replace(/'/g,"\\'")}','${esc(c.ckey)}')">Delete</button></div>`).join('')}
+        <p class="muted" style="font-size:12px;margin-top:8px">Create more in Portal → Marketing Hub → AI Content Studio (Email writer → “Send to CRM templates”).</p></div></div>`:''}
       <div class="card" style="margin-top:14px"><div class="sect"><h3>Email history</h3><div id="emHist"><p class="muted">Loading…</p></div></div></div>`;
     loadEmails(c);
   }
   function applyTemplate(ckey){
     const c=findByKey(ckey); const name=$('emTpl').value; if(!name){return;}
-    const t=EMAIL_TEMPLATES[name]; if(!t)return;
+    const t=(window._MERGED_TPL||EMAIL_TEMPLATES)[name]; if(!t)return;
     $('emSubject').value=fillTemplate(t.subject,c);
     $('emBody').value=fillTemplate(t.body,c);
+  }
+  async function deleteTemplate(name,ckey){
+    if(!confirm('Delete the custom template "'+name+'"? (Built-in templates are unaffected.)'))return;
+    const r=await api('/crm-email.php',{action:'template-delete',name});
+    if(r&&r.ok){ delete CUSTOM_TEMPLATES[name]; const c=findByKey(ckey); renderEmailsTab(c); } else alert('Could not delete template.');
   }
   function emPreview(){ const html=$('emBody').value; openHtmlWindow('<!doctype html><meta charset="utf-8"><body style="font-family:Arial,sans-serif;max-width:640px;margin:20px auto;padding:0 16px">'+html+'</body>'); }
   async function sendEmail(ckey){
