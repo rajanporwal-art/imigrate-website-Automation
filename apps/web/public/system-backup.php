@@ -86,6 +86,9 @@ if ($action === 'keycheck') {
         'isPlaceholder' => ($CRON_SECRET === 'CHANGE-ME-to-match-the-CRM_BACKUP_KEY-GitHub-secret'),
         'match' => ($CRON_SECRET !== '' && hash_equals($CRON_SECRET, $prov)),
         'adminConfigLoaded' => (isset($EDIT_PASSWORD) && $EDIT_PASSWORD !== 'imigrate-admin-2026'),
+        'runsFromDir' => __DIR__,
+        'adminConfigExistsHere' => file_exists(__DIR__ . '/admin-config.php'),
+        'adminConfigSize' => @filesize(__DIR__ . '/admin-config.php') ?: 0,
     ]);
     exit;
 }
