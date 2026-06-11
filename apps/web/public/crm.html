@@ -30,13 +30,23 @@
   #gate{max-width:380px;margin:12vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
   #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 18px}
   /* App shell */
-  #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto}
-  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px}
+  #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;transition:grid-template-columns .22s ease}
+  #app.nav-collapsed{grid-template-columns:62px 1fr}
+  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;overflow-x:hidden;transition:padding .22s ease}
+  #app.nav-collapsed .sidebar{padding:16px 8px}
+  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px;white-space:nowrap;overflow:hidden}
+  .sidebar .brand .logo{display:none;font-size:16px;color:var(--accent)}
   .sidebar .brand span{color:var(--accent)}
-  .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
+  .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden}
   .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
-  .navitem .ic{width:18px;text-align:center}
+  .navitem .ic{width:18px;text-align:center;flex:0 0 18px}
+  .navitem .lbl,.brand .lbl{transition:opacity .15s ease}
+  #app.nav-collapsed .navitem{justify-content:center;padding:10px 0;gap:0}
+  #app.nav-collapsed .navitem .lbl,#app.nav-collapsed .brand .lbl{display:none}
+  #app.nav-collapsed .brand{justify-content:center;padding:6px 0 16px}
+  #app.nav-collapsed .brand .logo{display:inline}
+  .navtoggle{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;width:34px;height:34px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .navtoggle:hover{border-color:var(--accent)}
   .main{padding:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
   .topbar h2{margin:0;font-size:18px}
@@ -101,7 +111,38 @@
   .tl-item .t{color:var(--muted);font-size:11px}
   .status{font-size:13px} .ok{color:var(--ok)} .err{color:var(--cta)}
   .muted{color:var(--muted)} .right{text-align:right}
-  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}.kv .k{min-width:110px}}
+  /* Modal */
+  .modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;z-index:50;overflow:auto}
+  .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);width:100%;max-width:560px;padding:20px}
+  .modal-box.wide{max-width:780px}
+  .modal-box h3{margin:0 0 4px;font-size:18px}
+  .modal-x{float:right;border:none;background:none;font-size:20px;color:var(--muted);line-height:1;padding:0 4px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .fgrid .full{grid-column:1 / -1}
+  .fl{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:8px 0 3px}
+  /* Column chooser menu */
+  .menu{position:relative;display:inline-block}
+  .menu-pop{position:absolute;top:110%;right:0;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:8px;z-index:20;min-width:200px;max-height:320px;overflow:auto}
+  .menu-pop label{display:flex;align-items:center;gap:8px;padding:5px 6px;font-size:13px;border-radius:6px;cursor:pointer} .menu-pop label:hover{background:var(--bg)}
+  .menu-pop input{width:auto}
+  /* Activity panel (lead detail) */
+  .lead-split{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+  @media(max-width:1100px){.lead-split{grid-template-columns:1fr}}
+  .act-panel{position:sticky;top:80px;border:1px solid var(--border);border-radius:12px;background:var(--panel);max-height:78vh;display:flex;flex-direction:column}
+  .act-panel h3{margin:0;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .act-body{overflow:auto;padding:12px 14px;flex:1}
+  .act-filter{display:flex;gap:4px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border)}
+  .act-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:var(--bg);cursor:pointer}
+  .act-chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-cell{min-height:88px;border:1px solid var(--border);border-radius:8px;padding:5px;background:var(--panel);font-size:12px}
+  .cal-cell.dim{background:var(--bg);opacity:.55} .cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .cal-cell .d{font-weight:700;color:var(--muted);font-size:11px}
+  .cal-ev{background:rgba(11,31,68,.1);color:var(--navy);border-radius:5px;padding:1px 5px;margin-top:3px;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  [data-theme="dark"] .cal-ev{background:rgba(255,255,255,.12);color:#fff}
+  .cal-dow{font-size:11px;color:var(--muted);text-transform:uppercase;text-align:center;padding:4px 0;font-weight:600}
+  @media(max-width:820px){#app{grid-template-columns:1fr}#app.nav-collapsed{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}#app.nav-collapsed .navitem .lbl{display:inline}.kv .k{min-width:110px};.lead-split{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-theme="light">
@@ -118,21 +159,25 @@
 <!-- App -->
 <div id="app" class="hidden">
   <aside class="sidebar">
-    <div class="brand">iMigrate <span>CRM</span></div>
-    <div class="navitem active" data-view="dashboard" onclick="go('dashboard')"><span class="ic">📊</span> Dashboard</div>
-    <div class="navitem" data-view="leads" onclick="go('leads')"><span class="ic">👥</span> CRM / Leads</div>
-    <div class="navitem" data-view="pipeline" onclick="go('pipeline')"><span class="ic">🗂️</span> Pipeline</div>
-    <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
-    <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
-    <div class="navitem" data-view="clients" onclick="go('clients')"><span class="ic">🧾</span> Clients &amp; Cases</div>
-    <div class="navitem" data-view="invoices" onclick="go('invoices')"><span class="ic">💳</span> Invoices &amp; Payments</div>
-    <div class="navitem" data-view="automations" onclick="go('automations')"><span class="ic">⚡</span> Automations</div>
-    <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
+    <div class="brand"><span class="logo">iM</span><span class="lbl">iMigrate <span>CRM</span></span></div>
+    <div class="navitem active" data-view="dashboard" onclick="go('dashboard')" title="Dashboard"><span class="ic">📊</span> <span class="lbl">Dashboard</span></div>
+    <div class="navitem" data-view="leads" onclick="go('leads')" title="Leads"><span class="ic">👥</span> <span class="lbl">Leads</span></div>
+    <div class="navitem" data-view="calendar" onclick="go('calendar')" title="Calendar"><span class="ic">📅</span> <span class="lbl">Calendar</span></div>
+    <div class="navitem" data-view="pipeline" onclick="go('pipeline')" title="Pipeline"><span class="ic">🗂️</span> <span class="lbl">Pipeline</span></div>
+    <div class="navitem" data-view="reports" onclick="go('reports')" title="Reports"><span class="ic">📄</span> <span class="lbl">Reports</span></div>
+    <div class="navitem" data-view="tasks" onclick="go('tasks')" title="Tasks &amp; Follow-Ups"><span class="ic">✅</span> <span class="lbl">Tasks &amp; Follow-Ups</span></div>
+    <div class="navitem" data-view="clients" onclick="go('clients')" title="Clients &amp; Cases"><span class="ic">🧾</span> <span class="lbl">Clients &amp; Cases</span></div>
+    <div class="navitem" data-view="invoices" onclick="go('invoices')" title="Invoices &amp; Payments"><span class="ic">💳</span> <span class="lbl">Invoices &amp; Payments</span></div>
+    <div class="navitem" data-view="automations" onclick="go('automations')" title="Automations"><span class="ic">⚡</span> <span class="lbl">Automations</span></div>
+    <div class="navitem" data-view="settings" onclick="go('settings')" title="Settings"><span class="ic">⚙️</span> <span class="lbl">Settings</span></div>
   </aside>
 
   <div class="main">
     <div class="topbar">
-      <h2 id="viewTitle">Dashboard</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="navtoggle" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle menu">☰</button>
+        <h2 id="viewTitle">Dashboard</h2>
+      </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span id="loadMsg" class="status muted"></span>
         <button class="btn btn-sm" onclick="loadAll()">↻ Refresh</button>
@@ -143,6 +188,7 @@
     <div class="content" id="content"></div>
   </div>
 </div>
+<div id="modalRoot"></div>
 
 <script>
   const $ = (id) => document.getElementById(id);
@@ -193,6 +239,7 @@
     }catch(e){m.textContent='Could not reach the server.';return;}
     sessionStorage.setItem('imig_crm_pw',pw);
     $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    initSidebar();
     if(localStorage.getItem('imig_crm_theme')==='dark') setTheme('dark');
     await loadAll();
   }
@@ -293,12 +340,14 @@
   }
 
   /* ---------- nav / render ---------- */
+  function toggleSidebar(){ const a=$('app'); const c=a.classList.toggle('nav-collapsed'); try{localStorage.setItem('imig_crm_navcollapsed',c?'1':'0');}catch(e){} }
+  function initSidebar(){ try{ if(localStorage.getItem('imig_crm_navcollapsed')==='1') $('app').classList.add('nav-collapsed'); }catch(e){} if(window.innerWidth<=820) $('app').classList.remove('nav-collapsed'); }
   function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
+    const titles={dashboard:'Dashboard',leads:'Leads',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',clients:'Clients & Cases',invoices:'Invoices & Payments',automations:'Automations',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -337,19 +386,47 @@
 
   /* ---------- leads list ---------- */
   let leadFilter={q:'',stage:'',cat:'',type:'',sort:''};
-  function renderLeads(){
-    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
-    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
-    const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
-    let rows=CONTACTS.filter(c=>{
-      const q=leadFilter.q.toLowerCase();
-      if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation}`.toLowerCase().includes(q))) return false;
+  const rf=(c,k)=>((c.rawFields||{})[k]||'');
+  // Customizable columns (saved per user in localStorage).
+  const LEAD_COLS=[
+    {id:'name',label:'Name',always:true,th:'Name',td:c=>`<strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}`},
+    {id:'type',label:'Type',td:c=>`<span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span>`},
+    {id:'contact',label:'Contact',td:c=>`${esc(c.email||'—')}<div class="muted">${esc(c.phone||'')}</div>`},
+    {id:'occupation',label:'Occupation',td:c=>`${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}`},
+    {id:'age',label:'Age',td:c=>esc(rf(c,'age')||'—')},
+    {id:'education',label:'Education',td:c=>esc(rf(c,'education')||'—')},
+    {id:'experience',label:'Experience',td:c=>esc(rf(c,'experience')||'—')},
+    {id:'maritalStatus',label:'Marital',td:c=>esc(rf(c,'maritalStatus')||'—')},
+    {id:'nationality',label:'Nationality',td:c=>esc(c.country||rf(c,'nationality')||'—')},
+    {id:'points',label:'Points',td:c=>c.points||'—'},
+    {id:'stage',label:'Stage',td:c=>stageBadge(stageLabel(c.stage))},
+    {id:'score',label:'Score',td:c=>`${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span>`},
+    {id:'status',label:'Lead Status',td:c=>esc(c.eligibilityStatus||'—')},
+    {id:'source',label:'Source',td:c=>`<span class="muted">${esc(c.source||'—')}</span>`},
+    {id:'updated',label:'Updated',td:c=>`<span class="muted">${esc(c.latestDate||'')}</span>`},
+  ];
+  const DEFAULT_COLS=['name','type','contact','occupation','points','stage','score','source','updated'];
+  function visibleCols(){ try{ const s=JSON.parse(localStorage.getItem('imig_crm_cols')||'null'); if(Array.isArray(s)&&s.length) return s; }catch(e){} return DEFAULT_COLS.slice(); }
+  function setCol(id,on){ let v=visibleCols(); if(on){ if(!v.includes(id)) v.push(id); } else { v=v.filter(x=>x!==id); } if(!v.includes('name'))v.unshift('name'); localStorage.setItem('imig_crm_cols',JSON.stringify(v)); renderLeads(); setTimeout(()=>{const m=$('colMenu');if(m)m.style.display='block';},0); }
+  function toggleColMenu(){ const m=$('colMenu'); if(m) m.style.display=(m.style.display==='block'?'none':'block'); }
+  function leadRows(){
+    const q=leadFilter.q.toLowerCase();
+    return CONTACTS.filter(c=>{
+      if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation} ${rf(c,'nationality')} ${c.eligibilityStatus}`.toLowerCase().includes(q))) return false;
       if(leadFilter.stage && c.stage!==leadFilter.stage) return false;
       if(leadFilter.cat && c.cat!==leadFilter.cat) return false;
       if(leadFilter.type && c.sourceType!==leadFilter.type) return false;
       if(leadFilter.sort==='new'){ const wk=Date.now()-7*864e5; if(new Date(c.latestDate).getTime()<wk) return false; }
       return true;
     });
+  }
+  function renderLeads(){
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
+    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
+    const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
+    const cols=LEAD_COLS.filter(col=>visibleCols().includes(col.id));
+    const colMenu=LEAD_COLS.map(col=>`<label><input type="checkbox" ${visibleCols().includes(col.id)?'checked':''} ${col.always?'disabled':''} onchange="setCol('${col.id}',this.checked)"> ${esc(col.label)}</label>`).join('');
+    let rows=leadRows();
     $('content').innerHTML=`
       <div class="toolbar">
         <input type="search" id="lq" placeholder="Search name, email, phone, occupation…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderLeads();document.getElementById('lq').focus()">
@@ -357,21 +434,162 @@
         <select onchange="leadFilter.stage=this.value;renderLeads()">${stageOpts}</select>
         <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts}</select>
         <span class="muted">${rows.length} lead(s)</span>
-        <button class="btn btn-sm" style="margin-left:auto" onclick="exportCsv()">⬇ Export CSV</button>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <div class="menu"><button class="btn btn-sm" onclick="toggleColMenu()">⚙ Columns</button><div class="menu-pop" id="colMenu" style="display:none">${colMenu}</div></div>
+          <button class="btn btn-sm" onclick="openBulkImport()">⬆ Import</button>
+          <button class="btn btn-sm" onclick="exportCsv()">⬇ Export</button>
+          <button class="btn btn-sm btn-primary" onclick="openCreateLead()">+ Create Lead</button>
+        </div>
       </div>
       <div class="card" style="padding:0;overflow:auto">
-        <table><thead><tr><th>Name</th><th>Type</th><th>Contact</th><th>Occupation</th><th>Points</th><th>Stage</th><th>Score</th><th>Source</th><th>Updated</th></tr></thead>
-        <tbody>${rows.map((c)=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')">
-          <td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
-          <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
-          <td>${esc(c.email||'—')}<div class="muted">${esc(c.phone)}</div></td>
-          <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
-          <td>${c.points||'—'}</td>
-          <td>${stageBadge(stageLabel(c.stage))}</td>
-          <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
-          <td class="muted">${esc(c.source||'—')}</td>
-          <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted" style="padding:20px">No leads match.</td></tr>'}</tbody></table>
+        <table><thead><tr>${cols.map(col=>`<th>${esc(col.th||col.label)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map((c)=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')">${cols.map(col=>`<td>${col.td(c)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="muted" style="padding:20px">No leads match.</td></tr>`}</tbody></table>
       </div>`;
+  }
+
+  /* ---------- modal helpers ---------- */
+  function openModal(html,wide){ $('modalRoot').innerHTML=`<div class="modal-ov" onclick="if(event.target===this)closeModal()"><div class="modal-box ${wide?'wide':''}">${html}</div></div>`; }
+  function closeModal(){ $('modalRoot').innerHTML=''; }
+
+  /* ---------- create lead ---------- */
+  function openCreateLead(){
+    const stageOpts=STAGES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Create Lead</h3><p class="muted" style="font-size:13px;margin:0">Add a lead manually. Saved straight into the CRM.</p>
+      <div class="fgrid">
+        <div><label class="fl">Full name *</label><input id="cl_fullName" placeholder="Jane Doe"></div>
+        <div><label class="fl">Email</label><input id="cl_email" type="email" placeholder="jane@email.com"></div>
+        <div><label class="fl">Phone</label><input id="cl_phone" placeholder="+60…"></div>
+        <div><label class="fl">WhatsApp</label><input id="cl_whatsapp" placeholder="+60…"></div>
+        <div><label class="fl">Occupation</label><input id="cl_occupation"></div>
+        <div><label class="fl">Age</label><input id="cl_age"></div>
+        <div><label class="fl">Nationality</label><input id="cl_nationality"></div>
+        <div><label class="fl">Education</label><input id="cl_education"></div>
+        <div><label class="fl">Stage</label><select id="cl_stage">${stageOpts}</select></div>
+        <div><label class="fl">Lead source</label><input id="cl_leadSource" value="Manual"></div>
+        <div class="full"><label class="fl">Note</label><textarea id="cl_note" rows="2" placeholder="Optional first note…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="createLeadSave()">Create lead</button><span id="cl_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function createLeadSave(){
+    const v=(id)=>($('cl_'+id)?$('cl_'+id).value.trim():'');
+    const name=v('fullName'); const msg=$('cl_msg');
+    if(!name){ if(msg){msg.textContent='Name is required';msg.className='err';} return; }
+    const fields={fullName:name,email:v('email'),phone:v('phone'),whatsapp:v('whatsapp'),occupation:v('occupation'),age:v('age'),nationality:v('nationality'),education:v('education'),leadSource:v('leadSource')||'Manual'};
+    Object.keys(fields).forEach(k=>{ if(!fields[k]) delete fields[k]; });
+    const rec={id:'manual-'+Date.now(),timestamp:new Date().toISOString(),formName:'Manual entry',fields,context:{source:'Manual'},_stage:v('stage')||'New Lead'};
+    const note=v('note'); if(note) rec._activity=[{event:'Note',detail:note,author:CRM_USER(),at:new Date().toISOString()}];
+    if(msg){msg.textContent='Saving…';msg.className='muted';}
+    const r=await api('/system-backup.php',{action:'import-leads',leads:[rec],reason:'manual-create'});
+    if(r&&r.ok){ closeModal(); await loadAll(); const c=CONTACTS.find(x=>(x.email||'')===(fields.email||'').toLowerCase())||CONTACTS.find(x=>x.name===name); if(c) openProfile(c.ckey); }
+    else if(msg){ msg.textContent=(r&&r.error)||'Could not create'; msg.className='err'; }
+  }
+
+  /* ---------- bulk import (CSV / NDJSON / JSON) ---------- */
+  function openBulkImport(){
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Bulk Import Leads</h3>
+      <p class="muted" style="font-size:13px;line-height:1.6">Upload a <strong>CSV</strong> (with a header row) or a CRM <strong>.ndjson/.json</strong> export. Common columns are auto-mapped: Name / First+Last, Email, Phone, Occupation, Age, Education, Nationality, Marital Status, Lead Status, Lifecycle Stage. Existing leads (same email) are skipped; a safety snapshot is taken first.</p>
+      <input type="file" id="bulkFile" accept=".csv,.ndjson,.json,text/csv,application/json" style="margin-top:8px">
+      <div id="bulkMsg" class="muted" style="font-size:13px;margin-top:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="bulkImportRun()">Import file</button></div>`);
+  }
+  function csvParse(text){
+    const rows=[]; let i=0,f='',row=[],q=false;
+    while(i<text.length){ const ch=text[i];
+      if(q){ if(ch==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=ch; }
+      else { if(ch==='"')q=true; else if(ch===','){row.push(f);f='';} else if(ch==='\r'){} else if(ch==='\n'){row.push(f);rows.push(row);row=[];f='';} else f+=ch; }
+      i++; }
+    if(f!==''||row.length){ row.push(f); rows.push(row); }
+    return rows.filter(r=>r.some(c=>(c||'').trim()!==''));
+  }
+  const CSV_MAP={fullname:'fullName',name:'fullName','full name':'fullName',email:'email','email address':'email',phone:'phone','phone number':'phone','mobile phone number':'phone',whatsapp:'whatsapp','whatsapp phone number':'whatsapp',occupation:'occupation','job title':'occupation',age:'age',education:'education',qualification:'education',nationality:'nationality',country:'country','country/region':'country','marital status':'maritalStatus',experience:'experience','work experience':'experience','total work experience':'experience','lead status':'eligibilityStatus',status:'eligibilityStatus','lifecycle stage':'_lifecycle',message:'message','linkedin url':'linkedinUrl'};
+  const LIFE_STAGE={'new':'New Lead','prospect lead':'Pending Call','sales qualified lead':'Under Assessment','in consideration':'Under Assessment','opportunity':'Pending Follow-up','signed up':'Signed Up','not qualified':'Does Not Qualify','not intrested':'Lost Lead','not interested':'Lost Lead','lost':'Lost Lead','customer':'Signed Up'};
+  async function bulkImportRun(){
+    const fileEl=$('bulkFile'); const msg=$('bulkMsg');
+    if(!fileEl||!fileEl.files[0]){ if(msg){msg.textContent='Choose a file first';msg.className='err';} return; }
+    const file=fileEl.files[0]; let text=''; try{ text=await file.text(); }catch(e){ msg.textContent='Could not read file'; return; }
+    let leads=[];
+    if(/\.csv$/i.test(file.name) || (text.indexOf('{')!==0 && text.indexOf('[')!==0)){
+      const rows=csvParse(text); if(rows.length<2){ msg.textContent='CSV has no data rows'; msg.className='err'; return; }
+      const hdr=rows[0].map(h=>(h||'').trim().toLowerCase().replace(/^"|"$/g,''));
+      for(let r=1;r<rows.length;r++){
+        const fields={}; let fn='',ln='',life='';
+        hdr.forEach((h,ci)=>{ const val=(rows[r][ci]||'').trim(); if(!val) return;
+          if(h==='first name'){fn=val;return;} if(h==='last name'){ln=val;return;}
+          const key=CSV_MAP[h]; if(!key) return;
+          if(key==='_lifecycle'){ life=val; return; } fields[key]=val; });
+        if(fn||ln) fields.fullName=((fn+' '+ln).trim())||fields.fullName;
+        if(!fields.fullName && !fields.email) continue;
+        const rec={id:'csv-'+Date.now()+'-'+r,timestamp:new Date().toISOString(),formName:'CSV import',fields,context:{source:'CSV import'}};
+        const st=LIFE_STAGE[(life||'').toLowerCase()]; if(st) rec._stage=st;
+        leads.push(rec);
+      }
+    } else {
+      const t=text.trim(); try{ leads = t[0]==='[' ? JSON.parse(t) : t.split(/\r?\n/).filter(Boolean).map(l=>JSON.parse(l)); }catch(e){ msg.textContent='Invalid JSON/NDJSON'; msg.className='err'; return; }
+    }
+    if(!leads.length){ msg.textContent='No leads found in file'; msg.className='err'; return; }
+    if(msg){msg.textContent='Importing '+leads.length+' leads…';msg.className='muted';}
+    let added=0,skipped=0,ok=true;
+    for(let i=0;i<leads.length;i+=300){ const r=await api('/system-backup.php',{action:'import-leads',leads:leads.slice(i,i+300),reason:'bulk:'+file.name}); if(r&&r.ok){added+=r.added||0;skipped+=r.skipped||0;} else {ok=false;break;} }
+    if(msg){ msg.textContent=ok?('✓ Imported '+added+' leads ('+skipped+' duplicates skipped)'):'Import failed'; msg.className=ok?'ok':'err'; }
+    if(ok){ await loadAll(); setTimeout(()=>{ if(VIEW==='leads')renderLeads(); },300); }
+  }
+
+  /* ---------- calendar (#9) ---------- */
+  let calRef=new Date();
+  function calMove(n){ calRef=new Date(calRef.getFullYear(),calRef.getMonth()+n,1); renderCalendar(); }
+  function findContactForTask(t){ return CONTACTS.find(c=>c.ckey===t.ckey)||CONTACTS.find(c=>c.email&&c.email===(t.leadEmail||'').toLowerCase())||null; }
+  function renderCalendar(){
+    const ref=new Date(calRef.getFullYear(),calRef.getMonth(),1);
+    const y=ref.getFullYear(), m=ref.getMonth();
+    const monthName=ref.toLocaleString([],{month:'long',year:'numeric'});
+    const first=new Date(y,m,1).getDay();
+    const days=new Date(y,m+1,0).getDate();
+    const prevDays=new Date(y,m,0).getDate();
+    const todayStr=new Date().toISOString().slice(0,10);
+    const evs={}; (TASKS||[]).forEach(t=>{ if(!t.due)return; const d=(t.due||'').slice(0,10); (evs[d]=evs[d]||[]).push(t); });
+    const dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+    let cells='';
+    for(let i=first-1;i>=0;i--){ cells+=`<div class="cal-cell dim"><div class="d">${prevDays-i}</div></div>`; }
+    for(let d=1;d<=days;d++){
+      const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const day=(evs[ds]||[]); const list=day.slice(0,4).map(t=>{ const c=findContactForTask(t); const done=['Done','Completed','Cancelled'].includes(t.status||''); return `<div class="cal-ev" style="${done?'opacity:.5;text-decoration:line-through':''}" title="${esc(t.title||'')}" onclick="event.stopPropagation();${c?`openProfile('${esc(c.ckey)}')`:''}">${esc((t.type||'Task')+': '+(t.title||''))}</div>`; }).join('');
+      const more=day.length>4?`<div class="muted" style="font-size:10px">+${day.length-4} more</div>`:'';
+      cells+=`<div class="cal-cell ${ds===todayStr?'today':''}" ondblclick="scheduleAppt('','${ds}')"><div class="d">${d}</div>${list}${more}</div>`;
+    }
+    $('content').innerHTML=`
+      <div class="toolbar">
+        <button class="btn btn-sm" onclick="calMove(-1)">←</button>
+        <strong style="min-width:170px;text-align:center;display:inline-block">${esc(monthName)}</strong>
+        <button class="btn btn-sm" onclick="calMove(1)">→</button>
+        <button class="btn btn-sm" onclick="calRef=new Date();renderCalendar()">Today</button>
+        <span class="muted">${(TASKS||[]).filter(t=>t.due).length} scheduled item(s)</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="scheduleAppt()">+ Schedule Appointment</button>
+      </div>
+      <div class="cal-grid" style="margin-bottom:6px">${dow}</div>
+      <div class="cal-grid">${cells}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Double-click any day to schedule on that date · click an event to open the lead · events are your Tasks &amp; Follow-Ups.</p>`;
+  }
+  function scheduleAppt(ckey,date){
+    const leadOpts=['<option value="">— Select lead (optional) —</option>',...CONTACTS.map(c=>`<option value="${esc(c.ckey)}" ${c.ckey===ckey?'selected':''}>${esc(c.name)}${c.email?' ('+esc(c.email)+')':''}</option>`)].join('');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Schedule Appointment</h3>
+      <div class="fgrid">
+        <div class="full"><label class="fl">Lead</label><select id="ap_lead">${leadOpts}</select></div>
+        <div><label class="fl">Date *</label><input id="ap_date" type="date" value="${esc(date||'')}"></div>
+        <div><label class="fl">Time</label><input id="ap_time" type="time"></div>
+        <div class="full"><label class="fl">Title</label><input id="ap_title" placeholder="Consultation call"></div>
+        <div><label class="fl">Type</label><select id="ap_type"><option>Appointment</option><option>Consultation</option><option>Call</option><option>Follow-up</option></select></div>
+        <div><label class="fl">Priority</label><select id="ap_prio"><option>Normal</option><option>High</option><option>Low</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="scheduleApptSave()">Schedule</button><span id="ap_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function scheduleApptSave(){
+    const ckey=$('ap_lead').value, date=$('ap_date').value, time=$('ap_time').value;
+    const title=($('ap_title').value.trim())||($('ap_type').value), type=$('ap_type').value, prio=$('ap_prio').value, msg=$('ap_msg');
+    if(!date){ if(msg){msg.textContent='Pick a date';msg.className='err';} return; }
+    const c=ckey?findByKey(ckey):null;
+    const r=await api('/crm-tasks.php',{action:'add',title:(time?(title+' @ '+time):title),type,due:date,priority:prio,leadEmail:c?c.email:'',ckey:ckey||'',assignedTo:CRM_USER()});
+    if(r&&r.ok){ TASKS=r.tasks; closeModal(); if(VIEW==='calendar')renderCalendar(); else if(VIEW==='profile')renderProfile(); else go('calendar'); }
+    else if(msg){ msg.textContent=(r&&r.error)||'Could not schedule'; msg.className='err'; }
   }
 
   /* ---------- parsing helpers ---------- */
@@ -411,8 +629,9 @@
       ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
     ];
     const stageSel=(()=>{const allOpts=[...STAGES,...(STAGES.includes(c.stage)?[]:([c.stage]))];return `<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${allOpts.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}${!STAGES.includes(s)?' (legacy)':''}</option>`).join('')}</select>`;})();
+    const switcher=`<select style="width:auto;max-width:280px" onchange="openProfile(this.value)" title="Jump to another lead">${leadRows().map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' · '+esc(x.email):''}</option>`).join('')}</select>`;
     $('content').innerHTML=`
-      <button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>${switcher}<span class="muted" style="font-size:12px">${leadRows().length} lead(s)</span></div>
       <div class="pf-head" style="margin-top:12px">
         <div>
           <div class="pf-name">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span> ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
@@ -421,14 +640,91 @@
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <span class="muted" style="font-size:12px">Stage:</span> ${stageSel}
           ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
-          ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
+          <button class="btn btn-sm" onclick="logCall('${esc(c.ckey)}')">📞 Log Call</button>
           ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
-          <button class="btn btn-sm" onclick="scheduleConsult('${esc(c.ckey)}')">📅 Consultation</button>
+          <button class="btn btn-sm" onclick="scheduleAppt('${esc(c.ckey)}')">📅 Schedule</button>
+          <button class="btn btn-sm" onclick="aiAssist('${esc(c.ckey)}')">✨ AI</button>
         </div>
       </div>
-      <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
-      <div id="tabBody"></div>`;
+      <div class="lead-split">
+        <div>
+          <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
+          <div id="tabBody"></div>
+        </div>
+        <aside class="act-panel">
+          <h3>Activity <button class="btn btn-sm" style="padding:2px 8px" onclick="renderActPanel(findByKey('${esc(c.ckey)}'))" title="Refresh">↻</button></h3>
+          <div class="act-filter" id="actFilter"></div>
+          <div class="act-body" id="actBody"></div>
+        </aside>
+      </div>`;
     renderProfileTab(c, myTasks);
+    renderActPanel(c);
+  }
+
+  /* ---------- right-side activity panel (#7) ---------- */
+  let ACT_FILTER='all';
+  function buildActivity(c){
+    const items=[];
+    (c.activity||[]).forEach(a=>{ const ev=(a.event||'').toLowerCase(); const type=/call/.test(ev)?'call':/email/.test(ev)?'email':/stage/.test(ev)?'stage':'note'; items.push({type,at:a.at||'',title:a.event||'Note',detail:a.detail||'',by:a.author||''}); });
+    (c.notes||[]).forEach(n=>{ items.push({type:'note',at:n.at||n.timestamp||'',title:'Note',detail:(typeof n==='string')?n:(n.text||n.detail||''),by:n.author||''}); });
+    (TASKS||[]).filter(t=>(t.ckey===c.ckey)||(c.email&&(t.leadEmail||'').toLowerCase()===c.email)).forEach(t=>{ const isAppt=/appoint|consult|call/i.test(t.type||''); items.push({type:isAppt?'appt':'task',at:t.due||t.createdAt||'',title:(t.type||'Task')+': '+(t.title||''),detail:(t.status||'')+(t.assignedTo?(' · '+t.assignedTo):''),by:''}); });
+    (c.storedReports||[]).forEach(r=>{ items.push({type:'report',at:r.at||r.timestamp||'',title:'Report generated',detail:r.label||'',by:''}); });
+    (c.cvFiles||[]).forEach(d=>{ items.push({type:'doc',at:d.at||'',title:'Document',detail:d.name||d.file||'',by:''}); });
+    items.sort((a,b)=>(String(b.at)).localeCompare(String(a.at)));
+    return items;
+  }
+  function renderActPanel(c){
+    if(!c) return; const fb=$('actFilter'), bd=$('actBody'); if(!bd) return;
+    const all=buildActivity(c);
+    const types=[['all','All'],['note','Notes'],['call','Calls'],['email','Emails'],['appt','Appts'],['task','Tasks'],['report','Reports'],['doc','Docs']];
+    if(fb) fb.innerHTML=types.map(([id,l])=>`<span class="act-chip ${ACT_FILTER===id?'on':''}" onclick="ACT_FILTER='${id}';renderActPanel(findByKey('${esc(c.ckey)}'))">${l}</span>`).join('');
+    const ICON={note:'📝',call:'📞',email:'📧',stage:'🔁',appt:'📅',task:'✅',report:'📄',doc:'📎'};
+    const rows=all.filter(x=>ACT_FILTER==='all'||x.type===ACT_FILTER);
+    bd.innerHTML=rows.length?rows.map(x=>`<div class="tl-item" style="padding-left:8px"><div style="font-weight:600">${ICON[x.type]||'•'} ${esc(x.title)}</div>${x.detail?`<div style="font-size:12px">${esc(x.detail)}</div>`:''}<div class="t">${esc((x.at||'').toString().slice(0,16).replace('T',' '))}${x.by?' · '+esc(x.by):''}</div></div>`).join(''):'<p class="muted" style="font-size:13px">No activity yet.</p>';
+  }
+  /* ---------- log call (#10) ---------- */
+  function logCall(ckey){
+    const c=findByKey(ckey); if(!c) return;
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>📞 Log Call — ${esc(c.name)}</h3>
+      <div class="fgrid">
+        <div><label class="fl">Outcome</label><select id="lc_outcome"><option>Connected</option><option>No answer</option><option>Voicemail left</option><option>Busy / call back</option><option>Wrong number</option><option>Not interested</option></select></div>
+        <div><label class="fl">Duration (min)</label><input id="lc_dur" type="number" min="0" placeholder="e.g. 8"></div>
+        <div class="full"><label class="fl">Call notes</label><textarea id="lc_notes" rows="4" placeholder="What was discussed, next steps…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="logCallSave('${esc(ckey)}')">Save call</button><span id="lc_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function logCallSave(ckey){
+    const c=findByKey(ckey); const outcome=$('lc_outcome').value, dur=$('lc_dur').value, notes=$('lc_notes').value.trim();
+    const detail='['+outcome+(dur?(' · '+dur+'m'):'')+']'+(notes?(' '+notes):''); const msg=$('lc_msg');
+    if(msg){msg.textContent='Saving…';msg.className='muted';}
+    const r=await api('/crm-meta.php',{action:'log',key:ckey,event:'Call',detail});
+    if(r&&r.ok){ META[ckey]=r.meta||META[ckey]; if(c)c.activity=(r.meta&&r.meta.activity)||c.activity; closeModal(); if(VIEW==='profile')renderProfile(); }
+    else if(msg){ msg.textContent='Could not save'; msg.className='err'; }
+  }
+  /* ---------- AI assist (#8) ---------- */
+  async function aiAssist(ckey){
+    const c=findByKey(ckey); if(!c) return;
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>✨ AI Assistant — ${esc(c.name)}</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 10px">Uses your Claude AI integration to suggest next actions and draft outreach based on this lead's profile &amp; history.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-primary" onclick="aiRun('${esc(ckey)}','next')">🎯 Next-action recommendation</button><button class="btn btn-sm" onclick="aiRun('${esc(ckey)}','email')">✉️ Draft follow-up email</button><button class="btn btn-sm" onclick="aiRun('${esc(ckey)}','summary')">📋 Summarise lead</button></div>
+      <div id="aiOut" style="margin-top:12px;white-space:pre-wrap;font-size:13px;line-height:1.6;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg);min-height:60px"><span class="muted">Pick an action above…</span></div>`,true);
+  }
+  function aiContext(c){
+    const f=c.rawFields||{};
+    return `Lead: ${c.name}\nEmail: ${c.email||'—'} · Phone: ${c.phone||'—'}\nOccupation: ${c.occupation||'—'} · Age: ${f.age||'—'} · Education: ${f.education||'—'}\nNationality: ${c.country||f.nationality||'—'} · Points: ${c.points||'—'}\nVisa interest: ${c.visas||'—'} · Stage: ${c.stage} · Status: ${c.eligibilityStatus||'—'}\nLead score: ${c.score} (${c.cat}) · Source: ${c.source||'—'}\nRecent notes: ${(c.activity||[]).slice(-3).map(a=>a.detail||a.event).join(' | ')||'none'}`;
+  }
+  async function aiRun(ckey,mode){
+    const c=findByKey(ckey); const out=$('aiOut'); if(!out) return;
+    out.innerHTML='<span class="muted">Thinking…</span>';
+    const ctx=aiContext(c);
+    const prompts={
+      next:`You are a senior immigration consultant at iMigrate. Based on this lead, give 3 concise, specific next actions (bullet points) to move them forward.\n\n${ctx}`,
+      email:`Write a warm, professional follow-up email (120-160 words) to this immigration lead. Reference their occupation/visa interest. Sign off as iMigrate Migration Solutions. Output subject line then body.\n\n${ctx}`,
+      summary:`Summarise this immigration lead in 3-4 sentences for a consultant picking up the file: their profile, likely best visa pathway, and key risk/opportunity.\n\n${ctx}`
+    };
+    const r=await api('/ai.php',{action:'generate',type:'generic',brief:prompts[mode]});
+    if(r&&r.ok&&(r.text||r.content)){ out.textContent=r.text||r.content; }
+    else { out.innerHTML='<span class="err">AI not available — '+esc((r&&r.error)||'connect Claude AI in the Portal → Integrations and add your Anthropic API key.')+'</span>'; }
   }
 
   function renderProfileTab(c, myTasks){
@@ -995,7 +1291,9 @@
 
   /* ---------- Clients & Visa Cases ---------- */
   let CASES=[], COMPANIES=[], CASE_EDIT=null, COMPANY_EDIT=null;
-  const CASE_STATUSES=['New Case','Document Collection','Application Prep','Submitted','Awaiting Decision','Approved','Refused','On Hold'];
+  const CASE_STATUSES=['New Case','Document Collection','Skills Assessment','Awaiting State Nomination','Application Prep','Submitted','Awaiting Decision','Approved','Refused','On Hold'];
+  const ASSESSING_AUTHORITIES=['','VETASSESS','ACS (Australian Computer Society)','Engineers Australia','CPA Australia','CA ANZ','TRA (Trades Recognition Australia)','ANMAC','AHPRA','AITSL','CAANZ','Other (AU)','WES (Canada)','IQAS','ICAS','ICES','CES (Canada)','Other (Canada)'];
+  const STATE_NOMINATIONS=['','NSW','VIC','QLD','SA','WA','TAS','ACT','NT','Canada — Express Entry','Canada — PNP (Ontario)','Canada — PNP (BC)','Canada — PNP (Alberta)','Canada — Other PNP','Not applicable'];
   const CASE_COLORS={'New Case':{bg:'#dbeafe',color:'#1d4ed8'},'Document Collection':{bg:'#fef9c3',color:'#854d0e'},'Application Prep':{bg:'#fde68a',color:'#b45309'},'Submitted':{bg:'#ede9fe',color:'#5b21b6'},'Awaiting Decision':{bg:'#e0f2fe',color:'#0369a1'},'Approved':{bg:'#dcfce7',color:'#166534'},'Refused':{bg:'#fecaca',color:'#991b1b'},'On Hold':{bg:'#f1f5f9',color:'#475569'}};
   function coName(id){const c=COMPANIES.find(x=>x.id===id);return c?c.name:'';}
   async function renderClients(){
@@ -1022,24 +1320,55 @@
     const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}${x.stage==='Signed Up'?' ✓':''}</option>`)].join('');
     const statusOpts=CASE_STATUSES.map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('');
     const compOpts=['<option value="">— None —</option>',...COMPANIES.map(x=>`<option value="${esc(x.id)}" ${x.id===c.companyId?'selected':''}>${esc(x.name)}</option>`)].join('');
+    const authOpts=ASSESSING_AUTHORITIES.map(s=>`<option ${s===(c.assessingAuthority||'')?'selected':''}>${s||'— Assessing authority —'}</option>`).join('');
+    const stateOpts=STATE_NOMINATIONS.map(s=>`<option ${s===(c.stateNomination||'')?'selected':''}>${s||'— State nomination —'}</option>`).join('');
+    const remindDue=c.reminderDate && c.reminderDate<=new Date().toISOString().slice(0,10);
     $('caseEditor').innerHTML=`<div class="card"><h3>${c.id?'Edit case':'New case'}</h3>
       <label class="muted" style="font-size:12px">Client</label><select id="cs_client" onchange="caseClientPick(this.value)">${clientOpts}</select>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
         <div><label class="muted" style="font-size:12px">Visa type</label><input id="cs_visa" value="${esc(c.visaType||'')}" placeholder="e.g. Subclass 189 / Express Entry"></div>
         <div><label class="muted" style="font-size:12px">Country</label><input id="cs_country" value="${esc(c.country||'')}" placeholder="Australia / Canada"></div>
+        <div><label class="muted" style="font-size:12px">Assessing authority</label><select id="cs_authority">${authOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">State / nomination</label><select id="cs_state">${stateOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">File number</label><input id="cs_fileno" value="${esc(c.fileNumber||'')}" placeholder="e.g. IMG-2026-0142"></div>
         <div><label class="muted" style="font-size:12px">Company (employer/sponsor)</label><select id="cs_company">${compOpts}</select></div>
         <div><label class="muted" style="font-size:12px">Status</label><select id="cs_status">${statusOpts}</select></div>
         <div><label class="muted" style="font-size:12px">Target date</label><input id="cs_target" type="date" value="${esc(c.targetDate||'')}"></div>
+        <div><label class="muted" style="font-size:12px">State-opening reminder ${remindDue?'<span class="badge hot">DUE</span>':''}</label><input id="cs_reminder" type="date" value="${esc(c.reminderDate||'')}" title="Reminder for state nomination opening date"></div>
         <div><label class="muted" style="font-size:12px">Fee</label><input id="cs_fee" value="${esc(c.fee||'')}" placeholder="e.g. RM 5,000"></div>
       </div>
       <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="cs_notes" rows="3">${esc(c.notes||'')}</textarea>
-      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="caseSave()">Save case</button><button class="btn btn-sm" onclick="CASE_EDIT=null;renderClients()">Cancel</button><span id="cs_msg" class="muted" style="font-size:12px"></span></div></div>`;
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="caseSave()">Save case</button><button class="btn btn-sm" onclick="generateCaseEmail()">✉️ Generate Email</button><button class="btn btn-sm" onclick="CASE_EDIT=null;renderClients()">Cancel</button><span id="cs_msg" class="muted" style="font-size:12px"></span></div></div>`;
     $('caseEditor').scrollIntoView({behavior:'smooth'});
   }
+  function caseFormToObj(){
+    return {id:CASE_EDIT.id||'',ckey:CASE_EDIT.ckey||'',clientName:CASE_EDIT.clientName||'',email:CASE_EDIT.email||'',visaType:$('cs_visa').value,country:$('cs_country').value,companyId:$('cs_company').value,status:$('cs_status').value,targetDate:$('cs_target').value,fee:$('cs_fee').value,assessingAuthority:$('cs_authority')?$('cs_authority').value:'',stateNomination:$('cs_state')?$('cs_state').value:'',fileNumber:$('cs_fileno')?$('cs_fileno').value:'',reminderDate:$('cs_reminder')?$('cs_reminder').value:'',notes:$('cs_notes').value};
+  }
+  function generateCaseEmail(){
+    const cs=caseFormToObj(); const name=(cs.clientName||'there').split(' ')[0];
+    const subject='Update on your '+(cs.visaType||'visa')+' application'+(cs.fileNumber?(' — File '+cs.fileNumber):'');
+    const lines=['Dear '+name+',','','Thank you for choosing iMigrate Migration Solutions. Here is an update on your case:',''];
+    if(cs.visaType) lines.push('• Visa pathway: '+cs.visaType);
+    if(cs.country) lines.push('• Destination: '+cs.country);
+    if(cs.assessingAuthority) lines.push('• Skills assessing authority: '+cs.assessingAuthority);
+    if(cs.stateNomination) lines.push('• State / nomination: '+cs.stateNomination);
+    if(cs.fileNumber) lines.push('• Your file number: '+cs.fileNumber);
+    if(cs.status) lines.push('• Current status: '+cs.status);
+    if(cs.status==='Awaiting State Nomination') lines.push('','Your application is currently awaiting '+(cs.stateNomination||'state')+' nomination. We are monitoring the opening dates'+(cs.reminderDate?(' (next key date: '+cs.reminderDate+')'):'')+' and will notify you the moment the program opens.');
+    if(cs.targetDate) lines.push('','Target lodgement date: '+cs.targetDate+'.');
+    lines.push('','Please reply if you have any questions. We will keep you updated at every step.','','Warm regards,','iMigrate Migration Solutions');
+    const body=lines.join('\n');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Generated Email</h3><p class="muted" style="font-size:12px;margin:0">Auto-drafted from the case data. Edit, then copy or open in your mail app.</p>
+      <label class="fl">To</label><input id="ge_to" value="${esc(cs.email||'')}">
+      <label class="fl">Subject</label><input id="ge_subj" value="${esc(subject)}">
+      <label class="fl">Body</label><textarea id="ge_body" rows="12" style="font-family:inherit">${esc(body)}</textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('ge_body').value);this.textContent='Copied ✓'">Copy body</button><button class="btn btn-primary" onclick="caseEmailSend()">Open in mail app</button></div>`,true);
+  }
+  function caseEmailSend(){ const to=$('ge_to').value,s=$('ge_subj').value,b=$('ge_body').value; window.location.href='mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b); }
   window.caseClientPick=(ckey)=>{const x=CONTACTS.find(c=>c.ckey===ckey);if(x){CASE_EDIT.ckey=x.ckey;CASE_EDIT.clientName=x.name;CASE_EDIT.email=x.email;const ct=$('cs_country');if(ct&&!ct.value&&x.destination)ct.value=x.destination;}};
-  window.caseNew=()=>{CASE_EDIT={id:'',ckey:'',clientName:'',email:'',visaType:'',country:'',companyId:'',status:'New Case',targetDate:'',fee:'',notes:''};renderCaseEditor();};
+  window.caseNew=()=>{CASE_EDIT={id:'',ckey:'',clientName:'',email:'',visaType:'',country:'',companyId:'',status:'New Case',targetDate:'',fee:'',assessingAuthority:'',stateNomination:'',fileNumber:'',reminderDate:'',notes:''};renderCaseEditor();};
   window.caseEdit=(id)=>{const c=CASES.find(x=>x.id===id);if(!c)return;CASE_EDIT=JSON.parse(JSON.stringify(c));renderCaseEditor();};
-  window.caseSave=async()=>{const cs={id:CASE_EDIT.id||'',ckey:CASE_EDIT.ckey||'',clientName:CASE_EDIT.clientName||'',email:CASE_EDIT.email||'',visaType:$('cs_visa').value,country:$('cs_country').value,companyId:$('cs_company').value,status:$('cs_status').value,targetDate:$('cs_target').value,fee:$('cs_fee').value,notes:$('cs_notes').value};if(!cs.clientName){$('cs_msg').textContent='Select a client first';$('cs_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'case-save',case:cs});if(r&&r.ok){CASE_EDIT=null;renderClients();}else{$('cs_msg').textContent='Save failed';$('cs_msg').className='err';}};
+  window.caseSave=async()=>{const cs=caseFormToObj();if(!cs.clientName){$('cs_msg').textContent='Select a client first';$('cs_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'case-save',case:cs});if(r&&r.ok){CASE_EDIT=null;renderClients();}else{$('cs_msg').textContent='Save failed';$('cs_msg').className='err';}};
   window.caseDel=async(id)=>{if(!confirm('Delete this case? (The lead record is not affected.)'))return;await api('/crm-cases.php',{action:'case-delete',id});renderClients();};
   function renderCompanyEditor(){
     const c=COMPANY_EDIT; if(!c){const e=$('companyEditor');if(e)e.innerHTML='';return;}
