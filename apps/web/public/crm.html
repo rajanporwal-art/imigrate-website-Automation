@@ -125,6 +125,7 @@
     <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
     <div class="navitem" data-view="clients" onclick="go('clients')"><span class="ic">🧾</span> Clients &amp; Cases</div>
+    <div class="navitem" data-view="invoices" onclick="go('invoices')"><span class="ic">💳</span> Invoices &amp; Payments</div>
     <div class="navitem" data-view="automations" onclick="go('automations')"><span class="ic">⚡</span> Automations</div>
     <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
   </aside>
@@ -290,7 +291,7 @@
     const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -928,6 +929,63 @@
   async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
 
   /* ---------- settings ---------- */
+  /* ---------- Invoices & Payments ---------- */
+  let INVOICES=[], INV_EDIT=null;
+  const INV_COLORS={'Draft':{bg:'#f1f5f9',color:'#475569'},'Sent':{bg:'#dbeafe',color:'#1d4ed8'},'Partially Paid':{bg:'#fef3c7',color:'#92400e'},'Paid':{bg:'#dcfce7',color:'#166534'},'Overdue':{bg:'#fecaca',color:'#991b1b'},'Cancelled':{bg:'#e2e8f0',color:'#64748b'}};
+  function money(cur,n){ return (cur||'RM')+' '+(Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})); }
+  async function renderInvoices(){
+    $('content').innerHTML='<div class="card"><h3>💳 Invoices &amp; Payments</h3><p class="muted">Loading…</p></div>';
+    const [r,cr]=await Promise.all([api('/crm-invoices.php',{action:'list'}),api('/crm-cases.php',{action:'list'})]);
+    INVOICES=(r&&r.invoices)||[]; CASES=(cr&&cr.cases)||CASES;
+    const inv=INVOICES.reduce((a,x)=>a+(x.total||0),0), paid=INVOICES.reduce((a,x)=>a+(x.amountPaid||0),0);
+    const overdue=INVOICES.filter(x=>x.derivedStatus==='Overdue').length;
+    const cur=(INVOICES[0]&&INVOICES[0].currency)||'RM';
+    const stat=(n,l)=>`<div class="card" style="display:inline-block;min-width:150px;margin-right:12px"><div style="font-size:20px;font-weight:800;color:var(--navy)">${esc(n)}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
+    const rows=INVOICES.map(x=>{const sc=INV_COLORS[x.derivedStatus]||INV_COLORS.Draft;return `<tr><td><strong>${esc(x.number||'')}</strong></td><td>${esc(x.clientName||'')}<div class="muted" style="font-size:11px">${esc(x.email||'')}</div></td><td>${esc(money(x.currency,x.total))}</td><td class="muted">${esc(money(x.currency,x.amountPaid))}</td><td><span class="pill" style="background:${sc.bg};color:${sc.color}">${esc(x.derivedStatus)}</span></td><td class="muted">${esc(x.dueDate||'')}</td><td class="right"><button class="btn btn-sm" onclick="invEdit('${esc(x.id)}')">Open</button> <button class="btn btn-sm" onclick="invDel('${esc(x.id)}')">Delete</button></td></tr>`;}).join('');
+    $('content').innerHTML=`<div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${stat(money(cur,inv),'Total invoiced')}${stat(money(cur,paid),'Total received')}${stat(money(cur,inv-paid),'Outstanding')}${stat(overdue,'Overdue')}</div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Invoices</h3><button class="btn btn-primary btn-sm" onclick="invNew()">+ New invoice</button></div>
+        <div style="overflow:auto"><table><thead><tr><th>#</th><th>Client</th><th>Total</th><th>Paid</th><th>Status</th><th>Due</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="muted" style="padding:14px">No invoices yet. Click “New invoice” to bill a client.</td></tr>'}</tbody></table></div></div>
+      <div id="invEditor"></div>`;
+    if(INV_EDIT)renderInvEditor();
+  }
+  function renderInvEditor(){
+    const v=INV_EDIT; if(!v){const e=$('invEditor');if(e)e.innerHTML='';return;}
+    const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===v.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}</option>`)].join('');
+    const caseOpts=['<option value="">— None —</option>',...(CASES||[]).filter(c=>!v.ckey||c.ckey===v.ckey).map(c=>`<option value="${esc(c.id)}" ${c.id===v.caseId?'selected':''}>${esc(c.visaType||c.id)}</option>`)].join('');
+    const statusOpts=['Draft','Sent','Cancelled'].map(s=>`<option ${s===v.status?'selected':''}>${s}</option>`).join('');
+    const itemRows=(v.items||[]).map((it,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><input placeholder="Description" value="${esc(it.desc||'')}" oninput="INV_EDIT.items[${i}].desc=this.value" style="flex:1"><input type="number" step="0.01" placeholder="Amount" value="${it.amount!=null&&it.amount!==''?it.amount:''}" oninput="INV_EDIT.items[${i}].amount=this.value;invRecalc()" style="width:120px"><button class="btn btn-sm" onclick="invRemoveItem(${i})">✕</button></div>`).join('');
+    const total=(v.items||[]).reduce((a,it)=>a+(parseFloat(it.amount)||0),0);
+    const payList=(v.payments||[]).map(pm=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span><strong>${esc(money(v.currency,pm.amount))}</strong> <span class="muted">· ${esc(pm.date||'')} · ${esc(pm.method||'')}${pm.ref?' · '+esc(pm.ref):''}</span></span><button class="btn btn-sm" onclick="payDel('${esc(v.id)}','${esc(pm.id)}')">✕</button></div>`).join('');
+    $('invEditor').innerHTML=`<div class="card"><h3>${v.id?('Invoice '+esc(v.number||'')):'New invoice'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Client</label><select id="iv_client" onchange="invClientPick(this.value)">${clientOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Linked case (optional)</label><select id="iv_case">${caseOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Currency</label><input id="iv_cur" value="${esc(v.currency||'RM')}" style="width:90px" oninput="invRecalc()"></div>
+        <div><label class="muted" style="font-size:12px">Status</label><select id="iv_status">${statusOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Issue date</label><input id="iv_issue" type="date" value="${esc(v.issueDate||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Due date</label><input id="iv_due" type="date" value="${esc(v.dueDate||'')}"></div>
+      </div>
+      <h4 style="margin:12px 0 6px">Line items</h4><div id="iv_items">${itemRows||''}</div>
+      <button class="btn btn-sm" onclick="invAddItem()">+ Add line</button>
+      <div style="text-align:right;font-weight:700;margin-top:8px">Total: <span id="iv_total">${esc(money(v.currency,total))}</span></div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="iv_notes" rows="2">${esc(v.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="invSave()">Save invoice</button><button class="btn btn-sm" onclick="INV_EDIT=null;renderInvoices()">Cancel</button><span id="iv_msg" class="muted" style="font-size:12px"></span></div>
+      ${v.id?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><h4 style="margin:0 0 6px">Payments — ${esc(money(v.currency,(v.amountPaid||0)))} of ${esc(money(v.currency,total))}</h4>${payList||'<p class="muted" style="font-size:12px">No payments recorded.</p>'}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><input id="pay_amt" type="number" step="0.01" placeholder="Amount" style="width:110px"><input id="pay_date" type="date" value="${esc(new Date().toISOString().slice(0,10))}" style="width:auto"><input id="pay_method" placeholder="Method" value="Bank Transfer" style="width:130px"><input id="pay_ref" placeholder="Ref (optional)" style="width:130px"><button class="btn btn-sm btn-primary" onclick="payAdd('${esc(v.id)}')">Record payment</button></div></div>`:'<p class="muted" style="font-size:11px;margin-top:8px">Save the invoice first to record payments.</p>'}
+    </div>`;
+    $('invEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.invRecalc=()=>{ if(!INV_EDIT)return; const t=(INV_EDIT.items||[]).reduce((a,it)=>a+(parseFloat(it.amount)||0),0); const el=$('iv_total'); if(el)el.textContent=money($('iv_cur')?$('iv_cur').value:INV_EDIT.currency,t); };
+  window.invClientPick=(ckey)=>{const x=CONTACTS.find(c=>c.ckey===ckey);if(x){INV_EDIT.ckey=x.ckey;INV_EDIT.clientName=x.name;INV_EDIT.email=x.email;}};
+  window.invAddItem=()=>{ INV_EDIT.items=INV_EDIT.items||[]; INV_EDIT.items.push({desc:'',amount:''}); renderInvEditor(); };
+  window.invRemoveItem=(i)=>{ INV_EDIT.items.splice(i,1); renderInvEditor(); };
+  window.invNew=()=>{INV_EDIT={id:'',ckey:'',clientName:'',email:'',caseId:'',currency:'RM',items:[{desc:'',amount:''}],status:'Draft',issueDate:new Date().toISOString().slice(0,10),dueDate:'',notes:'',payments:[],amountPaid:0};renderInvEditor();};
+  window.invEdit=(id)=>{const x=INVOICES.find(v=>v.id===id);if(!x)return;INV_EDIT=JSON.parse(JSON.stringify(x));renderInvEditor();};
+  window.invSave=async()=>{const v=INV_EDIT;const invoice={id:v.id||'',ckey:v.ckey||'',clientName:v.clientName||'',email:v.email||'',caseId:$('iv_case')?$('iv_case').value:'',currency:$('iv_cur').value,items:(v.items||[]).map(it=>({desc:it.desc,amount:it.amount})),status:$('iv_status').value,issueDate:$('iv_issue').value,dueDate:$('iv_due').value,notes:$('iv_notes').value};if(!invoice.clientName){$('iv_msg').textContent='Select a client first';$('iv_msg').className='err';return;}const r=await api('/crm-invoices.php',{action:'invoice-save',invoice});if(r&&r.ok){INV_EDIT=r.invoice;await renderInvoices();}else{$('iv_msg').textContent='Save failed';$('iv_msg').className='err';}};
+  window.invDel=async(id)=>{if(!confirm('Delete this invoice and its payment records?'))return;await api('/crm-invoices.php',{action:'invoice-delete',id});INV_EDIT=null;renderInvoices();};
+  window.payAdd=async(id)=>{const amount=$('pay_amt').value;if(!amount||parseFloat(amount)<=0){if($('iv_msg')){$('iv_msg').textContent='Enter a payment amount';$('iv_msg').className='err';}return;}const r=await api('/crm-invoices.php',{action:'payment-add',invoiceId:id,payment:{amount,date:$('pay_date').value,method:$('pay_method').value,ref:$('pay_ref').value}});if(r&&r.ok){INV_EDIT=r.invoice;if(r.nowPaid){const c=findByKey(INV_EDIT.ckey);try{api('/crm-automation.php',{action:'run',trigger:'Invoice Paid',key:INV_EDIT.ckey,email:INV_EDIT.email,name:INV_EDIT.clientName,cat:c?c.cat:'',source:c?c.sourceType:''});}catch(e){}}await renderInvoices();}};
+  window.payDel=async(iid,pid)=>{if(!confirm('Remove this payment?'))return;INV_EDIT=null;await api('/crm-invoices.php',{action:'payment-delete',invoiceId:iid,paymentId:pid});await renderInvoices();const x=INVOICES.find(v=>v.id===iid);if(x){INV_EDIT=JSON.parse(JSON.stringify(x));renderInvEditor();}};
+
   /* ---------- Clients & Visa Cases ---------- */
   let CASES=[], COMPANIES=[], CASE_EDIT=null, COMPANY_EDIT=null;
   const CASE_STATUSES=['New Case','Document Collection','Application Prep','Submitted','Awaiting Decision','Approved','Refused','On Hold'];
