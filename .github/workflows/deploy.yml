@@ -64,6 +64,19 @@ jobs:
           # wiped. The CMS keeps edits durable instead by writing SERVER-ONLY
           # override files that are never in the repo (so the mirror never touches
           # them) — see cms-content.php. Only never-in-repo dirs are excluded here.
+          #
+          # ⚠️ INTEGRATION CREDENTIALS MUST STAY EXCLUDED — removing any of the
+          # following from this list would let the FTP mirror DELETE it, which
+          # DISCONNECTS the integration and forces a manual reconnect:
+          #   m365-config.php          → Microsoft 365 Azure app credentials
+          #   leads/**                 → M365 OAuth tokens (leads/m365-tokens.json,
+          #                              incl. the refresh token that keeps M365
+          #                              connected) + all CRM data
+          #   hubspot.json             → HubSpot Portal ID + Form GUID
+          #   auth/**                  → auth/integrations.json (Google, Mailchimp,
+          #                              ActiveCampaign, WhatsApp, Email) + portal users
+          #   ai-data/**               → Claude AI API key + drafts
+          # Connect each integration ONCE; these files persist across every deploy.
           exclude: |
             **/.git*
             **/.git*/**
