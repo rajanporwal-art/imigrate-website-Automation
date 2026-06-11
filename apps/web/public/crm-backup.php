@@ -131,6 +131,15 @@ function prune_tiered($backupRoot) {
     return $removed;
 }
 
+/* Last successful OneDrive backup marker (persists so the UI can show "last backed up"). */
+function onedrive_marker_file($dir) { return $dir . '/.onedrive-last.json'; }
+function last_onedrive($dir) {
+    $f = onedrive_marker_file($dir);
+    if (!is_file($f)) return null;
+    $m = json_decode((string) @file_get_contents($f), true);
+    return is_array($m) ? $m : null;
+}
+
 /* Push the entire CRM data store to OneDrive as one JSON bundle (when M365 is connected). */
 function crm_onedrive_push($dir) {
     if (!is_file(__DIR__ . '/m365-lib.php')) return ['ok' => false, 'error' => 'Microsoft 365 not configured'];
@@ -140,13 +149,22 @@ function crm_onedrive_push($dir) {
     foreach (data_files($dir) as $f) { $bundle['files'][basename($f)] = (string) @file_get_contents($f); }
     $name = 'imigrate-crm-backup-' . date('Ymd-His') . '.json';
     $res = m365_onedrive_upload($name, json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'iMigrate CRM Backups');
-    return $res ? ['ok' => true, 'file' => $name, 'count' => count($bundle['files'])] : ['ok' => false, 'error' => 'OneDrive upload failed'];
+    if (!$res) return ['ok' => false, 'error' => 'OneDrive upload failed'];
+    $at = date('c');
+    @file_put_contents(onedrive_marker_file($dir), json_encode(['at' => $at, 'file' => $name, 'count' => count($bundle['files'])]));
+    return ['ok' => true, 'file' => $name, 'count' => count($bundle['files']), 'at' => $at];
 }
 
 if ($action === 'snapshot') {
     $snap = make_snapshot($dir, $backupRoot, $authCron ? 'pre-deploy' : 'manual');
     prune_tiered($backupRoot);
     echo json_encode(['ok' => true, 'snapshot' => $snap]);
+    exit;
+}
+
+/* Last successful OneDrive backup (lightweight — for status display). */
+if ($action === 'onedrive-status') {
+    echo json_encode(['ok' => true, 'onedrive' => last_onedrive($dir)]);
     exit;
 }
 
@@ -185,7 +203,7 @@ if ($action === 'download') {
 
 if ($action === 'list') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
-    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot), 'current' => ['leads' => snap_leadcount($dir)]]);
+    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot), 'current' => ['leads' => snap_leadcount($dir)], 'onedrive' => last_onedrive($dir)]);
     exit;
 }
 
