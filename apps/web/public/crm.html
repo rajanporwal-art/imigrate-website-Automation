@@ -930,17 +930,17 @@
         <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
-      <div class=”card” style=”margin-bottom:14px”><h3 style=”margin:0 0 8px”>Pipeline Stage Migration</h3>
-        <p class=”muted” style=”font-size:13px;line-height:1.6”>Migrate legacy stage names (old 14-stage pipeline) to the new 15 standardised immigration CRM statuses. A full backup is taken automatically <strong>before</strong> any changes are made. Signed Up clients and Lost Leads are never touched. Use <em>Preview</em> first to see exactly what will change.</p>
-        <div style=”display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px”>
-          <button class=”btn” onclick=”previewMigration()”>🔍 Preview changes</button>
-          <button class=”btn btn-primary btn-sm” onclick=”runMigration()”>⬆ Migrate stage names</button>
-          <span id=”migMsg” class=”muted” style=”font-size:13px”></span>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Pipeline Stage Migration</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Migrate legacy stage names (old 14-stage pipeline) to the new 15 standardised immigration CRM statuses. A full backup is taken automatically <strong>before</strong> any changes are made. Signed Up clients and Lost Leads are never touched. Use <em>Preview</em> first to see exactly what will change.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+          <button class="btn" onclick="previewMigration()">🔍 Preview changes</button>
+          <button class="btn btn-primary btn-sm" onclick="runMigration()">⬆ Migrate stage names</button>
+          <span id="migMsg" class="muted" style="font-size:13px"></span>
         </div>
-        <div id=”migResult” style=”margin-top:10px”></div>
+        <div id="migResult" style="margin-top:10px"></div>
       </div>
-      <div class=”card”><h3 style=”margin:0 0 8px”>CRM data &amp; deployment</h3>
-        <p class=”muted” style=”font-size:13px;line-height:1.6”>This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
+      <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use "Export CSV" for a manual backup any time.</p>
       </div>`;
     m365LoadStatus();
     hubspotLoad();
