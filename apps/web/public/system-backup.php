@@ -388,17 +388,43 @@ if ($action === 'import-leads') {
             $em = strtolower((string) ($j['fields']['email'] ?? '')); if ($em !== '') $haveEmail[$em] = 1;
         }
     }
-    $added = 0; $skipped = 0; $out = '';
+    $VALID_STAGES = ['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Future Lead','No Answer – Follow-up Sent','No Pickup – Email/WhatsApp Sent','Does Not Qualify','Signed Up','Lost Lead','Duplicate Lead','Invalid Lead / Spam'];
+    $added = 0; $skipped = 0; $out = ''; $stageByEmail = [];
     foreach ($incoming as $rec) {
         if (!is_array($rec)) { $skipped++; continue; }
         $hid = (string) ($rec['hubspotId'] ?? ''); $em = strtolower((string) ($rec['fields']['email'] ?? ''));
         if (($hid !== '' && isset($haveHid[$hid])) || ($em !== '' && isset($haveEmail[$em]))) { $skipped++; continue; }
         if ($hid !== '') $haveHid[$hid] = 1; if ($em !== '') $haveEmail[$em] = 1;
+        // Capture an optional pipeline stage hint, then strip it from the stored record.
+        $stg = (string) ($rec['_stage'] ?? ''); unset($rec['_stage']);
+        if ($em !== '' && $stg !== '' && in_array($stg, $VALID_STAGES, true)) $stageByEmail[$em] = $stg;
         $out .= json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"; $added++;
     }
     if ($out !== '') @file_put_contents($leadsFile, $out, FILE_APPEND | LOCK_EX);
-    audit_log($AUDIT, 'import.leads', ['added' => $added, 'skipped' => $skipped, 'reason' => (string) ($p['reason'] ?? '')]);
-    echo json_encode(['ok' => true, 'added' => $added, 'skipped' => $skipped, 'total' => leads_count($ROOT)]);
+    // Set pipeline stage for the imported leads (crm-meta), without clobbering any
+    // existing stage already set in the CRM.
+    $metaSet = 0;
+    if ($stageByEmail) {
+        $metaFile = $leadsDir . '/crm-meta.ndjson';
+        $meta = [];
+        if (is_file($metaFile)) {
+            foreach (file($metaFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+                $j = json_decode($line, true); if (!is_array($j)) continue;
+                $k = strtolower(trim((string) ($j['key'] ?? $j['email'] ?? ''))); if ($k === '') continue;
+                $meta[$k] = $j;
+            }
+        }
+        foreach ($stageByEmail as $em => $stg) {
+            if (isset($meta[$em]) && !empty($meta[$em]['stage'])) continue; // don't overwrite a real stage
+            $row = $meta[$em] ?? ['key' => $em, 'overrides' => [], 'activity' => []];
+            $row['stage'] = $stg; $row['stageAt'] = date('c'); $row['stageChangedBy'] = 'System (HubSpot recovery)';
+            $meta[$em] = $row; $metaSet++;
+        }
+        $mout = ''; foreach ($meta as $row) $mout .= json_encode($row, JSON_UNESCAPED_UNICODE) . "\n";
+        if ($mout !== '') @file_put_contents($metaFile, $mout, LOCK_EX);
+    }
+    audit_log($AUDIT, 'import.leads', ['added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'reason' => (string) ($p['reason'] ?? '')]);
+    echo json_encode(['ok' => true, 'added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'total' => leads_count($ROOT)]);
     exit;
 }
 
