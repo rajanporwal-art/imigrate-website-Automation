@@ -32,6 +32,18 @@ function AboutPage() {
         <meta property="og:url" content="https://www.imigratesolution.com/about" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About iMigrate Migration Solutions | Trusted Immigration Consultants | 98.6% Success Rate" />
+        <meta name="twitter:description" content="Learn about iMigrate Migration Solutions — trusted immigration consultancy with 10+ years of experience and a 98.6% success rate helping clients migrate to Australia and Canada." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "About", "item": "https://www.imigratesolution.com/about" }
+          ]
+        })}</script>
       </Helmet>
 
       <Header />

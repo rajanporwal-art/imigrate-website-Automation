@@ -53,12 +53,30 @@ function ContactPage() {
       <Helmet>
         <title>Contact iMigrate Migration Solutions | Free Immigration Consultation</title>
         <meta name="description" content="Get in touch with iMigrate Migration Solutions. Book an appointment, ask questions, or visit our office in Kuala Lumpur." />
+        <meta name="keywords" content="immigration consultant contact, free immigration consultation, iMigrate contact, Kuala Lumpur immigration office, book immigration consultation" />
         <link rel="canonical" href="https://www.imigratesolution.com/contact" />
         <meta property="og:title" content="Contact iMigrate Migration Solutions | Free Immigration Consultation" />
         <meta property="og:description" content="Get in touch with iMigrate Migration Solutions. Book a free consultation, ask questions, or visit our office in Kuala Lumpur." />
         <meta property="og:url" content="https://www.imigratesolution.com/contact" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact iMigrate Migration Solutions | Free Immigration Consultation" />
+        <meta name="twitter:description" content="Get in touch with iMigrate Migration Solutions. Book a free consultation, ask questions, or visit our office in Kuala Lumpur." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact iMigrate Migration Solutions",
+          "url": "https://www.imigratesolution.com/contact",
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+              { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://www.imigratesolution.com/contact" }
+            ]
+          }
+        })}</script>
       </Helmet>
 
       <Header />

@@ -65,6 +65,10 @@ function HomePage() {
         <meta property="og:url" content="https://www.imigratesolution.com/" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="iMigrate Migration Solutions - Australia &amp; Canada Immigration Experts" />
+        <meta name="twitter:description" content="Malaysia-based consultancy for Australia &amp; Canada immigration, serving Asia &amp; worldwide. FREE consultation, money-back guarantee &amp; flexible pay-as-you-go fees." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": ["Organization", "LocalBusiness"],

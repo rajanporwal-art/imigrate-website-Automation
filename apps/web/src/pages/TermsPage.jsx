@@ -70,6 +70,7 @@ export default function TermsPage() {
         <title>Terms of Service — iMigrate Migration Solutions</title>
         <meta name="description" content="iMigrate Migration Solutions Terms of Service — the terms and conditions governing use of our immigration consultancy services and website." />
         <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://www.imigratesolution.com/terms" />
       </Helmet>
 
       <Header />

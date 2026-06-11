@@ -140,6 +140,10 @@ function C11Page() {
         <meta property="og:url" content="https://www.imigratesolution.com/c11-entrepreneur-work-permit" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/ca-toronto-cntower.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="C11 Entrepreneur Work Permit Canada | iMigrate Migration Solutions" />
+        <meta name="twitter:description" content="Canada's most flexible business immigration route. No minimum investment, fast-track to permanent residence for entrepreneurs from India, Malaysia, Singapore and beyond." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/ca-toronto-cntower.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",

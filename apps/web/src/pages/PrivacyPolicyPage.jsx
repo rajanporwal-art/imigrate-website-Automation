@@ -71,6 +71,7 @@ export default function PrivacyPolicyPage() {
         <title>Privacy Policy — iMigrate Migration Solutions</title>
         <meta name="description" content="iMigrate Migration Solutions Privacy Policy — how we collect, use, and protect your personal information." />
         <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://www.imigratesolution.com/privacy" />
       </Helmet>
 
       <Header />
