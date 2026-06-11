@@ -124,6 +124,7 @@
     <div class="navitem" data-view="pipeline" onclick="go('pipeline')"><span class="ic">🗂️</span> Pipeline</div>
     <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
+    <div class="navitem" data-view="automations" onclick="go('automations')"><span class="ic">⚡</span> Automations</div>
     <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
   </aside>
 
@@ -288,7 +289,7 @@
     const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -605,7 +606,7 @@
     if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;c.stage=stage;} if(VIEW==='pipeline')renderPipeline(); triggerAutomation(ckey,stage,c); }
   }
   async function triggerAutomation(ckey,stage,c){
-    try{ api('/crm-automation.php',{key:ckey,email:c?c.email:'',name:c?c.name:'',stage}); }catch(e){}
+    try{ api('/crm-automation.php',{action:'run',trigger:'Status Changed',key:ckey,email:c?c.email:'',name:c?c.name:'',stage,cat:c?c.cat:'',source:c?c.sourceType:'',points:c?c.points:0,occupation:c?c.occupation:''}); }catch(e){}
   }
   async function addNote(ckey){
     const t=$('noteIn'); const note=t?t.value.trim():''; if(!note)return;
@@ -926,6 +927,66 @@
   async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
 
   /* ---------- settings ---------- */
+  /* ---------- Automation Center (Trigger → Condition → Action) ---------- */
+  let AUTO_RULES=[], AUTO_LOG=[], AUTO_EDIT=null;
+  async function renderAutomations(){
+    $('content').innerHTML='<div class="card"><h3>⚡ Automation Center</h3><p class="muted">Loading…</p></div>';
+    const [rr,lr]=await Promise.all([api('/crm-automation.php',{action:'rules-list'}),api('/crm-automation.php',{action:'log'})]);
+    AUTO_RULES=(rr&&rr.rules)||[]; AUTO_LOG=(lr&&lr.log)||[];
+    const rows=AUTO_RULES.map(r=>{
+      const cond=[r.stage?('Stage = '+r.stage):'',r.condCat?('Score = '+r.condCat):'',r.condSource?('Source = '+r.condSource):''].filter(Boolean).join(' · ')||'Any';
+      const acts=(r.actions||[]).map(a=>a.type).join(', ')||'—';
+      return `<tr><td><strong>${esc(r.name)}</strong></td><td>${esc(r.trigger)}</td><td class="muted">${esc(cond)}</td><td class="muted">${esc(acts)}</td><td><input type="checkbox" ${r.enabled?'checked':''} onchange="autoToggle('${esc(r.id)}',this.checked)" style="width:auto"></td><td class="right"><button class="btn btn-sm" onclick="autoEdit('${esc(r.id)}')">Edit</button> <button class="btn btn-sm" onclick="autoDel('${esc(r.id)}')">Delete</button></td></tr>`;
+    }).join('');
+    $('content').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ Automation Center</h3><button class="btn btn-primary btn-sm" onclick="autoNew()">+ New rule</button></div>
+      <p class="muted" style="font-size:13px;line-height:1.6">Build <strong>Trigger → Condition → Action</strong> workflows. The built-in per-status tasks always run; these rules add your own actions on top. (Email / WhatsApp / AI actions activate once those integrations are connected.)</p>
+      <div style="overflow:auto"><table><thead><tr><th>Rule</th><th>Trigger</th><th>Conditions</th><th>Actions</th><th>On</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted" style="padding:14px">No custom rules yet — the built-in per-status automations are active. Add a rule to fire notifications, webhooks or extra tasks.</td></tr>'}</tbody></table></div></div>
+      <div id="autoEditor"></div>
+      <div class="card"><h3>Automation activity log</h3><div style="overflow:auto"><table><thead><tr><th>When</th><th>Rule</th><th>Trigger</th><th>Lead</th><th>Action</th></tr></thead><tbody>${AUTO_LOG.map(e=>`<tr><td class="muted">${esc((e.at||'').slice(0,16).replace('T',' '))}</td><td>${esc(e.rule||'')}</td><td class="muted">${esc(e.trigger||'')}</td><td>${esc(e.lead||'')}</td><td class="muted">${esc(e.action||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted" style="padding:12px">No automation activity yet.</td></tr>'}</tbody></table></div></div>`;
+    if(AUTO_EDIT)renderAutoEditor();
+  }
+  function syncAuto(){ if(!AUTO_EDIT)return; const g=id=>{const e=$(id);return e?e.value:undefined;}; let v; if((v=g('ar_name'))!==undefined)AUTO_EDIT.name=v; if((v=g('ar_stage'))!==undefined)AUTO_EDIT.stage=v; if((v=g('ar_cat'))!==undefined)AUTO_EDIT.condCat=v; if((v=g('ar_src'))!==undefined)AUTO_EDIT.condSource=v; }
+  function autoActionRow(a,i){
+    const types=[['task','Create task'],['notification','Notification'],['webhook','Webhook']];
+    const typeSel=`<select onchange="AUTO_EDIT.actions[${i}].type=this.value;renderAutoEditor()" style="width:auto">${types.map(([v,l])=>`<option value="${v}" ${v===a.type?'selected':''}>${l}</option>`).join('')}</select>`;
+    let fields='';
+    if(a.type==='task'){ fields=`<input placeholder="Task title (e.g. Call {{name}})" value="${esc(a.title||'')}" oninput="AUTO_EDIT.actions[${i}].title=this.value">
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><input placeholder="Task type" value="${esc(a.taskType||'Follow-up')}" oninput="AUTO_EDIT.actions[${i}].taskType=this.value" style="width:130px"><select onchange="AUTO_EDIT.actions[${i}].priority=this.value" style="width:auto">${['High','Normal','Low'].map(pr=>`<option ${pr===(a.priority||'Normal')?'selected':''}>${pr}</option>`).join('')}</select><input type="number" min="0" value="${a.dueDays!=null?a.dueDays:1}" oninput="AUTO_EDIT.actions[${i}].dueDays=this.value" style="width:90px" title="Due in N days"></div>`; }
+    else if(a.type==='notification'){ fields=`<input placeholder="Message (e.g. New hot lead: {{name}})" value="${esc(a.message||'')}" oninput="AUTO_EDIT.actions[${i}].message=this.value">`; }
+    else if(a.type==='webhook'){ fields=`<input placeholder="https://hooks.zapier.com/… (POST lead JSON)" value="${esc(a.url||'')}" oninput="AUTO_EDIT.actions[${i}].url=this.value">`; }
+    return `<div class="note" style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="flex:1">${typeSel}</div><button class="btn btn-sm" onclick="autoRemoveAction(${i})">✕</button></div><div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">${fields}</div></div>`;
+  }
+  function renderAutoEditor(){
+    const r=AUTO_EDIT; if(!r){const e=$('autoEditor');if(e)e.innerHTML='';return;}
+    const TRIGGERS=['Status Changed','Lead Created','Document Uploaded'];
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===r.stage?'selected':''}>${s?esc(s):'Any stage'}</option>`).join('');
+    const catOpts=['','Sales Ready','Hot','Warm','Cold'].map(s=>`<option value="${s}" ${s===r.condCat?'selected':''}>${s||'Any score'}</option>`).join('');
+    const srcOpts=['','AI','Standard'].map(s=>`<option value="${s}" ${s===r.condSource?'selected':''}>${s||'Any source'}</option>`).join('');
+    const actHtml=(r.actions||[]).map((a,i)=>autoActionRow(a,i)).join('');
+    $('autoEditor').innerHTML=`<div class="card"><h3>${r._new?'New rule':'Edit rule'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Rule name</label><input id="ar_name" value="${esc(r.name||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Trigger</label><select id="ar_trigger" onchange="syncAuto();AUTO_EDIT.trigger=this.value;renderAutoEditor()">${TRIGGERS.map(t=>`<option ${t===r.trigger?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      ${r.trigger==='Status Changed'?`<label class="muted" style="font-size:12px;margin-top:6px;display:block">When stage becomes</label><select id="ar_stage">${stageOpts}</select>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
+        <div><label class="muted" style="font-size:12px">Condition · score</label><select id="ar_cat">${catOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Condition · source</label><select id="ar_src">${srcOpts}</select></div>
+      </div>
+      <h4 style="margin:14px 0 6px">Actions</h4><div id="ar_actions">${actHtml||'<p class="muted" style="font-size:12px">No actions yet — add one below.</p>'}</div>
+      <button class="btn btn-sm" onclick="autoAddAction()">+ Add action</button>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center"><button class="btn btn-primary btn-sm" onclick="autoSave()">Save rule</button><button class="btn btn-sm" onclick="AUTO_EDIT=null;renderAutomations()">Cancel</button><span id="ar_msg" class="muted" style="font-size:12px"></span></div>
+      <p class="muted" style="font-size:11px;margin-top:8px">Placeholders: <code>{{name}}</code>, <code>{{occupation}}</code>, <code>{{stage}}</code>. Webhook POSTs the lead as JSON to your URL (works with Zapier / Make).</p></div>`;
+    $('autoEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.autoNew=()=>{AUTO_EDIT={_new:true,name:'',enabled:true,trigger:'Status Changed',stage:'',condCat:'',condSource:'',actions:[{type:'task',priority:'Normal',dueDays:1}]};renderAutoEditor();};
+  window.autoEdit=(id)=>{const r=AUTO_RULES.find(x=>x.id===id);if(!r)return;AUTO_EDIT=JSON.parse(JSON.stringify(r));renderAutoEditor();};
+  window.autoAddAction=()=>{syncAuto();AUTO_EDIT.actions=AUTO_EDIT.actions||[];AUTO_EDIT.actions.push({type:'task',priority:'Normal',dueDays:1});renderAutoEditor();};
+  window.autoRemoveAction=(i)=>{syncAuto();AUTO_EDIT.actions.splice(i,1);renderAutoEditor();};
+  window.autoSave=async()=>{syncAuto();const r=AUTO_EDIT;if(!r.name||!r.name.trim()){$('ar_msg').textContent='Name required';$('ar_msg').className='err';return;}const rule={id:r._new?'':r.id,name:r.name,enabled:r.enabled!==false,trigger:r.trigger,stage:r.trigger==='Status Changed'?(r.stage||''):'',condCat:r.condCat||'',condSource:r.condSource||'',actions:r.actions||[]};const rr=await api('/crm-automation.php',{action:'rule-save',rule});if(rr&&rr.ok){AUTO_EDIT=null;renderAutomations();}else{$('ar_msg').textContent='Save failed';$('ar_msg').className='err';}};
+  window.autoDel=async(id)=>{if(!confirm('Delete this automation rule?'))return;await api('/crm-automation.php',{action:'rule-delete',id});renderAutomations();};
+  window.autoToggle=async(id,on)=>{const r=AUTO_RULES.find(x=>x.id===id);if(!r)return;r.enabled=on;await api('/crm-automation.php',{action:'rule-save',rule:r});};
+
   function renderSettings(){
     $('content').innerHTML=`
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Your profile</h3>

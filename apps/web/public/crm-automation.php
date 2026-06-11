@@ -36,6 +36,100 @@ if ($name === '') $name = 'Lead';
 $dir = __DIR__ . '/leads';
 if (!is_dir($dir)) { @mkdir($dir, 0755, true); }
 
+$autoFile  = $dir . '/automations.json';
+$logFile   = $dir . '/automation-log.ndjson';
+$notifFile = $dir . '/notifications.ndjson';
+
+/* ---------- configurable rules engine (Trigger → Condition → Action) ---------- */
+function rules_load($f) { if (is_file($f)) { $d = json_decode((string) file_get_contents($f), true); return is_array($d) ? $d : []; } return []; }
+function rules_save($f, $d) { return @file_put_contents($f, json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false; }
+function autolog($f, $row) { @file_put_contents($f, json_encode($row) . "\n", FILE_APPEND | LOCK_EX); }
+function rule_cond_ok($rule, $ctx) {
+    if (!empty($rule['stage']) && ($ctx['stage'] ?? '') !== $rule['stage']) return false;
+    if (!empty($rule['condCat']) && ($ctx['cat'] ?? '') !== $rule['condCat']) return false;
+    if (!empty($rule['condSource']) && ($ctx['source'] ?? '') !== $rule['condSource']) return false;
+    return true;
+}
+function exec_action($a, $ctx, $dir, $notifFile) {
+    $type = (string) ($a['type'] ?? '');
+    $name = $ctx['name']; $email = $ctx['email']; $key = $ctx['key'];
+    $fill = function ($s) use ($ctx) { return str_replace(['{{name}}', '{{occupation}}', '{{stage}}'], [$ctx['name'], $ctx['occupation'] ?? '', $ctx['stage'] ?? ''], (string) $s); };
+    if ($type === 'task') {
+        $title = $fill($a['title'] ?? ('Task: ' . $name));
+        $due = date('Y-m-d', strtotime('+' . max(0, (int) ($a['dueDays'] ?? 1)) . ' days'));
+        add_task_once($dir, $title, (string) ($a['taskType'] ?? 'Follow-up'), $due, (string) ($a['priority'] ?? 'Normal'), $email, $key);
+        return 'Created task: ' . $title;
+    }
+    if ($type === 'notification') {
+        $msg = $fill($a['message'] ?? '');
+        @file_put_contents($notifFile, json_encode(['id' => auto_id(), 'at' => date('c'), 'message' => $msg, 'ckey' => $key, 'lead' => $name, 'read' => false]) . "\n", FILE_APPEND | LOCK_EX);
+        return 'Notification: ' . $msg;
+    }
+    if ($type === 'webhook') {
+        $url = (string) ($a['url'] ?? '');
+        if ($url !== '' && function_exists('curl_init') && preg_match('#^https?://#i', $url)) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_TIMEOUT => 8, CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_POSTFIELDS => json_encode(['event' => $ctx['trigger'] ?? '', 'stage' => $ctx['stage'] ?? '', 'lead' => $name, 'email' => $email, 'cat' => $ctx['cat'] ?? '', 'at' => date('c')])]);
+            curl_exec($ch); $code = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            return 'Webhook → ' . $url . ' (HTTP ' . $code . ')';
+        }
+        return 'Webhook skipped (missing/invalid URL)';
+    }
+    return '';
+}
+function run_user_rules($autoFile, $logFile, $notifFile, $dir, $trigger, $ctx) {
+    $out = [];
+    foreach (rules_load($autoFile) as $rule) {
+        if (empty($rule['enabled'])) continue;
+        if (($rule['trigger'] ?? 'Status Changed') !== $trigger) continue;
+        if (!rule_cond_ok($rule, $ctx)) continue;
+        foreach (($rule['actions'] ?? []) as $a) {
+            $res = exec_action($a, $ctx, $dir, $notifFile);
+            if ($res) { $out[] = $res; autolog($logFile, ['at' => date('c'), 'rule' => $rule['name'] ?? '', 'trigger' => $trigger, 'lead' => $ctx['name'], 'action' => $res]); }
+        }
+    }
+    return $out;
+}
+
+$action  = (string) ($p['action'] ?? 'run');
+$trigger = (string) ($p['trigger'] ?? 'Status Changed');
+
+/* ---- rule management + logs (Automation Center) ---- */
+if ($action === 'rules-list') { echo json_encode(['ok' => true, 'rules' => rules_load($autoFile)]); exit; }
+if ($action === 'rule-save') {
+    $rules = rules_load($autoFile);
+    $in = is_array($p['rule'] ?? null) ? $p['rule'] : [];
+    $id = (string) ($in['id'] ?? '');
+    $rule = [
+        'id' => $id ?: ('R-' . auto_id()),
+        'name' => substr(trim((string) ($in['name'] ?? 'Rule')), 0, 80) ?: 'Rule',
+        'enabled' => isset($in['enabled']) ? (bool) $in['enabled'] : true,
+        'trigger' => substr((string) ($in['trigger'] ?? 'Status Changed'), 0, 40),
+        'stage' => substr((string) ($in['stage'] ?? ''), 0, 60),
+        'condCat' => substr((string) ($in['condCat'] ?? ''), 0, 20),
+        'condSource' => substr((string) ($in['condSource'] ?? ''), 0, 20),
+        'actions' => is_array($in['actions'] ?? null) ? array_slice($in['actions'], 0, 10) : [],
+        'updatedAt' => date('c'),
+    ];
+    $idx = null; foreach ($rules as $i => $r) if (($r['id'] ?? '') === $id) $idx = $i;
+    if ($idx === null) $rules[] = $rule; else $rules[$idx] = $rule;
+    rules_save($autoFile, $rules);
+    echo json_encode(['ok' => true, 'id' => $rule['id']]); exit;
+}
+if ($action === 'rule-delete') {
+    $rules = array_values(array_filter(rules_load($autoFile), fn($r) => ($r['id'] ?? '') !== (string) ($p['id'] ?? '')));
+    rules_save($autoFile, $rules);
+    echo json_encode(['ok' => true]); exit;
+}
+if ($action === 'log') {
+    $r = []; if (is_file($logFile)) foreach (array_reverse(file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) as $l) { $x = json_decode($l, true); if (is_array($x)) $r[] = $x; if (count($r) >= 150) break; }
+    echo json_encode(['ok' => true, 'log' => $r]); exit;
+}
+if ($action === 'notifications') {
+    $r = []; if (is_file($notifFile)) foreach (array_reverse(file($notifFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) as $l) { $x = json_decode($l, true); if (is_array($x)) $r[] = $x; if (count($r) >= 100) break; }
+    echo json_encode(['ok' => true, 'notifications' => $r]); exit;
+}
+
 /* ---------- helpers ---------- */
 function auto_id() {
     return date('Ymd-His') . '-' . substr(md5(uniqid('', true)), 0, 6);
@@ -93,8 +187,10 @@ $in7days  = date('Y-m-d', strtotime('+7 days'));
 $in30days = date('Y-m-d', strtotime('+30 days'));
 
 $actions = [];
+$ctx = ['stage' => $stage, 'name' => $name, 'email' => $email, 'key' => $key, 'trigger' => $trigger, 'cat' => (string) ($p['cat'] ?? ''), 'source' => (string) ($p['source'] ?? ''), 'points' => (int) ($p['points'] ?? 0), 'occupation' => substr((string) ($p['occupation'] ?? ''), 0, 80)];
 
-/* ---------- automation rules (Trigger: Stage Changed) ---------- */
+/* ---------- built-in automation rules (Trigger: Status Changed) ---------- */
+if ($trigger === 'Status Changed')
 switch ($stage) {
 
     case 'New Lead':
@@ -181,4 +277,7 @@ switch ($stage) {
         break;
 }
 
-echo json_encode(['ok' => true, 'stage' => $stage, 'actions' => $actions]);
+/* ---------- user-defined rules (Automation Center) ---------- */
+$actions = array_merge($actions, run_user_rules($autoFile, $logFile, $notifFile, $dir, $trigger, $ctx));
+
+echo json_encode(['ok' => true, 'stage' => $stage, 'trigger' => $trigger, 'actions' => $actions]);
