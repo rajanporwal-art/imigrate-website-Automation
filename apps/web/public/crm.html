@@ -124,6 +124,7 @@
     <div class="navitem" data-view="pipeline" onclick="go('pipeline')"><span class="ic">🗂️</span> Pipeline</div>
     <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
+    <div class="navitem" data-view="clients" onclick="go('clients')"><span class="ic">🧾</span> Clients &amp; Cases</div>
     <div class="navitem" data-view="automations" onclick="go('automations')"><span class="ic">⚡</span> Automations</div>
     <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
   </aside>
@@ -289,7 +290,7 @@
     const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -927,6 +928,75 @@
   async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
 
   /* ---------- settings ---------- */
+  /* ---------- Clients & Visa Cases ---------- */
+  let CASES=[], COMPANIES=[], CASE_EDIT=null, COMPANY_EDIT=null;
+  const CASE_STATUSES=['New Case','Document Collection','Application Prep','Submitted','Awaiting Decision','Approved','Refused','On Hold'];
+  const CASE_COLORS={'New Case':{bg:'#dbeafe',color:'#1d4ed8'},'Document Collection':{bg:'#fef9c3',color:'#854d0e'},'Application Prep':{bg:'#fde68a',color:'#b45309'},'Submitted':{bg:'#ede9fe',color:'#5b21b6'},'Awaiting Decision':{bg:'#e0f2fe',color:'#0369a1'},'Approved':{bg:'#dcfce7',color:'#166534'},'Refused':{bg:'#fecaca',color:'#991b1b'},'On Hold':{bg:'#f1f5f9',color:'#475569'}};
+  function coName(id){const c=COMPANIES.find(x=>x.id===id);return c?c.name:'';}
+  async function renderClients(){
+    $('content').innerHTML='<div class="card"><h3>🧾 Clients &amp; Cases</h3><p class="muted">Loading…</p></div>';
+    const r=await api('/crm-cases.php',{action:'list'});
+    CASES=(r&&r.cases)||[]; COMPANIES=(r&&r.companies)||[];
+    const clients=CONTACTS.filter(c=>c.stage==='Signed Up');
+    const active=CASES.filter(c=>!['Approved','Refused'].includes(c.status)).length;
+    const approved=CASES.filter(c=>c.status==='Approved').length;
+    const stat=(n,l)=>`<div class="card" style="display:inline-block;min-width:140px;margin-right:12px"><div style="font-size:24px;font-weight:800;color:var(--navy)">${n}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
+    const caseRows=CASES.map(c=>{const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};return `<tr><td><strong>${esc(c.clientName||'—')}</strong><div class="muted" style="font-size:11px">${esc(c.email||'')}</div></td><td>${esc(c.visaType||'')}</td><td class="muted">${esc(c.country||'')}</td><td class="muted">${esc(coName(c.companyId))}</td><td><span class="pill" style="background:${sc.bg};color:${sc.color}">${esc(c.status||'')}</span></td><td class="muted">${esc(c.targetDate||'')}</td><td class="muted">${esc(c.fee||'')}</td><td class="right"><button class="btn btn-sm" onclick="caseEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="caseDel('${esc(c.id)}')">Delete</button></td></tr>`;}).join('');
+    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class="pill">${esc(c.type||'')}</span></td><td class="muted">${esc(c.country||'')}</td><td class="muted">${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class="right"><button class="btn btn-sm" onclick="companyEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="companyDel('${esc(c.id)}')">Delete</button></td></tr>`).join('');
+    $('content').innerHTML=`<div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Visa cases</h3><button class="btn btn-primary btn-sm" onclick="caseNew()">+ New case</button></div>
+        <div style="overflow:auto"><table><thead><tr><th>Client</th><th>Visa</th><th>Country</th><th>Company</th><th>Status</th><th>Target</th><th>Fee</th><th class="right"></th></tr></thead><tbody>${caseRows||'<tr><td colspan="8" class="muted" style="padding:14px">No cases yet. Click “New case” to open a visa application for a signed-up client.</td></tr>'}</tbody></table></div></div>
+      <div id="caseEditor"></div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Companies (employers / sponsors)</h3><button class="btn btn-primary btn-sm" onclick="companyNew()">+ New company</button></div>
+        <div style="overflow:auto"><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class="right"></th></tr></thead><tbody>${compRows||'<tr><td colspan="5" class="muted" style="padding:14px">No companies yet.</td></tr>'}</tbody></table></div></div>
+      <div id="companyEditor"></div>`;
+    if(CASE_EDIT)renderCaseEditor(); if(COMPANY_EDIT)renderCompanyEditor();
+  }
+  function renderCaseEditor(){
+    const c=CASE_EDIT; if(!c){const e=$('caseEditor');if(e)e.innerHTML='';return;}
+    const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}${x.stage==='Signed Up'?' ✓':''}</option>`)].join('');
+    const statusOpts=CASE_STATUSES.map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('');
+    const compOpts=['<option value="">— None —</option>',...COMPANIES.map(x=>`<option value="${esc(x.id)}" ${x.id===c.companyId?'selected':''}>${esc(x.name)}</option>`)].join('');
+    $('caseEditor').innerHTML=`<div class="card"><h3>${c.id?'Edit case':'New case'}</h3>
+      <label class="muted" style="font-size:12px">Client</label><select id="cs_client" onchange="caseClientPick(this.value)">${clientOpts}</select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
+        <div><label class="muted" style="font-size:12px">Visa type</label><input id="cs_visa" value="${esc(c.visaType||'')}" placeholder="e.g. Subclass 189 / Express Entry"></div>
+        <div><label class="muted" style="font-size:12px">Country</label><input id="cs_country" value="${esc(c.country||'')}" placeholder="Australia / Canada"></div>
+        <div><label class="muted" style="font-size:12px">Company (employer/sponsor)</label><select id="cs_company">${compOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Status</label><select id="cs_status">${statusOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Target date</label><input id="cs_target" type="date" value="${esc(c.targetDate||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Fee</label><input id="cs_fee" value="${esc(c.fee||'')}" placeholder="e.g. RM 5,000"></div>
+      </div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="cs_notes" rows="3">${esc(c.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="caseSave()">Save case</button><button class="btn btn-sm" onclick="CASE_EDIT=null;renderClients()">Cancel</button><span id="cs_msg" class="muted" style="font-size:12px"></span></div></div>`;
+    $('caseEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.caseClientPick=(ckey)=>{const x=CONTACTS.find(c=>c.ckey===ckey);if(x){CASE_EDIT.ckey=x.ckey;CASE_EDIT.clientName=x.name;CASE_EDIT.email=x.email;const ct=$('cs_country');if(ct&&!ct.value&&x.destination)ct.value=x.destination;}};
+  window.caseNew=()=>{CASE_EDIT={id:'',ckey:'',clientName:'',email:'',visaType:'',country:'',companyId:'',status:'New Case',targetDate:'',fee:'',notes:''};renderCaseEditor();};
+  window.caseEdit=(id)=>{const c=CASES.find(x=>x.id===id);if(!c)return;CASE_EDIT=JSON.parse(JSON.stringify(c));renderCaseEditor();};
+  window.caseSave=async()=>{const cs={id:CASE_EDIT.id||'',ckey:CASE_EDIT.ckey||'',clientName:CASE_EDIT.clientName||'',email:CASE_EDIT.email||'',visaType:$('cs_visa').value,country:$('cs_country').value,companyId:$('cs_company').value,status:$('cs_status').value,targetDate:$('cs_target').value,fee:$('cs_fee').value,notes:$('cs_notes').value};if(!cs.clientName){$('cs_msg').textContent='Select a client first';$('cs_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'case-save',case:cs});if(r&&r.ok){CASE_EDIT=null;renderClients();}else{$('cs_msg').textContent='Save failed';$('cs_msg').className='err';}};
+  window.caseDel=async(id)=>{if(!confirm('Delete this case? (The lead record is not affected.)'))return;await api('/crm-cases.php',{action:'case-delete',id});renderClients();};
+  function renderCompanyEditor(){
+    const c=COMPANY_EDIT; if(!c){const e=$('companyEditor');if(e)e.innerHTML='';return;}
+    const typeOpts=['Employer','Sponsor','Partner','Agent','Other'].map(t=>`<option ${t===c.type?'selected':''}>${t}</option>`).join('');
+    $('companyEditor').innerHTML=`<div class="card"><h3>${c.id?'Edit company':'New company'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Company name</label><input id="co_name" value="${esc(c.name||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Type</label><select id="co_type">${typeOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Country</label><input id="co_country" value="${esc(c.country||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Phone</label><input id="co_phone" value="${esc(c.phone||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Contact name</label><input id="co_cname" value="${esc(c.contactName||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Contact email</label><input id="co_cemail" value="${esc(c.contactEmail||'')}"></div>
+      </div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="co_notes" rows="2">${esc(c.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="companySaveRec()">Save company</button><button class="btn btn-sm" onclick="COMPANY_EDIT=null;renderClients()">Cancel</button><span id="co_msg" class="muted" style="font-size:12px"></span></div></div>`;
+    $('companyEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.companyNew=()=>{COMPANY_EDIT={id:'',name:'',type:'Employer',country:'',phone:'',contactName:'',contactEmail:'',notes:''};renderCompanyEditor();};
+  window.companyEdit=(id)=>{const c=COMPANIES.find(x=>x.id===id);if(!c)return;COMPANY_EDIT=JSON.parse(JSON.stringify(c));renderCompanyEditor();};
+  window.companySaveRec=async()=>{const co={id:COMPANY_EDIT.id||'',name:$('co_name').value,type:$('co_type').value,country:$('co_country').value,phone:$('co_phone').value,contactName:$('co_cname').value,contactEmail:$('co_cemail').value,notes:$('co_notes').value};if(!co.name.trim()){$('co_msg').textContent='Name required';$('co_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'company-save',company:co});if(r&&r.ok){COMPANY_EDIT=null;renderClients();}else{$('co_msg').textContent='Save failed';$('co_msg').className='err';}};
+  window.companyDel=async(id)=>{if(!confirm('Delete this company?'))return;await api('/crm-cases.php',{action:'company-delete',id});renderClients();};
+
   /* ---------- Automation Center (Trigger → Condition → Action) ---------- */
   let AUTO_RULES=[], AUTO_LOG=[], AUTO_EDIT=null;
   async function renderAutomations(){
