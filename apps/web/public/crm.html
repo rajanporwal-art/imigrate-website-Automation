@@ -148,10 +148,15 @@
   let LEADS = [], CONTACTS = [], META = {}, TASKS = [], REPORTS = [], VIEW = 'dashboard';
   let PROFILE_KEY = null, PROFILE_TAB = 'contact';
 
-  const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
-  // Display-only relabel — stored stage VALUES are unchanged (data integrity); only the UI label differs.
-  const STAGE_LABELS={'Assessment Completed':'Lead Assessed'};
+  const STAGES = ['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Future Lead','No Answer – Follow-up Sent','No Pickup – Email/WhatsApp Sent','Does Not Qualify','Signed Up','Lost Lead','Duplicate Lead','Invalid Lead / Spam'];
+  // Legacy stage names stay displayable for backward compat (stored values unchanged).
+  const STAGE_LABELS={};
   const stageLabel=(s)=>STAGE_LABELS[s]||s;
+  // Color palette for each standardised status.
+  const STAGE_COLORS={'New Lead':{bg:'#dbeafe',color:'#1d4ed8'},'Pending Call':{bg:'#fef3c7',color:'#92400e'},'Pending CV / Resume':{bg:'#fef9c3',color:'#854d0e'},'Pending Appointment':{bg:'#fde68a',color:'#b45309'},'Appointment Scheduled':{bg:'#d1fae5',color:'#065f46'},'Pending Follow-up':{bg:'#fef3c7',color:'#92400e'},'Under Assessment':{bg:'#ede9fe',color:'#5b21b6'},'Future Lead':{bg:'#e0f2fe',color:'#0369a1'},'No Answer – Follow-up Sent':{bg:'#fee2e2',color:'#b91c1c'},'No Pickup – Email/WhatsApp Sent':{bg:'#fee2e2',color:'#b91c1c'},'Does Not Qualify':{bg:'#f1f5f9',color:'#475569'},'Signed Up':{bg:'#dcfce7',color:'#166534'},'Lost Lead':{bg:'#fecaca',color:'#991b1b'},'Duplicate Lead':{bg:'#f3f4f6',color:'#6b7280'},'Invalid Lead / Spam':{bg:'#f3f4f6',color:'#6b7280'}};
+  function stageBadge(s){const c=STAGE_COLORS[s]||{bg:'#e2e8f0',color:'#475569'};return `<span style="background:${c.bg};color:${c.color};padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block">${esc(s)}</span>`;}
+  // Safe migration map: legacy stage name → new standardised status.
+  const STAGE_MIGRATION_MAP={'Contact Attempted':'Pending Call','CV Requested':'Pending CV / Resume','CV Received':'Pending Appointment','Assessment Completed':'Under Assessment','Lead Assessed':'Under Assessment','Consultation Booked':'Appointment Scheduled','Consultation Completed':'Pending Follow-up','Qualified':'Under Assessment','Agreement Sent':'Signed Up','Payment Received':'Signed Up','Application Preparation':'Signed Up','Application Submitted':'Signed Up','Visa Approved':'Signed Up','Lost Opportunity':'Lost Lead'};
 
   /* Immigration email templates. {{name}} {{occupation}} {{points}} {{visas}} are filled per lead. */
   const EMAIL_TEMPLATES = {
@@ -268,7 +273,7 @@
         hasCV, cvFiles:c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile,at:s.timestamp})),
         reports, storedReports, submissions:c.submissions, score, cat, hot, isAI,
         sourceType: isAI?'AI':'Standard',
-        stage: meta.stage || (reports.length?'Assessment Completed':'New Lead'),
+        stage: meta.stage || (reports.length?'Under Assessment':'New Lead'),
         notes: meta.notes || [], activity: meta.activity || [], overrides: ov,
       };
     });
@@ -293,9 +298,9 @@
     const ai=CONTACTS.filter(c=>c.isAI).length;
     const std=total-ai;
     const reports=CONTACTS.filter(c=>c.reports.length).length;
-    const consultStages=['Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved'];
+    const consultStages=['Appointment Scheduled','Pending Follow-up','Under Assessment','Signed Up'];
     const consults=CONTACTS.filter(c=>consultStages.includes(c.stage)).length;
-    const approvals=CONTACTS.filter(c=>c.stage==='Visa Approved').length;
+    const approvals=CONTACTS.filter(c=>c.stage==='Signed Up').length;
     const occ={}, vis={};
     CONTACTS.forEach(c=>{ if(c.occupation)occ[c.occupation]=(occ[c.occupation]||0)+1; (c.visas||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(v=>vis[v]=(vis[v]||0)+1); });
     const top=(o)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,6);
@@ -308,8 +313,8 @@
         ${stat(ai,'AI Leads',"dashGo({type:'AI'})")}
         ${stat(std,'Standard Leads',"dashGo({type:'Standard'})")}
         ${stat(reports,'Reports Generated',"go('reports')")}
-        ${stat(consults,'Consultations',"dashGo({stage:'Consultation Booked'})")}
-        ${stat(approvals,'Visa Approvals',"dashGo({stage:'Visa Approved'})")}
+        ${stat(consults,'Consultations',"dashGo({stage:'Appointment Scheduled'})")}
+        ${stat(approvals,'Signed Up Clients',"dashGo({stage:'Signed Up'})")}
       </div>
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <div class="card"><h3 style="margin:0 0 10px">Top occupations</h3>${top(occ).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
@@ -350,7 +355,7 @@
           <td>${esc(c.email||'—')}<div class="muted">${esc(c.phone)}</div></td>
           <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
           <td>${c.points||'—'}</td>
-          <td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
+          <td>${stageBadge(stageLabel(c.stage))}</td>
           <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
           <td class="muted">${esc(c.source||'—')}</td>
           <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted" style="padding:20px">No leads match.</td></tr>'}</tbody></table>
@@ -393,7 +398,7 @@
       ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
       ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
     ];
-    const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}</option>`).join('')}</select>`;
+    const stageSel=(()=>{const allOpts=[...STAGES,...(STAGES.includes(c.stage)?[]:([c.stage]))];return `<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${allOpts.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}${!STAGES.includes(s)?' (legacy)':''}</option>`).join('')}</select>`;})();
     $('content').innerHTML=`
       <button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>
       <div class="pf-head" style="margin-top:12px">
@@ -595,7 +600,10 @@
   async function setStage(ckey,stage){
     const c=findByKey(ckey); if(c)c.stage=stage;
     const r=await api('/crm-meta.php',{action:'set-stage',key:ckey,email:c?c.email:'',stage});
-    if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;} if(VIEW==='pipeline')renderPipeline(); }
+    if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;c.stage=stage;} if(VIEW==='pipeline')renderPipeline(); triggerAutomation(ckey,stage,c); }
+  }
+  async function triggerAutomation(ckey,stage,c){
+    try{ api('/crm-automation.php',{key:ckey,email:c?c.email:'',name:c?c.name:'',stage}); }catch(e){}
   }
   async function addNote(ckey){
     const t=$('noteIn'); const note=t?t.value.trim():''; if(!note)return;
@@ -640,7 +648,7 @@
     const end=new Date(start.getTime()+30*60000);
     // Create a follow-up task + move stage regardless of M365.
     await api('/crm-tasks.php',{action:'add',title:'Consultation with '+c.name,type:'Consultation',due:start.toISOString().slice(0,10),priority:'High',leadEmail:c.email,ckey,assignedTo:CRM_USER()});
-    await setStage(ckey,'Consultation Booked');
+    await setStage(ckey,'Appointment Scheduled');
     // Try to add it to the Microsoft 365 calendar.
     const r=await api('/m365.php',{action:'event',subject:'iMigrate consultation — '+c.name,start:start.toISOString(),end:end.toISOString(),attendee:c.email||'',body:'Immigration consultation for '+esc(c.name)});
     await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event:'Consultation scheduled',detail:when});
@@ -832,7 +840,7 @@
         <td class="clk" onclick="openProfile('${esc(c.ckey)}')"><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}<div class="muted">${esc(c.email||'')}</div></td>
         <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
         <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
-        <td>${c.storedReports.length||'—'}</td><td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
+        <td>${c.storedReports.length||'—'}</td><td>${stageBadge(stageLabel(c.stage))}</td>
         <td class="right"><button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','')">View</button>
         <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','')">PDF</button>
         <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">Email</button>
@@ -844,8 +852,9 @@
   function renderPipeline(){
     const cols=STAGES.map(stage=>{
       const cards=CONTACTS.filter(c=>c.stage===stage);
+      const sc=STAGE_COLORS[stage]||{bg:'#e2e8f0',color:'#475569'};
       return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
-        <h4><span>${esc(stageLabel(stage))}</span><span class="pill">${cards.length}</span></h4>
+        <h4 style="border-left:3px solid ${sc.color};padding-left:9px"><span style="color:${sc.color};font-weight:700">${esc(stageLabel(stage))}</span><span class="pill" style="background:${sc.bg};color:${sc.color}">${cards.length}</span></h4>
         <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
           <div class="nm">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}" style="font-size:9px">${c.sourceType}</span></div>
           <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
@@ -919,8 +928,17 @@
         <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
-      <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
+      <div class=”card” style=”margin-bottom:14px”><h3 style=”margin:0 0 8px”>Pipeline Stage Migration</h3>
+        <p class=”muted” style=”font-size:13px;line-height:1.6”>Migrate legacy stage names (old 14-stage pipeline) to the new 15 standardised immigration CRM statuses. A full backup is taken automatically <strong>before</strong> any changes are made. Signed Up clients and Lost Leads are never touched. Use <em>Preview</em> first to see exactly what will change.</p>
+        <div style=”display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px”>
+          <button class=”btn” onclick=”previewMigration()”>🔍 Preview changes</button>
+          <button class=”btn btn-primary btn-sm” onclick=”runMigration()”>⬆ Migrate stage names</button>
+          <span id=”migMsg” class=”muted” style=”font-size:13px”></span>
+        </div>
+        <div id=”migResult” style=”margin-top:10px”></div>
+      </div>
+      <div class=”card”><h3 style=”margin:0 0 8px”>CRM data &amp; deployment</h3>
+        <p class=”muted” style=”font-size:13px;line-height:1.6”>This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
       </div>`;
     m365LoadStatus();
     hubspotLoad();
@@ -1048,6 +1066,29 @@
     const r=await api('/crm-reconcile-cv.php',{action:'apply'});
     if(r&&r.ok){ alert('Attached '+r.applied+' CV(s) to leads.'); await loadAll(); go('settings'); cvReconcileScan(); }
     else alert('Apply failed.');
+  }
+
+  /* ---------- pipeline stage migration ---------- */
+  async function previewMigration(){
+    const msg=$('migMsg'),box=$('migResult');
+    if(msg)msg.textContent='Scanning…'; if(box)box.innerHTML='';
+    const r=await api('/crm-meta.php',{action:'migrate-stages',dryRun:true});
+    if(!r||!r.ok){if(msg)msg.textContent=r&&r.error?r.error:'Scan failed.';return;}
+    if(msg)msg.textContent=r.total+' leads scanned · '+r.changes.length+' to update.';
+    if(!r.changes.length){if(box)box.innerHTML='<p class="muted" style="font-size:13px">All leads already use the new status system — no changes needed.</p>';return;}
+    const rows=r.changes.map(c=>`<tr><td>${esc(c.name||c.key)}</td><td>${stageBadge(c.from)}</td><td style="color:var(--muted)">→</td><td>${stageBadge(c.to)}</td></tr>`).join('');
+    if(box)box.innerHTML=`<div style="overflow:auto;margin-top:8px"><table><thead><tr><th>Lead</th><th>Current (legacy)</th><th></th><th>New status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  async function runMigration(){
+    const legacyCount=Object.keys(STAGE_MIGRATION_MAP).length;
+    if(!confirm('Migrate '+legacyCount+' legacy stage types to the new 15-status system?\n\nA full backup is created first. Signed Up and Lost Lead records are protected.\n\nContinue?'))return;
+    const msg=$('migMsg'),box=$('migResult');
+    if(msg){msg.textContent='Backing up and migrating…';msg.className='muted';}
+    const r=await api('/crm-meta.php',{action:'migrate-stages',dryRun:false});
+    if(!r||!r.ok){if(msg){msg.textContent=(r&&r.error)||'Migration failed.';msg.className='err';}return;}
+    if(msg){msg.textContent='✓ Migrated '+r.migrated+' lead(s). Backup: '+esc(r.backupTs);msg.className='ok';}
+    if(box)box.innerHTML=`<p class="ok" style="font-size:13px">Migration complete. ${r.migrated} stage(s) updated. Safety backup: <code>${esc(r.backupTs)}</code>.</p>`;
+    await loadAll();
   }
 
   /* ---------- export / theme ---------- */
