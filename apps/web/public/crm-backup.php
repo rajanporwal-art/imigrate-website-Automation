@@ -131,6 +131,18 @@ function prune_tiered($backupRoot) {
     return $removed;
 }
 
+/* Push the entire CRM data store to OneDrive as one JSON bundle (when M365 is connected). */
+function crm_onedrive_push($dir) {
+    if (!is_file(__DIR__ . '/m365-lib.php')) return ['ok' => false, 'error' => 'Microsoft 365 not configured'];
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) return ['ok' => false, 'error' => 'Microsoft 365 not connected'];
+    $bundle = ['source' => 'iMigrate CRM', 'exportedAt' => date('c'), 'files' => []];
+    foreach (data_files($dir) as $f) { $bundle['files'][basename($f)] = (string) @file_get_contents($f); }
+    $name = 'imigrate-crm-backup-' . date('Ymd-His') . '.json';
+    $res = m365_onedrive_upload($name, json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'iMigrate CRM Backups');
+    return $res ? ['ok' => true, 'file' => $name, 'count' => count($bundle['files'])] : ['ok' => false, 'error' => 'OneDrive upload failed'];
+}
+
 if ($action === 'snapshot') {
     $snap = make_snapshot($dir, $backupRoot, $authCron ? 'pre-deploy' : 'manual');
     prune_tiered($backupRoot);
@@ -138,10 +150,18 @@ if ($action === 'snapshot') {
     exit;
 }
 
+/* Manual: back up ALL CRM data to OneDrive now. */
+if ($action === 'onedrive-backup') {
+    $res = crm_onedrive_push($dir);
+    if (empty($res['ok'])) http_response_code(400);
+    echo json_encode($res);
+    exit;
+}
+
 /* Zero-config automatic daily backup — called on CRM load; cheap + idempotent. */
 if ($action === 'auto') {
     $snap = maybe_auto_snapshot($dir, $backupRoot);
-    if ($snap) prune_tiered($backupRoot);
+    if ($snap) { prune_tiered($backupRoot); @crm_onedrive_push($dir); /* mirror the daily backup to OneDrive when connected */ }
     echo json_encode(['ok' => true, 'snapshot' => $snap, 'created' => (bool) $snap]);
     exit;
 }
