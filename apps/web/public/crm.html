@@ -851,21 +851,50 @@
 
   /* ---------- pipeline (kanban) ---------- */
   let dragKey=null;
+  let pipeFilter={q:'',type:'',cat:'',hideEmpty:false};
+  let pipeScroll=0;
+  const CAT_COLORS={'Sales Ready':{bg:'#dcfce7',color:'#166534'},'Hot':{bg:'#fee2e2',color:'#b91c1c'},'Warm':{bg:'#fef3c7',color:'#92400e'},'Cold':{bg:'#f1f5f9',color:'#475569'}};
+  /* Earliest open task for a contact — surfaces the follow-up date + assigned consultant on the card. */
+  function nextTaskFor(c){
+    const open=(TASKS||[]).filter(t=>(((t.ckey&&t.ckey===c.ckey)||(c.email&&(t.leadEmail||'').toLowerCase()===c.email)) && !['Done','Completed','Cancelled'].includes(t.status||'')));
+    open.sort((a,b)=>((a.due||'9999-99-99').localeCompare(b.due||'9999-99-99')));
+    return open[0]||null;
+  }
   function renderPipeline(){
+    const kmPrev=document.querySelector('.kanban'); if(kmPrev)pipeScroll=kmPrev.scrollLeft;
+    const q=pipeFilter.q.toLowerCase();
+    const match=(c)=>{
+      if(pipeFilter.type && c.sourceType!==pipeFilter.type)return false;
+      if(pipeFilter.cat && c.cat!==pipeFilter.cat)return false;
+      if(q && !(((c.name||'')+' '+(c.email||'')+' '+(c.occupation||'')+' '+(c.phone||'')).toLowerCase().includes(q)))return false;
+      return true;
+    };
+    let shown=0;
     const cols=STAGES.map(stage=>{
-      const cards=CONTACTS.filter(c=>c.stage===stage);
+      const cards=CONTACTS.filter(c=>c.stage===stage && match(c)); shown+=cards.length;
+      if(pipeFilter.hideEmpty && !cards.length)return '';
       const sc=STAGE_COLORS[stage]||{bg:'#e2e8f0',color:'#475569'};
       return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
         <h4 style="border-left:3px solid ${sc.color};padding-left:9px"><span style="color:${sc.color};font-weight:700">${esc(stageLabel(stage))}</span><span class="pill" style="background:${sc.bg};color:${sc.color}">${cards.length}</span></h4>
-        <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
+        <div class="kbody">${cards.map(c=>{const nt=nextTaskFor(c);const cc=CAT_COLORS[c.cat]||CAT_COLORS.Cold;return `<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
           <div class="nm">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}" style="font-size:9px">${c.sourceType}</span></div>
           <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
-        </div>`).join('')}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;gap:6px"><span class="pill" style="font-size:9px;background:${cc.bg};color:${cc.color}">${esc(c.cat)}</span>${nt?`<span class="muted" style="font-size:10px;white-space:nowrap" title="Next task: ${esc(nt.title||'')}">📅 ${esc(nt.due||'no date')}${nt.assignedTo?' · '+esc(nt.assignedTo):''}</span>`:''}</div>
+        </div>`;}).join('')||'<p class="muted" style="font-size:11px;padding:8px 10px">No leads</p>'}</div>
       </div>`;
     }).join('');
-    $('content').innerHTML=`<p class="muted" style="margin-top:0">Drag cards between stages. ${CONTACTS.length} contacts.</p><div class="kanban">${cols}</div>`;
+    const typeOpts=[['','All sources'],['AI','AI leads'],['Standard','Standard']].map(([v,l])=>`<option value="${v}" ${v===pipeFilter.type?'selected':''}>${l}</option>`).join('');
+    const catOpts=['','Sales Ready','Hot','Warm','Cold'].map(s=>`<option value="${s}" ${s===pipeFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
+    $('content').innerHTML=`<div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <input type="search" id="pq" placeholder="Search name, email, phone, occupation…" value="${esc(pipeFilter.q)}" oninput="pipeFilter.q=this.value;renderPipeline();var e=document.getElementById('pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}" style="max-width:280px">
+      <select onchange="pipeFilter.type=this.value;renderPipeline()">${typeOpts}</select>
+      <select onchange="pipeFilter.cat=this.value;renderPipeline()">${catOpts}</select>
+      <label style="display:flex;gap:5px;align-items:center;font-size:12px;white-space:nowrap"><input type="checkbox" ${pipeFilter.hideEmpty?'checked':''} onchange="pipeFilter.hideEmpty=this.checked;renderPipeline()" style="width:auto"> Hide empty stages</label>
+      <span class="muted" style="font-size:12px;margin-left:auto">${shown} of ${CONTACTS.length} shown · drag cards between stages</span>
+    </div><div class="kanban">${cols}</div>`;
+    const km=document.querySelector('.kanban'); if(km)km.scrollLeft=pipeScroll;
   }
-  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){setStage(dragKey,stage).then(()=>renderPipeline());} dragKey=null; }
+  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){const k=dragKey;dragKey=null;setStage(k,stage);} }
 
   /* ---------- tasks (global) ---------- */
   function renderTasks(){
