@@ -213,6 +213,8 @@
       buildContacts();
       m.textContent = CONTACTS.length+' contacts · '+REPORTS.length+' reports';
       render();
+      // Zero-config automatic daily backup (no-op if a snapshot was taken in the last 24h).
+      try{ api('/crm-backup.php',{action:'auto'}); }catch(_){}
     }catch(e){ m.textContent='✗ Load failed (PHP enabled?)'; }
   }
 
@@ -949,9 +951,13 @@
     const r=await api('/crm-backup.php',{action:'list'});
     if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not load backups ('+esc((r&&r.error)||'')+').</p>'; return; }
     const cur=(r.current&&r.current.leads)||0;
-    const rows=(r.backups||[]).map(b=>`<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><strong>${b.leads||0}</strong></td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm" onclick="restoreBackup('${esc(b.ts)}',${b.leads||0})" ${b.leads?'':'disabled'}>Restore</button></td></tr>`).join('');
-    if(box)box.innerHTML=`<p style="font-size:13px;margin:0 0 6px">Current live store: <strong>${cur}</strong> lead(s).${cur===0?' <span class="err">Empty — restore a snapshot below.</span>':''}</p>
-      <div style="overflow:auto"><table><thead><tr><th>Snapshot (taken)</th><th>Leads</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="muted" style="padding:12px">No snapshots found.</td></tr>'}</tbody></table></div>`;
+    const TYPE_LABEL={'daily':'Daily','manual':'Manual','pre-restore':'Pre-restore','pre-deploy':'Pre-deploy'};
+    const rows=(r.backups||[]).map(b=>{
+      const integrity=b.valid===false?'<span class="err" title="Some records failed validation">⚠ check</span>':'<span class="ok">✓</span>';
+      return `<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><span class="badge tag">${esc(TYPE_LABEL[b.type]||b.type||'manual')}</span></td><td><strong>${b.leads||0}</strong></td><td>${integrity}</td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm" onclick="restoreBackup('${esc(b.ts)}',${b.leads||0})" ${b.leads?'':'disabled'}>Restore</button> <button class="btn btn-sm" onclick="downloadBackup('${esc(b.ts)}')">⬇</button></td></tr>`;
+    }).join('');
+    if(box)box.innerHTML=`<p style="font-size:13px;margin:0 0 6px">Current live store: <strong>${cur}</strong> lead(s).${cur===0?' <span class="err">Empty — restore a snapshot below.</span>':''} <span class="muted">Auto-backups: daily, kept as 14 daily · 12 weekly · 12 monthly.</span></p>
+      <div style="overflow:auto"><table><thead><tr><th>Snapshot (taken)</th><th>Type</th><th>Leads</th><th>OK</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted" style="padding:12px">No snapshots found.</td></tr>'}</tbody></table></div>`;
   }
   async function restoreBackup(ts,leads){
     if(!confirm('Restore the snapshot from '+ts+' ('+leads+' leads)?\n\nThis replaces the current CRM records with that snapshot. Your current state is snapshotted first, so you can undo.'))return;
@@ -960,6 +966,14 @@
     if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),500); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },900);} else { if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';} }
   }
   async function snapshotNow(){ const m=$('bkMsg'); if(m){m.textContent='Creating snapshot…';m.className='muted';} const r=await api('/crm-backup.php',{action:'snapshot'}); if(m){m.textContent=r&&r.ok?('Snapshot created.'):'Snapshot failed';m.className=r&&r.ok?'ok':'err';} loadBackups(); }
+  async function downloadBackup(ts){
+    const m=$('bkMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
+    try{ const r=await fetch('/crm-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
+      if(!r.ok){ if(m){m.textContent='Download failed';m.className='err';} return; }
+      const b=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-crm-backup-'+ts+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      if(m){m.textContent='Downloaded ✓';m.className='ok';}
+    }catch(e){ if(m){m.textContent='Download failed';m.className='err';} }
+  }
   async function diagOne(url,body){
     try{ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})}); const txt=await r.text(); let p=null,cnt='—',ok='?'; try{ p=JSON.parse(txt); ok=String(!!p.ok); const a=p.leads||p.reports||p.tasks||(p.meta?Object.keys(p.meta):null); cnt=Array.isArray(a)?a.length:(a&&typeof a==='object'?Object.keys(a).length:'(none)'); }catch(e){ ok='UNPARSEABLE'; } return {status:r.status,ok,cnt,sample:txt.slice(0,160)}; }catch(e){ return {status:'ERR',ok:e.message,cnt:'—',sample:''}; }
   }
