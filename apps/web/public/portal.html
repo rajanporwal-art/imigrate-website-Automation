@@ -372,13 +372,20 @@ async function renderIntegration(mod){
   const d=CONNECTORS[mod]; if(!d) return renderFramework(mod);
   $('view').innerHTML=`<div class="card"><h3>${esc(d.title)}</h3><p class="muted">Loading…</p></div>`;
   const r=await integrationsApi({action:'status'});
-  const st=(r.ok&&r.connectors&&r.connectors[d.conn])||{configured:false,fields:{}};
+  // During a deploy the endpoint can be momentarily unreachable — don't flip a live
+  // connection to a scary "Not connected"; show a transient checking state + retry.
+  if(!r||!r.ok){ $('view').innerHTML=`<div class="card" style="max-width:680px"><div style="font-size:30px">${d.icon}</div><h3 style="margin:6px 0">${esc(d.title)} <span class="badge tag">Checking…</span></h3><p class="muted" style="font-size:13px">Couldn't reach the integration service (this can happen briefly during a deploy). Retrying…</p><button class="btn btn-sm" onclick="renderIntegration('${mod}')">Retry now</button></div>`; setTimeout(()=>{ if(typeof VIEW==='undefined'||VIEW===mod) renderIntegration(mod); },5000); return; }
+  const st=(r.connectors&&r.connectors[d.conn])||{configured:false,connected:false,fields:{}};
   const fv=st.fields||{};
   const fieldsHtml=d.fields.map(f=>{ const saved=fv[f.key]||''; const ph=(f.secret&&saved)?('Saved ('+esc(saved)+') — leave blank to keep'):esc(f.ph||''); return `<label class="fl">${esc(f.label)}</label><input id="ig_${f.key}" type="${f.secret?'password':'text'}" value="${f.secret?'':esc(saved)}" placeholder="${ph}" autocomplete="off">`; }).join('');
   let oauth='';
-  if(d.oauth){ oauth=`<div class="card" style="box-shadow:none;background:#fbfcfe;margin-top:12px"><strong style="font-size:13px">Microsoft sign-in</strong> ${r.m365Connected?'<span class="badge active">Signed in</span>':'<span class="badge tag">Not signed in</span>'}<p class="muted" style="font-size:12px;margin:6px 0">${st.configured?'Sign in once to authorise sending email, calendar and OneDrive.':'Save the app credentials above first, then sign in.'}</p>${st.configured?`<a class="btn btn-sm btn-primary" href="${esc(r.m365ConnectUrl||'/m365.php?action=connect')}" target="_blank">Connect Microsoft sign-in →</a>`:''}</div>`; }
+  if(d.oauth){ oauth=`<div class="card" style="box-shadow:none;background:#fbfcfe;margin-top:12px"><strong style="font-size:13px">Microsoft sign-in</strong> ${r.m365Connected?'<span class="badge active">Signed in</span>':'<span class="badge tag">Not signed in</span>'}<p class="muted" style="font-size:12px;margin:6px 0">${st.configured?(r.m365Connected?'Signed in — email, calendar and OneDrive are authorised. The connection persists across deploys; you should not need to sign in again unless you click Disconnect.':'Credentials saved. Sign in once to authorise sending email, calendar and OneDrive.'):'Save the app credentials above first, then sign in.'}</p>${(st.configured&&!r.m365Connected)?`<a class="btn btn-sm btn-primary" href="${esc(r.m365ConnectUrl||'/m365.php?action=connect')}" target="_blank">Connect Microsoft sign-in →</a>`:''}</div>`; }
+  // Top badge reflects the REAL state: live connection > configured-but-not-signed-in > nothing.
+  const badge = st.connected ? '<span class="badge active">Connected</span>'
+    : (st.configured ? (d.oauth ? '<span class="badge warm">Configured · sign in needed</span>' : '<span class="badge active">Connected</span>')
+    : '<span class="badge tag">Not connected</span>');
   $('view').innerHTML=`<div class="card" style="max-width:680px"><div style="font-size:30px">${d.icon}</div>
-    <h3 style="margin:6px 0">${esc(d.title)} ${st.configured?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</h3>
+    <h3 style="margin:6px 0">${esc(d.title)} ${badge}</h3>
     <p style="font-size:13px">${esc(d.desc)}</p>
     ${fieldsHtml}
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveIntegration('${mod}')">Save &amp; connect</button>${st.configured?`<button class="btn btn-sm" onclick="disconnectIntegration('${mod}')">Disconnect</button>`:''}<span id="ig_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
@@ -397,7 +404,7 @@ async function renderIntegrationsOverview(){
   $('view').innerHTML=`<div class="card"><h3>API Connections</h3><p class="muted">Loading…</p></div>`;
   const r=await integrationsApi({action:'status'});
   const conns=(r.ok&&r.connectors)||{};
-  const items=Object.entries(CONNECTORS).map(([mod,d])=>{ const c=(conns[d.conn]||{}).configured; return `<div class="qcard" onclick="go('${mod}')"><div class="ic">${d.icon}</div><h3>${esc(d.title)}</h3><p>${c?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</p></div>`; }).join('');
+  const items=Object.entries(CONNECTORS).map(([mod,d])=>{ const s=conns[d.conn]||{}; const c=(s.connected!==undefined?s.connected:s.configured); const label=c?'<span class="badge active">Connected</span>':(s.configured?'<span class="badge warm">Sign in needed</span>':'<span class="badge tag">Not connected</span>'); return `<div class="qcard" onclick="go('${mod}')"><div class="ic">${d.icon}</div><h3>${esc(d.title)}</h3><p>${label}</p></div>`; }).join('');
   const ai=`<div class="qcard" onclick="go('int.anthropic')"><div class="ic">🤖</div><h3>Claude AI</h3><p>AI content, ads &amp; SEO</p></div>`;
   $('view').innerHTML=`<p class="muted" style="margin-top:0">Connect your tools — enter credentials and you're live. Everything is stored securely server-side; click any card to configure.</p><div class="cards">${items}${ai}</div>`;
 }

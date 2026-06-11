@@ -59,17 +59,38 @@ $store = ig_load($STORE);
 $action = (string) ($p['action'] ?? 'status');
 
 if ($action === 'status') {
+    // Canonical, deploy-persistent state — the portal must reflect the REAL
+    // connection (the files the app actually uses), not just what was typed into
+    // the portal form. These files are all excluded from deploys, so a connection
+    // made here (or in the CRM) survives every deploy.
+    $m365Configured = false; $m365Connected = false;
+    if (is_file($ROOT . '/m365-lib.php')) {
+        require_once $ROOT . '/m365-lib.php';
+        if (function_exists('m365_is_configured')) $m365Configured = m365_is_configured(); // m365-config.php has creds
+        if (function_exists('m365_is_connected')) $m365Connected = m365_is_connected();   // leads/m365-tokens.json has refresh token
+    }
+    $hsEnabled = false;
+    if (is_file($ROOT . '/hubspot.json')) {
+        $hs = json_decode((string) file_get_contents($ROOT . '/hubspot.json'), true) ?: [];
+        $hsEnabled = !empty($hs['enabled']) && !empty($hs['portalId']) && !empty($hs['formGuid']);
+    }
+
     $out = [];
     foreach ($FIELDS as $conn => $fields) {
         $vals = is_array($store[$conn] ?? null) ? $store[$conn] : [];
         $shown = [];
         foreach ($fields as $k) { $shown[$k] = isset($SECRET[$k]) ? ig_mask($vals[$k] ?? '') : (string) ($vals[$k] ?? ''); }
-        $out[$conn] = ['configured' => ig_configured($vals, $REQUIRED[$conn] ?? []), 'fields' => $shown];
+        // "configured" = required creds present in the portal store OR in the canonical file.
+        $configured = ig_configured($vals, $REQUIRED[$conn] ?? []);
+        if ($conn === 'm365') $configured = $configured || $m365Configured;
+        if ($conn === 'hubspot') $configured = $configured || $hsEnabled;
+        // "connected" = the integration is actually live/usable right now.
+        $connected = $configured;
+        if ($conn === 'm365') $connected = $m365Connected;          // requires completed OAuth sign-in
+        if ($conn === 'hubspot') $connected = $hsEnabled || $configured;
+        $out[$conn] = ['configured' => $configured, 'connected' => $connected, 'fields' => $shown];
     }
-    // Live M365 OAuth connection state (creds saved ≠ signed in).
-    $m365Connected = false;
-    if (is_file($ROOT . '/m365-lib.php')) { require_once $ROOT . '/m365-lib.php'; if (function_exists('m365_is_connected')) $m365Connected = m365_is_connected(); }
-    echo json_encode(['ok' => true, 'connectors' => $out, 'm365Connected' => $m365Connected, 'm365ConnectUrl' => '/m365.php?action=connect']);
+    echo json_encode(['ok' => true, 'connectors' => $out, 'm365Configured' => $m365Configured, 'm365Connected' => $m365Connected, 'm365ConnectUrl' => '/m365.php?action=connect']);
     exit;
 }
 
