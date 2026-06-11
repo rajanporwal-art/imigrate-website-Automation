@@ -15,9 +15,13 @@ function m365_config() {
     static $cfg = null;
     if ($cfg !== null) return $cfg;
     $cfg = [];
-    if (is_file(__DIR__ . '/m365-config.php')) {
-        include __DIR__ . '/m365-config.php';
-        if (isset($M365) && is_array($M365)) $cfg = $M365;
+    // Prefer the deploy-proof location (auth/ persists across deploys); fall back
+    // to the legacy root file for backward compatibility.
+    foreach ([__DIR__ . '/auth/m365-config.php', __DIR__ . '/m365-config.php'] as $f) {
+        if (is_file($f)) {
+            include $f;
+            if (isset($M365) && is_array($M365)) { $cfg = $M365; break; }
+        }
     }
     return $cfg;
 }

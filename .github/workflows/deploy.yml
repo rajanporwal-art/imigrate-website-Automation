@@ -93,7 +93,6 @@ jobs:
             **/.git*
             **/.git*/**
             .htpasswd
-            admin-config.php
             leads/**
             **/*.backup
             forms.json

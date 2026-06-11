@@ -128,7 +128,10 @@ if ($action === 'save') {
             . "    'tenant'        => " . var_export($vals['tenant'] ?? 'common', true) . ",\n"
             . "    'redirect_uri'  => " . var_export($vals['redirect_uri'] ?: 'https://www.imigratesolution.com/m365.php?action=callback', true) . ",\n"
             . "    'scopes'        => 'offline_access User.Read Mail.Send Mail.Read Calendars.ReadWrite Files.ReadWrite',\n];\n";
-        @file_put_contents($ROOT . '/m365-config.php', $php, LOCK_EX);
+        // Write to the deploy-proof auth/ directory so the M365 connection persists
+        // across deploys (root-level files are not reliably preserved by the mirror).
+        @file_put_contents($dir . '/m365-config.php', $php, LOCK_EX);
+        @file_put_contents($ROOT . '/m365-config.php', $php, LOCK_EX); // legacy mirror (best-effort)
     }
     echo json_encode(['ok' => true, 'configured' => true, 'connector' => $conn]);
     exit;
@@ -144,7 +147,7 @@ if ($action === 'disconnect') {
         $hs['enabled'] = false;
         @file_put_contents($ROOT . '/hubspot.json', json_encode($hs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
     }
-    if ($conn === 'm365') { @unlink($ROOT . '/m365-config.php'); }
+    if ($conn === 'm365') { @unlink($dir . '/m365-config.php'); @unlink($ROOT . '/m365-config.php'); }
     echo json_encode(['ok' => true]);
     exit;
 }
