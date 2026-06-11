@@ -9,3 +9,10 @@
  * separate and lives in .htpasswd.
  */
 $EDIT_PASSWORD = 'CHANGE-ME-to-a-strong-unique-password';
+
+/**
+ * CRON / CI key — enables the automatic pre/post-deploy backups + audit logging
+ * (and any URL-triggered cron snapshots). Must EXACTLY match the GitHub Actions
+ * repository secret named CRM_BACKUP_KEY. Leave unset to disable.
+ */
+$CRON_SECRET = 'CHANGE-ME-to-match-the-CRM_BACKUP_KEY-GitHub-secret';

@@ -74,6 +74,22 @@ if ($method === 'POST') {
 }
 if (isset($_GET['key']) && $CRON_SECRET !== '') { $authCron = hash_equals($CRON_SECRET, (string) $_GET['key']); }
 $action = $p['action'] ?? ($_GET['action'] ?? 'status');
+// TEMP diagnostic (no secrets revealed) — confirms whether admin-config.php's
+// $CRON_SECRET is set and whether the provided key matches. Remove after setup.
+if ($action === 'keycheck') {
+    $prov = (string) ($_GET['key'] ?? '');
+    echo json_encode([
+        'ok' => true,
+        'cronConfigured' => ($CRON_SECRET !== ''),
+        'serverKeyLength' => strlen($CRON_SECRET),
+        'providedKeyLength' => strlen($prov),
+        'isPlaceholder' => ($CRON_SECRET === 'CHANGE-ME-to-match-the-CRM_BACKUP_KEY-GitHub-secret'),
+        'match' => ($CRON_SECRET !== '' && hash_equals($CRON_SECRET, $prov)),
+        'adminConfigLoaded' => (isset($EDIT_PASSWORD) && $EDIT_PASSWORD !== 'imigrate-admin-2026'),
+    ]);
+    exit;
+}
+
 if (!$authAdmin && !$authCron) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Not authorized']); exit; }
 
 /* ----------------------------------------------------------------- helpers */
