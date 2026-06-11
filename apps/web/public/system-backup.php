@@ -389,22 +389,24 @@ if ($action === 'import-leads') {
         }
     }
     $VALID_STAGES = ['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Future Lead','No Answer – Follow-up Sent','No Pickup – Email/WhatsApp Sent','Does Not Qualify','Signed Up','Lost Lead','Duplicate Lead','Invalid Lead / Spam'];
-    $added = 0; $skipped = 0; $out = ''; $stageByEmail = [];
+    $added = 0; $skipped = 0; $out = ''; $stageByEmail = []; $activityByEmail = [];
     foreach ($incoming as $rec) {
         if (!is_array($rec)) { $skipped++; continue; }
         $hid = (string) ($rec['hubspotId'] ?? ''); $em = strtolower((string) ($rec['fields']['email'] ?? ''));
         if (($hid !== '' && isset($haveHid[$hid])) || ($em !== '' && isset($haveEmail[$em]))) { $skipped++; continue; }
         if ($hid !== '') $haveHid[$hid] = 1; if ($em !== '') $haveEmail[$em] = 1;
-        // Capture an optional pipeline stage hint, then strip it from the stored record.
+        // Capture optional pipeline-stage + activity hints, then strip from the stored record.
         $stg = (string) ($rec['_stage'] ?? ''); unset($rec['_stage']);
         if ($em !== '' && $stg !== '' && in_array($stg, $VALID_STAGES, true)) $stageByEmail[$em] = $stg;
+        $act = (isset($rec['_activity']) && is_array($rec['_activity'])) ? $rec['_activity'] : []; unset($rec['_activity']);
+        if ($em !== '' && $act) $activityByEmail[$em] = $act;
         $out .= json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"; $added++;
     }
     if ($out !== '') @file_put_contents($leadsFile, $out, FILE_APPEND | LOCK_EX);
-    // Set pipeline stage for the imported leads (crm-meta), without clobbering any
-    // existing stage already set in the CRM.
-    $metaSet = 0;
-    if ($stageByEmail) {
+    // Set pipeline stage + note activity for the imported leads (crm-meta), without
+    // clobbering any stage already set, and de-duplicating note entries.
+    $metaSet = 0; $notesAdded = 0;
+    if ($stageByEmail || $activityByEmail) {
         $metaFile = $leadsDir . '/crm-meta.ndjson';
         $meta = [];
         if (is_file($metaFile)) {
@@ -420,11 +422,26 @@ if ($action === 'import-leads') {
             $row['stage'] = $stg; $row['stageAt'] = date('c'); $row['stageChangedBy'] = 'System (HubSpot recovery)';
             $meta[$em] = $row; $metaSet++;
         }
+        foreach ($activityByEmail as $em => $acts) {
+            $row = $meta[$em] ?? ['key' => $em, 'overrides' => [], 'activity' => []];
+            if (!isset($row['activity']) || !is_array($row['activity'])) $row['activity'] = [];
+            $seen = []; foreach ($row['activity'] as $a) $seen[md5((string) ($a['detail'] ?? '') . '|' . (string) ($a['at'] ?? ''))] = 1;
+            foreach ($acts as $a) {
+                if (!is_array($a)) continue;
+                $sig = md5((string) ($a['detail'] ?? '') . '|' . (string) ($a['at'] ?? ''));
+                if (isset($seen[$sig])) continue; $seen[$sig] = 1;
+                $row['activity'][] = ['id' => substr(md5(uniqid('', true)), 0, 10), 'event' => substr((string) ($a['event'] ?? 'Note'), 0, 60), 'detail' => substr((string) ($a['detail'] ?? ''), 0, 400), 'author' => (string) ($a['author'] ?? 'HubSpot'), 'at' => (string) ($a['at'] ?? date('c'))];
+                $notesAdded++;
+            }
+            usort($row['activity'], fn($x, $y) => strcmp((string) ($x['at'] ?? ''), (string) ($y['at'] ?? '')));
+            if (count($row['activity']) > 500) $row['activity'] = array_slice($row['activity'], -500);
+            $meta[$em] = $row;
+        }
         $mout = ''; foreach ($meta as $row) $mout .= json_encode($row, JSON_UNESCAPED_UNICODE) . "\n";
         if ($mout !== '') @file_put_contents($metaFile, $mout, LOCK_EX);
     }
-    audit_log($AUDIT, 'import.leads', ['added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'reason' => (string) ($p['reason'] ?? '')]);
-    echo json_encode(['ok' => true, 'added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'total' => leads_count($ROOT)]);
+    audit_log($AUDIT, 'import.leads', ['added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'notesAdded' => $notesAdded, 'reason' => (string) ($p['reason'] ?? '')]);
+    echo json_encode(['ok' => true, 'added' => $added, 'skipped' => $skipped, 'stagesSet' => $metaSet, 'notesAdded' => $notesAdded, 'total' => leads_count($ROOT)]);
     exit;
 }
 
