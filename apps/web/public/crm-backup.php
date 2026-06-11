@@ -168,6 +168,49 @@ if ($action === 'onedrive-status') {
     exit;
 }
 
+/* List CRM backup bundles stored in OneDrive (for restore). Admin only. */
+if ($action === 'onedrive-list') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    if (!is_file(__DIR__ . '/m365-lib.php')) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not configured']); exit; }
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not connected']); exit; }
+    $files = m365_onedrive_list('iMigrate CRM Backups');
+    $out = [];
+    foreach ($files as $f) {
+        if (substr((string) ($f['name'] ?? ''), -5) !== '.json') continue;
+        $out[] = ['name' => $f['name'], 'size' => (int) ($f['size'] ?? 0), 'modified' => $f['lastModifiedDateTime'] ?? ''];
+    }
+    echo json_encode(['ok' => true, 'files' => $out]);
+    exit;
+}
+
+/* Restore the CRM record store from a OneDrive backup bundle. Admin only.
+   Snapshots the current state first (pre-restore) so it is always reversible. */
+if ($action === 'onedrive-restore') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    $name = basename((string) ($p['file'] ?? ''));
+    if ($name === '' || substr($name, -5) !== '.json') { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Invalid backup file']); exit; }
+    if (!is_file(__DIR__ . '/m365-lib.php')) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not configured']); exit; }
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not connected']); exit; }
+    $raw = m365_onedrive_download($name, 'iMigrate CRM Backups');
+    if ($raw === null) { http_response_code(502); echo json_encode(['ok' => false, 'error' => 'Could not download backup from OneDrive']); exit; }
+    $bundle = json_decode($raw, true);
+    if (!is_array($bundle) || empty($bundle['files']) || !is_array($bundle['files'])) { http_response_code(422); echo json_encode(['ok' => false, 'error' => 'Backup file is not a valid CRM bundle']); exit; }
+    // Safety: snapshot current state before overwriting.
+    $pre = make_snapshot($dir, $backupRoot, 'pre-restore');
+    $restored = 0; $skipped = 0;
+    foreach ($bundle['files'] as $fname => $content) {
+        $fname = basename((string) $fname);
+        $ext = strtolower((string) pathinfo($fname, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['ndjson', 'json'], true)) { $skipped++; continue; }
+        if ($fname === '' || $fname[0] === '.') { $skipped++; continue; }
+        if (@file_put_contents($dir . '/' . $fname, (string) $content, LOCK_EX) !== false) $restored++; else $skipped++;
+    }
+    echo json_encode(['ok' => true, 'restored' => $restored, 'skipped' => $skipped, 'from' => $name, 'safetySnapshot' => $pre['ts'], 'exportedAt' => $bundle['exportedAt'] ?? '']);
+    exit;
+}
+
 /* Manual: back up ALL CRM data to OneDrive now. */
 if ($action === 'onedrive-backup') {
     $res = crm_onedrive_push($dir);

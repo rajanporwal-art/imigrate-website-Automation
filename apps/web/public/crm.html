@@ -1144,9 +1144,10 @@
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="onedriveBackupNow()">☁️ Back up to OneDrive</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="onedriveBackupNow()">☁️ Back up to OneDrive</button><button class="btn" onclick="loadOnedriveBackups()">☁️ Restore from OneDrive</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
         <div id="bkOnedrive" class="muted" style="font-size:13px;margin-top:8px">☁️ Last OneDrive backup: <strong>checking…</strong></div>
         <div id="bkProgress"></div>
+        <div id="bkOdList" style="margin-top:10px"></div>
         <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
@@ -1214,6 +1215,24 @@
     return { done:(ok,msg)=>{ clearInterval(timer); if(fill){fill.style.width='100%';fill.style.background=ok?'#1a7f37':'#b91c1c';} if(lbl)lbl.textContent=msg||(ok?'Done ✓':'Failed'); setTimeout(()=>{ if(container&&ok)container.innerHTML=''; },4000); } };
   }
   async function onedriveBackupNow(){ const p=progressBar($('bkProgress'),'Backing up all CRM data to OneDrive…'); const r=await api('/crm-backup.php',{action:'onedrive-backup'}); p.done(!!(r&&r.ok), r&&r.ok?('Backed up to OneDrive ✓ ('+(r.count||'')+' files)'):('OneDrive backup failed — '+((r&&r.error)||'Microsoft 365 not connected'))); if(r&&r.ok)refreshOnedriveLast(); }
+  async function loadOnedriveBackups(){
+    const box=$('bkOdList'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading OneDrive backups…</p>';
+    const r=await api('/crm-backup.php',{action:'onedrive-list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not list OneDrive backups — '+esc((r&&r.error)||'Microsoft 365 not connected')+'.</p>'; return; }
+    const files=r.files||[];
+    if(!files.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No backups found in OneDrive ▸ iMigrate CRM Backups.</p>'; return; }
+    const rows=files.map(f=>`<tr><td class="muted">${esc(backupAgo(f.modified)||f.name)}</td><td class="muted">${((f.size||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreFromOnedrive('${esc(f.name)}')">Restore</button></td></tr>`).join('');
+    if(box)box.innerHTML=`<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">☁️ OneDrive backups <span class="muted" style="font-weight:400">(iMigrate CRM Backups)</span></h3><p class="muted" style="font-size:12px;margin:0 0 8px">Restoring pulls the bundle from OneDrive and replaces the current CRM records. Your current state is snapshotted first, so it's reversible.</p><div style="overflow:auto"><table><thead><tr><th>Backup</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  async function restoreFromOnedrive(file){
+    if(!confirm('Restore CRM data from OneDrive backup:\n'+file+'\n\nThis replaces the current CRM records with that backup. Your current state is snapshotted first, so you can undo.'))return;
+    const m=$('bkMsg'); if(m){m.textContent='Restoring from OneDrive…';m.className='muted';}
+    const p=progressBar($('bkProgress'),'Restoring CRM data from OneDrive…');
+    const r=await api('/crm-backup.php',{action:'onedrive-restore',file});
+    p.done(!!(r&&r.ok), r&&r.ok?('Restored '+r.restored+' files from OneDrive ✓'):('Restore failed — '+((r&&r.error)||'unknown error')));
+    if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),600); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },1000); }
+    else if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';}
+  }
   async function downloadBackup(ts){
     const m=$('bkMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
     try{ const r=await fetch('/crm-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
