@@ -1145,6 +1145,7 @@
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="onedriveBackupNow()">☁️ Back up to OneDrive</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="bkProgress"></div>
         <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
@@ -1184,7 +1185,15 @@
     if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),500); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },900);} else { if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';} }
   }
   async function snapshotNow(){ const m=$('bkMsg'); if(m){m.textContent='Creating snapshot…';m.className='muted';} const r=await api('/crm-backup.php',{action:'snapshot'}); if(m){m.textContent=r&&r.ok?('Snapshot created.'):'Snapshot failed';m.className=r&&r.ok?'ok':'err';} loadBackups(); }
-  async function onedriveBackupNow(){ const m=$('bkMsg'); if(m){m.textContent='Backing up to OneDrive…';m.className='muted';} const r=await api('/crm-backup.php',{action:'onedrive-backup'}); if(m){m.textContent=r&&r.ok?('Backed up to OneDrive ✓ ('+(r.count||'')+' files)'):('OneDrive backup failed: '+((r&&r.error)||'Microsoft 365 not connected'));m.className=r&&r.ok?'ok':'err';} }
+  /* Reusable progress bar for unknown-duration ops (animates toward 90%, completes on done). */
+  function progressBar(container,label){
+    if(!container) return {done:()=>{}};
+    container.innerHTML=`<div style="margin-top:8px"><div class="muted" style="font-size:12px;margin-bottom:4px" data-pglbl>${esc(label||'Working…')}</div><div style="height:9px;background:#e2e8f0;border-radius:6px;overflow:hidden"><div data-pgfill style="height:100%;width:6%;background:var(--navy,#0b1f44);transition:width .35s ease;border-radius:6px"></div></div></div>`;
+    const fill=container.querySelector('[data-pgfill]'); const lbl=container.querySelector('[data-pglbl]'); let pct=6;
+    const timer=setInterval(()=>{ pct=Math.min(90,pct+Math.random()*11+3); if(fill)fill.style.width=pct+'%'; },380);
+    return { done:(ok,msg)=>{ clearInterval(timer); if(fill){fill.style.width='100%';fill.style.background=ok?'#1a7f37':'#b91c1c';} if(lbl)lbl.textContent=msg||(ok?'Done ✓':'Failed'); setTimeout(()=>{ if(container&&ok)container.innerHTML=''; },4000); } };
+  }
+  async function onedriveBackupNow(){ const p=progressBar($('bkProgress'),'Backing up all CRM data to OneDrive…'); const r=await api('/crm-backup.php',{action:'onedrive-backup'}); p.done(!!(r&&r.ok), r&&r.ok?('Backed up to OneDrive ✓ ('+(r.count||'')+' files)'):('OneDrive backup failed — '+((r&&r.error)||'Microsoft 365 not connected'))); }
   async function downloadBackup(ts){
     const m=$('bkMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
     try{ const r=await fetch('/crm-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
@@ -1262,7 +1271,8 @@
           <button class="btn btn-sm" onclick="m365Backup()">Leads CSV → OneDrive</button>
           <button class="btn btn-sm" onclick="m365Disconnect()">Disconnect</button>
         </div>
-        <p class="muted" style="font-size:12px;margin-top:6px">Full backup includes leads, cases, invoices, tasks, notes, automations &amp; reports → OneDrive ▸ <strong>iMigrate CRM Backups</strong>. It also runs <strong>automatically with the daily backup</strong>.</p>`;
+        <p class="muted" style="font-size:12px;margin-top:6px">Full backup includes leads, cases, invoices, tasks, notes, automations &amp; reports → OneDrive ▸ <strong>iMigrate CRM Backups</strong>. It also runs <strong>automatically with the daily backup</strong>.</p>
+        <div id="m365Progress"></div>`;
     } else {
       box.innerHTML=`<span class="badge warm">Configured · not connected</span>
         <div style="margin-top:10px"><a class="btn btn-sm btn-primary" href="/m365.php?action=connect" target="_blank" onclick="setTimeout(m365LoadStatus,6000)">🔗 Connect Microsoft 365</a></div>`;
@@ -1284,8 +1294,9 @@
   }
   async function m365FullBackup(){
     if(!confirm('Back up ALL CRM data (leads, cases, invoices, tasks, notes, automations, reports) to OneDrive now?'))return;
+    const p=progressBar($('m365Progress'),'Backing up all CRM data to OneDrive…');
     const r=await api('/crm-backup.php',{action:'onedrive-backup'});
-    alert(r&&r.ok?('✅ Backed up '+(r.count||'all')+' data files to OneDrive ▸ iMigrate CRM Backups ▸ '+(r.file||'')):('Backup to OneDrive failed: '+((r&&r.error)||'check the Microsoft 365 connection')));
+    p.done(!!(r&&r.ok), r&&r.ok?('✅ Backed up '+(r.count||'all')+' files → OneDrive ▸ iMigrate CRM Backups ▸ '+(r.file||'')):('Backup failed — '+((r&&r.error)||'check the Microsoft 365 connection')));
   }
   async function m365Disconnect(){ if(!confirm('Disconnect Microsoft 365?'))return; await api('/m365.php',{action:'disconnect'}); m365LoadStatus(); $('m365Inbox').innerHTML=''; }
 
