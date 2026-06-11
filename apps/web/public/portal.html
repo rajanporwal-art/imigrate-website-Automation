@@ -119,7 +119,12 @@ function leafVisible(mod){ if(mod==='dashboard')return true; if(PERMS.all)return
 
 function can(mod,act){ act=act||'view'; if(PERMS.all)return true; const a=(PERMS.perms||{})[mod]||[]; return a.includes(act); }
 
-async function api(body){ const r=await fetch('/portal.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,...body})}); return r.json().catch(()=>({ok:false})); }
+// Real-time auto-backup: after any config/integration/user change in the portal,
+// debounce a full dual backup (server + OneDrive) via system-backup.php.
+const BK_READONLY=new Set(['status','list','get','load','audit','read','overview','me','perms','count']);
+let _bkTimer=null;
+function scheduleBackup(reason){ try{ if(!SVC)return; clearTimeout(_bkTimer); _bkTimer=setTimeout(()=>{ fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,action:'change',reason:String(reason||'portal')})}).catch(()=>{}); },4000); }catch(e){} }
+async function api(body){ const r=await fetch('/portal.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,...body})}); const j=await r.json().catch(()=>({ok:false})); try{ const a=body&&body.action; if(a&&!BK_READONLY.has(a)&&j&&j.ok!==false) scheduleBackup('portal:'+a); }catch(e){} return j; }
 
 /* ---------- auth ---------- */
 async function doLogin(){
@@ -367,7 +372,7 @@ const CONNECTORS={
  'int.whatsappapi':{conn:'whatsapp',icon:'💬',title:'WhatsApp Business API',desc:'Send templated WhatsApp messages programmatically.',help:'Meta Business → WhatsApp → API setup: copy the Phone Number ID and a permanent access token.',fields:[{key:'phoneNumberId',label:'Phone Number ID',ph:''},{key:'accessToken',label:'Access token',ph:'paste token',secret:true},{key:'businessId',label:'Business Account ID (optional)',ph:''}]},
  'int.email':{conn:'email',icon:'✉️',title:'Email Settings',desc:'Sender identity and lead-notification address for outbound email.',help:'Outbound email uses Microsoft 365 when connected, otherwise the server mailer.',fields:[{key:'senderName',label:'Sender name',ph:'iMigrate Migration Solutions'},{key:'senderEmail',label:'Sender email',ph:'no-reply@imigratesolution.com'},{key:'notifyEmail',label:'Lead notification email',ph:'sales@imigratesolution.com'}]},
 };
-async function integrationsApi(body){ try{ const r=await fetch('/integrations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'Request failed'}; } }
+async function integrationsApi(body){ try{ const r=await fetch('/integrations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,...body})}); const j=await r.json(); try{ const a=body&&body.action; if((a==='save'||a==='disconnect')&&j&&j.ok!==false) scheduleBackup('integration:'+a+':'+(body.connector||'')); }catch(e){} return j; }catch(e){ return {ok:false,error:'Request failed'}; } }
 async function renderIntegration(mod){
   const d=CONNECTORS[mod]; if(!d) return renderFramework(mod);
   $('view').innerHTML=`<div class="card"><h3>${esc(d.title)}</h3><p class="muted">Loading…</p></div>`;

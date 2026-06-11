@@ -124,7 +124,11 @@ async function unlock(){
 }
 function logout(){sessionStorage.removeItem('imig_cms_pw');location.reload();}
 
-async function api(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),editor:USER(),...body})});return r.json().catch(()=>({ok:false}));}
+// Real-time auto-backup: after any CMS content change, debounce a full dual backup.
+const BK_READONLY=new Set(['list','get','load','status','read','versions','search','meta','overview']);
+let _bkTimer=null;
+function scheduleBackup(reason){ try{ clearTimeout(_bkTimer); _bkTimer=setTimeout(()=>{ fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'change',reason:String(reason||'cms')})}).catch(()=>{}); },4000); }catch(e){} }
+async function api(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),editor:USER(),...body})});const j=await r.json().catch(()=>({ok:false}));try{const a=body&&body.action;if(a&&!BK_READONLY.has(a)&&j&&j.ok!==false)scheduleBackup('cms:'+a);}catch(e){}return j;}
 async function loadDomain(d){const r=await api('/cms-content.php',{action:'load',domain:d});return r.ok?r.data:null;}
 
 async function loadAll(){

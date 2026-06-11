@@ -34,14 +34,17 @@ jobs:
       # deploying, so lead data can be restored if anything goes wrong.
       # Best-effort: requires the CRM_BACKUP_KEY secret (matches $CRON_SECRET in
       # admin-config.php). CRM data (leads/**) is excluded from deploys anyway.
-      - name: Snapshot CRM data before deploy (best-effort)
+      - name: Snapshot all data before deploy (best-effort)
         continue-on-error: true
         run: |
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
-            echo "Requesting pre-deploy CRM snapshot…"
-            curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "Snapshot request failed (non-blocking)"
+            echo "Requesting pre-deploy full-system snapshot…"
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "system-backup snapshot failed (non-blocking)"
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=pre&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged pre-deploy" || true
+            # legacy leads-only snapshot too (harmless redundancy)
+            curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null || true
           else
-            echo "CRM_BACKUP_KEY not set — skipping pre-deploy CRM snapshot (CRM data is excluded from deploys regardless)."
+            echo "CRM_BACKUP_KEY not set — skipping pre-deploy snapshot (all data is excluded from deploys regardless)."
           fi
 
       - name: Deploy dist/apps/web to Hostinger via FTP
@@ -76,6 +79,8 @@ jobs:
           #   auth/**                  → auth/integrations.json (Google, Mailchimp,
           #                              ActiveCampaign, WhatsApp, Email) + portal users
           #   ai-data/**               → Claude AI API key + drafts
+          #   system-backups/**        → full-system backups (CRM+portal+config+
+          #                              integrations) + audit log + live mirror
           # Connect each integration ONCE; these files persist across every deploy.
           exclude: |
             **/.git*
@@ -92,3 +97,17 @@ jobs:
             cms-overrides/**
             auth/**
             ai-data/**
+            system-backups/**
+
+      # After deploy: log the event + take a post-deploy backup so there is a
+      # known-good restore point captured immediately after every release.
+      - name: Post-deploy backup + audit (best-effort)
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged post-deploy" || true
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "post-deploy snapshot taken" || true
+          else
+            echo "CRM_BACKUP_KEY not set — skipping post-deploy backup/audit."
+          fi

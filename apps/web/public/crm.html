@@ -199,9 +199,16 @@
   function logout(){ sessionStorage.removeItem('imig_crm_pw'); location.reload(); }
 
   /* ---------- data ---------- */
+  // Real-time auto-backup: after any data-changing CRM action, debounce a full
+  // dual backup (server + OneDrive) so nothing is ever lost. Read-only actions skip.
+  const BK_READONLY=new Set(['list','get','status','meta','read','load','audit','diag','messages','count','search','templates-list','onedrive-list','onedrive-status','reports','report-get','meta-get','overview']);
+  let _bkTimer=null;
+  function scheduleBackup(reason){ try{ clearTimeout(_bkTimer); _bkTimer=setTimeout(()=>{ fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'change',reason:String(reason||'')})}).catch(()=>{}); },4000); }catch(e){} }
   async function api(url, body){
     const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})});
-    return r.json().catch(()=>({ok:false}));
+    const j = await r.json().catch(()=>({ok:false}));
+    try{ const a=body&&body.action; const mutating=a?!BK_READONLY.has(a):false; if(mutating&&j&&j.ok!==false) scheduleBackup((url||'').replace(/^.*\//,'')+':'+a); }catch(e){}
+    return j;
   }
   async function loadAll(){
     const m=$('loadMsg'); m.textContent='Loading…';
@@ -1142,7 +1149,16 @@
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="cvReconcileScan()">🔍 Scan for orphaned CVs</button><span id="cvReconMsg" class="muted" style="font-size:13px"></span></div>
         <div id="cvReconResult" style="margin-top:10px"></div>
       </div>
-      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore</h3>
+      <div class="card" style="margin-bottom:14px;border:1px solid #1a7f37"><h3 style="margin:0 0 8px">🛡️ System Backup, Rollback &amp; Audit</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Protects <strong>everything</strong> — CRM data, portal users, integration &amp; API credentials, Microsoft 365 / HubSpot config, AI settings and CMS edits. Backups run <strong>automatically in real time</strong> after any change, to <strong>two independent destinations at once</strong>: this Hostinger server <em>and</em> OneDrive. A populated backup is never overwritten with an empty one, and every restore snapshots the current state first — so rollback is always reversible. Deploys never touch any of this data.</p>
+        <div id="sysStatus" class="muted" style="font-size:13px;margin:8px 0"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="backupEverythingNow()">💾 Back up everything now (both)</button><button class="btn" onclick="loadSystemBackups()">🔄 Refresh</button><button class="btn" onclick="loadSysOnedrive()">☁️ OneDrive restore points</button><button class="btn" onclick="loadAudit()">📋 Audit log</button><span id="sysMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="sysProgress"></div>
+        <div id="sysList" style="margin-top:10px"></div>
+        <div id="sysOdList" style="margin-top:10px"></div>
+        <div id="sysAudit" style="margin-top:10px"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore <span class="muted" style="font-weight:400;font-size:12px">(CRM leads only — legacy)</span></h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="onedriveBackupNow()">☁️ Back up to OneDrive</button><button class="btn" onclick="loadOnedriveBackups()">☁️ Restore from OneDrive</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
         <div id="bkOnedrive" class="muted" style="font-size:13px;margin-top:8px">☁️ Last OneDrive backup: <strong>checking…</strong></div>
@@ -1165,7 +1181,71 @@
       </div>`;
     m365LoadStatus();
     hubspotLoad();
+    loadSystemBackups();
     loadBackups();
+  }
+  /* ---------- System backup, rollback & audit (full platform) ---------- */
+  const SYS_TYPE={'change':'Auto (change)','manual':'Manual','pre-deploy':'Pre-deploy','pre-restore':'Pre-restore','daily':'Daily'};
+  async function loadSystemBackups(){
+    const st=$('sysStatus'), box=$('sysList');
+    const r=await api('/system-backup.php',{action:'list'});
+    if(!r||!r.ok){ if(st)st.innerHTML='<span class="err">System backup service unavailable'+((r&&r.error)?(' — '+esc(r.error)):'')+'.</span>'; if(box)box.innerHTML=''; return; }
+    const cur=(r.current&&r.current.leads)||0;
+    if(st)st.innerHTML='Current: <strong>'+cur+'</strong> lead(s) · Server restore points: <strong>'+((r.backups||[]).length)+'</strong> · '
+      +'Last server backup: <strong>'+esc(r.lastServer?backupAgo(new Date(r.lastServer*1000).toISOString()):'never')+'</strong> · '
+      +'Last OneDrive: <strong>'+esc(r.lastOnedrive?backupAgo(new Date(r.lastOnedrive*1000).toISOString()):'never')+'</strong>';
+    const rows=(r.backups||[]).map(b=>{
+      const ok=b.valid===false?'<span class="err" title="integrity check">⚠</span>':'<span class="ok">✓</span>';
+      return `<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><span class="badge tag">${esc(SYS_TYPE[b.type]||b.type||'')}</span></td><td><strong>${b.leads||0}</strong></td><td>${ok}</td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreSystem('${esc(b.ts)}',${b.leads||0})">Rollback</button> <button class="btn btn-sm" onclick="downloadSystem('${esc(b.ts)}')">⬇</button></td></tr>`;
+    }).join('');
+    if(box)box.innerHTML='<div style="overflow:auto"><table><thead><tr><th>Server restore point</th><th>Type</th><th>Leads</th><th>OK</th><th>Size</th><th class="right"></th></tr></thead><tbody>'+(rows||'<tr><td colspan="6" class="muted" style="padding:10px">No restore points yet — they’re created automatically as you work.</td></tr>')+'</tbody></table></div>';
+  }
+  async function backupEverythingNow(){
+    const p=progressBar($('sysProgress'),'Backing up everything to server + OneDrive…');
+    const r=await api('/system-backup.php',{action:'backup-now'});
+    const sOk=r&&r.server, oOk=r&&r.onedrive&&r.onedrive.ok;
+    p.done(!!(r&&r.ok), (r&&r.ok)?('Server ✓'+(oOk?' · OneDrive ✓':' · OneDrive: '+esc((r.onedrive&&r.onedrive.error)||'not connected'))):('Backup failed'+(r&&r.noData?' — no data to back up':'')));
+    loadSystemBackups();
+  }
+  async function restoreSystem(ts,leads){
+    if(!confirm('Roll back the ENTIRE platform (CRM + portal + integrations + config) to the restore point from '+ts+' ('+leads+' leads)?\n\nThe current state is snapshotted first, so this is reversible.'))return;
+    const p=progressBar($('sysProgress'),'Rolling back to '+ts+'…');
+    const r=await api('/system-backup.php',{action:'restore',ts});
+    p.done(!!(r&&r.ok), r&&r.ok?('Rolled back '+r.restored+' files ✓ (safety point '+r.safetySnapshot+')'):('Rollback failed — '+((r&&r.error)||'')));
+    if(r&&r.ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
+  }
+  async function loadSysOnedrive(){
+    const box=$('sysOdList'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading OneDrive restore points…</p>';
+    const r=await api('/system-backup.php',{action:'onedrive-list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not list OneDrive backups — '+esc((r&&r.error)||'Microsoft 365 not connected')+'.</p>'; return; }
+    const files=r.files||[];
+    if(!files.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No system backups in OneDrive ▸ iMigrate System Backups yet.</p>'; return; }
+    const rows=files.map(f=>`<tr><td class="muted">${esc(backupAgo(f.modified)||f.name)}</td><td class="muted">${((f.size||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreSysOnedrive('${esc(f.name)}')">Rollback</button></td></tr>`).join('');
+    if(box)box.innerHTML='<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">☁️ OneDrive restore points <span class="muted" style="font-weight:400">(iMigrate System Backups)</span></h3><div style="overflow:auto"><table><thead><tr><th>Backup</th><th>Size</th><th class="right"></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+  async function restoreSysOnedrive(file){
+    if(!confirm('Roll back the ENTIRE platform from OneDrive backup:\n'+file+'\n\nThe current state is snapshotted first, so this is reversible.'))return;
+    const p=progressBar($('sysProgress'),'Rolling back from OneDrive…');
+    const r=await api('/system-backup.php',{action:'onedrive-restore',file});
+    p.done(!!(r&&r.ok), r&&r.ok?('Rolled back '+r.restored+' files ✓'):('Rollback failed — '+((r&&r.error)||'')));
+    if(r&&r.ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
+  }
+  async function downloadSystem(ts){
+    const m=$('sysMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
+    try{ const r=await fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
+      if(!r.ok){ if(m){m.textContent='Download failed';m.className='err';} return; }
+      const b=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-system-'+ts+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      if(m){m.textContent='Downloaded ✓';m.className='ok';}
+    }catch(e){ if(m){m.textContent='Download failed';m.className='err';} }
+  }
+  async function loadAudit(){
+    const box=$('sysAudit'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading audit log…</p>';
+    const r=await api('/system-backup.php',{action:'audit',limit:60});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not load audit log.</p>'; return; }
+    const ev=r.events||[];
+    if(!ev.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No audit events yet.</p>'; return; }
+    const rows=ev.map(e=>`<tr><td class="muted">${esc((e.at||'').slice(0,19).replace('T',' '))}</td><td><span class="badge tag">${esc(e.event||'')}</span></td><td class="muted" style="font-size:12px">${esc([e.type,e.ts,e.file,e.phase,e.reason,e.from,(e.restored!=null?('restored '+e.restored):''),(e.leads!=null?(e.leads+' leads'):'')].filter(Boolean).join(' · '))}</td></tr>`).join('');
+    if(box)box.innerHTML='<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">📋 Audit log <span class="muted" style="font-weight:400">(newest first)</span></h3><div style="overflow:auto;max-height:320px"><table><thead><tr><th>When</th><th>Event</th><th>Detail</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
   }
   /* Human-friendly "time ago" + absolute date for a backup timestamp. */
   function backupAgo(iso){
