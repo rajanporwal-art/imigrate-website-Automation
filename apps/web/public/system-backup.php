@@ -369,6 +369,39 @@ if ($action === 'download') {
     exit;
 }
 
+/* Import leads (recovery / migration). Append-only + de-duplicated; never
+   truncates. Used to recover leads from HubSpot or an exported bundle. */
+if ($action === 'import-leads') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    $incoming = $p['leads'] ?? null;
+    if (!is_array($incoming) || !count($incoming)) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'No leads provided']); exit; }
+    $leadsDir = $ROOT . '/leads';
+    if (!is_dir($leadsDir)) { @mkdir($leadsDir, 0755, true); @file_put_contents($leadsDir . '/.htaccess', "Require all denied\nDeny from all\n"); }
+    $leadsFile = $leadsDir . '/leads.ndjson';
+    // Snapshot current state first (reversible), then append only NEW leads.
+    if ($hasData) make_server_snapshot($ROOT, $BK, $map, 'pre-import');
+    $haveHid = []; $haveEmail = [];
+    if (is_file($leadsFile)) {
+        foreach (file($leadsFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+            $j = json_decode($line, true); if (!is_array($j)) continue;
+            if (!empty($j['hubspotId'])) $haveHid[(string) $j['hubspotId']] = 1;
+            $em = strtolower((string) ($j['fields']['email'] ?? '')); if ($em !== '') $haveEmail[$em] = 1;
+        }
+    }
+    $added = 0; $skipped = 0; $out = '';
+    foreach ($incoming as $rec) {
+        if (!is_array($rec)) { $skipped++; continue; }
+        $hid = (string) ($rec['hubspotId'] ?? ''); $em = strtolower((string) ($rec['fields']['email'] ?? ''));
+        if (($hid !== '' && isset($haveHid[$hid])) || ($em !== '' && isset($haveEmail[$em]))) { $skipped++; continue; }
+        if ($hid !== '') $haveHid[$hid] = 1; if ($em !== '') $haveEmail[$em] = 1;
+        $out .= json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"; $added++;
+    }
+    if ($out !== '') @file_put_contents($leadsFile, $out, FILE_APPEND | LOCK_EX);
+    audit_log($AUDIT, 'import.leads', ['added' => $added, 'skipped' => $skipped, 'reason' => (string) ($p['reason'] ?? '')]);
+    echo json_encode(['ok' => true, 'added' => $added, 'skipped' => $skipped, 'total' => leads_count($ROOT)]);
+    exit;
+}
+
 /* Log a deploy event (called from CI before/after deploy). */
 if ($action === 'deploy-log') {
     audit_log($AUDIT, 'deploy', ['phase' => (string) ($p['phase'] ?? $_GET['phase'] ?? ''), 'sha' => (string) ($p['sha'] ?? $_GET['sha'] ?? ''), 'leads' => leads_count($ROOT)]);

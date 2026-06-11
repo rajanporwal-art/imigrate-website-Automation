@@ -1152,7 +1152,7 @@
       <div class="card" style="margin-bottom:14px;border:1px solid #1a7f37"><h3 style="margin:0 0 8px">🛡️ System Backup, Rollback &amp; Audit</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Protects <strong>everything</strong> — CRM data, portal users, integration &amp; API credentials, Microsoft 365 / HubSpot config, AI settings and CMS edits. Backups run <strong>automatically in real time</strong> after any change, to <strong>two independent destinations at once</strong>: this Hostinger server <em>and</em> OneDrive. A populated backup is never overwritten with an empty one, and every restore snapshots the current state first — so rollback is always reversible. Deploys never touch any of this data.</p>
         <div id="sysStatus" class="muted" style="font-size:13px;margin:8px 0"></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="backupEverythingNow()">💾 Back up everything now (both)</button><button class="btn" onclick="loadSystemBackups()">🔄 Refresh</button><button class="btn" onclick="loadSysOnedrive()">☁️ OneDrive restore points</button><button class="btn" onclick="loadAudit()">📋 Audit log</button><span id="sysMsg" class="muted" style="font-size:13px"></span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="backupEverythingNow()">💾 Back up everything now (both)</button><button class="btn" onclick="loadSystemBackups()">🔄 Refresh</button><button class="btn" onclick="loadSysOnedrive()">☁️ OneDrive restore points</button><button class="btn" onclick="pickImportLeads()">⬆ Recover / Import leads</button><button class="btn" onclick="loadAudit()">📋 Audit log</button><span id="sysMsg" class="muted" style="font-size:13px"></span></div>
         <div id="sysProgress"></div>
         <div id="sysList" style="margin-top:10px"></div>
         <div id="sysOdList" style="margin-top:10px"></div>
@@ -1237,6 +1237,26 @@
       const b=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-system-'+ts+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
       if(m){m.textContent='Downloaded ✓';m.className='ok';}
     }catch(e){ if(m){m.textContent='Download failed';m.className='err';} }
+  }
+  /* Recover/import leads from an exported .ndjson/.json file (e.g. HubSpot recovery). */
+  function pickImportLeads(){ const i=document.createElement('input'); i.type='file'; i.accept='.ndjson,.json,application/json,text/plain'; i.onchange=()=>{ if(i.files&&i.files[0]) importLeadsFile(i.files[0]); }; i.click(); }
+  async function importLeadsFile(file){
+    const m=$('sysMsg'); if(m){m.textContent='Reading '+file.name+'…';m.className='muted';}
+    let text=''; try{ text=await file.text(); }catch(e){ if(m){m.textContent='Could not read file';m.className='err';} return; }
+    const t=text.trim(); let leads=[];
+    try{ if(t[0]==='['){ leads=JSON.parse(t); } else { leads=t.split(/\r?\n/).filter(Boolean).map(l=>{ try{return JSON.parse(l);}catch(e){return null;} }).filter(Boolean); } }catch(e){ if(m){m.textContent='Invalid file format';m.className='err';} return; }
+    if(!leads.length){ if(m){m.textContent='No leads found in file';m.className='err';} return; }
+    if(!confirm('Import '+leads.length+' lead(s) into the CRM?\n\nExisting leads are kept; duplicates (same email or HubSpot ID) are skipped. A safety snapshot is taken first.'))return;
+    const p=progressBar($('sysProgress'),'Importing '+leads.length+' leads…');
+    // chunk to keep each POST well under limits
+    let added=0,skipped=0,ok=true;
+    for(let i=0;i<leads.length;i+=300){
+      const chunk=leads.slice(i,i+300);
+      const r=await api('/system-backup.php',{action:'import-leads',leads:chunk,reason:'file:'+file.name});
+      if(r&&r.ok){ added+=r.added||0; skipped+=r.skipped||0; } else { ok=false; break; }
+    }
+    p.done(ok, ok?('Imported '+added+' leads ✓ ('+skipped+' duplicates skipped)'):'Import failed');
+    if(ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
   }
   async function loadAudit(){
     const box=$('sysAudit'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading audit log…</p>';

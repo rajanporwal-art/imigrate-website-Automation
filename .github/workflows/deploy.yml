@@ -61,6 +61,13 @@ jobs:
           # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
           server-dir: ./
           dangerous-clean-slate: false
+          # Hostinger's FTP control socket drops on the default 30s timeout during
+          # larger syncs, which fails the job; the rerun then starts a FULL
+          # re-upload (sync-state never persisted) and times out again — a cascade
+          # that briefly 404s the whole site. A generous timeout lets the sync
+          # finish in one pass and persist .ftp-deploy-sync-state.json, so the
+          # NEXT deploy only uploads changed files (fast, no outage).
+          timeout: 600000
           # IMPORTANT: this FTP action MIRRORS state — excluding a file that was
           # previously uploaded DELETES it from the server. So repo-shipped content
           # (content.json, blog.json, faqs.json) must NOT be excluded, or it gets
