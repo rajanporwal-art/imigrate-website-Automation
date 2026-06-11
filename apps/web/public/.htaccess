@@ -80,3 +80,39 @@
 		Header set Cache-Control "no-cache, no-store, must-revalidate"
 	</FilesMatch>
 </IfModule>
+
+# ============================================================
+# PERFORMANCE — gzip compression for text assets.
+# ============================================================
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
+		application/javascript application/x-javascript application/json \
+		application/xml application/rss+xml image/svg+xml \
+		font/ttf font/otf font/woff font/woff2 application/vnd.ms-fontobject
+</IfModule>
+
+<IfModule mod_headers.c>
+	# Hashed build assets (index-<hash>.js/.css) + fonts are immutable — cache hard.
+	<FilesMatch "\.(js|mjs|css|woff2?|ttf|otf|eot)$">
+		Header set Cache-Control "public, max-age=31536000, immutable"
+	</FilesMatch>
+	# Images — long but revalidatable.
+	<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+		Header set Cache-Control "public, max-age=2592000"
+	</FilesMatch>
+	# HTML entry points (SPA index + admin apps) must stay fresh so deploys and
+	# CRM/CMS/portal updates appear immediately.
+	<FilesMatch "\.html$">
+		Header set Cache-Control "no-cache, must-revalidate"
+	</FilesMatch>
+
+	# ============================================================
+	# SECURITY headers (site-wide). X-Frame-Options is SAMEORIGIN (not DENY) so
+	# the portal can keep embedding CMS/CRM in same-origin iframes.
+	# ============================================================
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "SAMEORIGIN"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
