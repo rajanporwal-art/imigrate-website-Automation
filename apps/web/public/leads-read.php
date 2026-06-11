@@ -26,6 +26,20 @@ if (!is_array($payload) || !hash_equals($EDIT_PASSWORD, (string) ($payload['pass
 $file = __DIR__ . '/leads/leads.ndjson';
 $leads = [];
 $needsHeal = false;
+
+/**
+ * Safely rewrite the whole leads store. CRITICAL data-loss guard: NEVER overwrite
+ * a populated store with an empty one (protects against a transient/partial read
+ * or parse hiccup wiping every lead). Keeps a rolling pre-write backup too.
+ */
+function safe_rewrite_leads($file, $leads) {
+    $new = '';
+    foreach ($leads as $l) $new .= json_encode($l) . "\n";
+    $had = is_file($file) ? trim((string) @file_get_contents($file)) : '';
+    if ($new === '' && $had !== '') return false;            // refuse to truncate a non-empty store
+    if ($had !== '') @copy($file, $file . '.prewrite.bak');  // last-resort recovery copy (inside excluded leads/)
+    return @file_put_contents($file, $new, LOCK_EX) !== false;
+}
 if (is_file($file)) {
     $content = (string) file_get_contents($file);
     $trim = ltrim($content);
@@ -46,9 +60,7 @@ if (is_file($file)) {
     }
     // One-time normalisation back to clean NDJSON when the format was off.
     if ($needsHeal && $leads) {
-        $out = '';
-        foreach ($leads as $l) $out .= json_encode($l) . "\n";
-        @file_put_contents($file, $out, LOCK_EX);
+        safe_rewrite_leads($file, $leads);
     }
 }
 
@@ -67,9 +79,7 @@ if ($action === 'retry') {
             $code = hs_submit($cfg, $body);
             if ($code !== null && $code >= 200 && $code < 300) { $leads[$idx]['hubspotSynced'] = true; $synced++; }
         }
-        $out = '';
-        foreach ($leads as $l) $out .= json_encode($l) . "\n";
-        @file_put_contents($file, $out, LOCK_EX);
+        safe_rewrite_leads($file, $leads);
     }
     echo json_encode(['ok' => true, 'retried' => $retried, 'synced' => $synced]);
     exit;
