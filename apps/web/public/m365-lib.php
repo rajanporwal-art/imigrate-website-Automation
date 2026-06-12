@@ -167,14 +167,21 @@ function m365_onedrive_upload($name, $content, $folder = 'iMigrate CRM') {
     $r = m365_http('https://graph.microsoft.com/v1.0' . $path, $content, $headers, 'PUT');
     return $r['code'] >= 200 && $r['code'] < 300 ? $r['json'] : null;
 }
-/* List files in a OneDrive folder (newest first). Returns [] if not connected/empty. */
+/* List files in a OneDrive folder (newest first). Returns [] if not connected/empty.
+   NOTE: we deliberately do NOT use a server-side $orderby — Graph's orderby value
+   "lastModifiedDateTime desc" contains a space, and m365_http() passes the URL to
+   curl unencoded, which produces a malformed request (HTTP 400) and silently
+   returned an empty list (the cause of "backup uploads but restore finds nothing").
+   We sort newest-first in PHP instead, which is encoding-proof. */
 function m365_onedrive_list($folder = 'iMigrate CRM Backups') {
     $tok = m365_access_token();
     if (!$tok) return [];
-    $path = '/me/drive/root:/' . rawurlencode($folder) . ':/children?$select=name,size,lastModifiedDateTime&$orderby=lastModifiedDateTime desc&$top=200';
+    $path = '/me/drive/root:/' . rawurlencode($folder) . ':/children?%24select=name,size,lastModifiedDateTime&%24top=200';
     $r = m365_graph($path);
     if ($r['code'] !== 200 || empty($r['json']['value'])) return [];
-    return $r['json']['value'];
+    $files = $r['json']['value'];
+    usort($files, fn($a, $b) => strcmp((string) ($b['lastModifiedDateTime'] ?? ''), (string) ($a['lastModifiedDateTime'] ?? '')));
+    return $files;
 }
 /* Download a file's raw bytes from a OneDrive folder. Returns string|null. */
 function m365_onedrive_download($name, $folder = 'iMigrate CRM Backups') {
