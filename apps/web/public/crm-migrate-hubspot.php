@@ -57,6 +57,9 @@ class HubSpotClient {
 }
 
 // ════════════ STAGE MAPPING ════════════
+// NOTE: HubSpot status values are used directly as stage names (no mapping).
+// This preserves the original HubSpot classification in the CRM stage field.
+// Previous mapping (kept for reference, no longer used):
 $STAGE_MAP = [
     'subscriber' => 'New Lead',
     'lead' => 'Pending Call',
@@ -211,7 +214,7 @@ if ($action === 'migrate') {
                 } else {
                     // Create
                     $ckey = $email ?: "id:hs$hsId";
-                    $mapStage = $STAGE_MAP[strtolower($hsStage)] ?? 'New Lead';
+                    $mapStage = $hsStage; // Use HubSpot status directly as the stage
 
                     $newLead = [
                         'id' => "hs$hsId",
@@ -237,7 +240,7 @@ if ($action === 'migrate') {
                         'activity' => [[
                             'id' => 'hs-import-' . date('YmdHis') . '-' . substr(md5(uniqid()), 0, 6),
                             'event' => 'Imported from HubSpot',
-                            'detail' => "HS#$hsId ($hsStage → $mapStage)",
+                            'detail' => "HS#$hsId (stage: $hsStage)",
                             'author' => 'System (HubSpot Migration)',
                             'at' => date('c'),
                         ]],
