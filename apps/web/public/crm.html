@@ -341,9 +341,11 @@
     <div class="navitem" data-view="lifecycle" onclick="go('lifecycle')" title="Lead Life Cycle"><span class="ic">🔄</span> <span class="lbl">Lead Life Cycle</span><span class="fav-star" data-fav="lifecycle" onclick="toggleFav('lifecycle',event)">★</span></div>
     <div class="navitem" data-view="pipeline" onclick="go('pipeline')" title="Immigration Pipeline"><span class="ic">📊</span> <span class="lbl">Pipeline</span><span class="fav-star" data-fav="pipeline" onclick="toggleFav('pipeline',event)">★</span></div>
     <div class="nav-sect">WORKSPACE</div>
+    <div class="navitem" data-view="calls" onclick="go('calls')" title="Calls"><span class="ic">📞</span> <span class="lbl">Calls</span><span class="fav-star" data-fav="calls" onclick="toggleFav('calls',event)">★</span></div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')" title="Tasks &amp; Follow-Ups"><span class="ic">✅</span> <span class="lbl">Tasks</span><span class="fav-star" data-fav="tasks" onclick="toggleFav('tasks',event)">★</span></div>
     <div class="navitem" data-view="activities" onclick="go('activities')" title="Activities"><span class="ic">📡</span> <span class="lbl">Activities</span><span class="fav-star" data-fav="activities" onclick="toggleFav('activities',event)">★</span></div>
     <div class="navitem" data-view="messages" onclick="go('messages')" title="Messages &amp; Email"><span class="ic">✉️</span> <span class="lbl">Messages</span><span class="fav-star" data-fav="messages" onclick="toggleFav('messages',event)">★</span></div>
+    <div class="navitem" data-view="files" onclick="go('files')" title="File Manager"><span class="ic">📂</span> <span class="lbl">Files</span><span class="fav-star" data-fav="files" onclick="toggleFav('files',event)">★</span></div>
     <div class="navitem" data-view="documents" onclick="go('documents')" title="Documents"><span class="ic">📁</span> <span class="lbl">Documents</span><span class="fav-star" data-fav="documents" onclick="toggleFav('documents',event)">★</span></div>
     <div class="navitem" data-view="calendar" onclick="go('calendar')" title="Calendar"><span class="ic">📅</span> <span class="lbl">Calendar</span><span class="fav-star" data-fav="calendar" onclick="toggleFav('calendar',event)">★</span></div>
     <div class="nav-sect">GROWTH</div>
@@ -569,7 +571,7 @@
   function initSidebar(){ try{ if(localStorage.getItem('imig_crm_navcollapsed')==='1') $('app').classList.add('nav-collapsed'); }catch(e){} if(window.innerWidth<=820) $('app').classList.remove('nav-collapsed'); initFavorites(); initProfileChrome(); }
 
   /* ───────── HubSpot chrome: favorites, dropdowns, quick-create, notifications, toasts ───────── */
-  const NAV_META={dashboard:{ic:'📊',lbl:'Dashboard'},leads:{ic:'👤',lbl:'Applicants'},clients:{ic:'🗂️',lbl:'Case Management'},lifecycle:{ic:'🔄',lbl:'Lead Life Cycle'},pipeline:{ic:'📊',lbl:'Pipeline'},tasks:{ic:'✅',lbl:'Tasks'},activities:{ic:'📡',lbl:'Activities'},messages:{ic:'✉️',lbl:'Messages'},documents:{ic:'📁',lbl:'Documents'},calendar:{ic:'📅',lbl:'Calendar'},reports:{ic:'📈',lbl:'Reports'},automations:{ic:'⚡',lbl:'Automation'},invoices:{ic:'💳',lbl:'Invoices'},settings:{ic:'⚙️',lbl:'Settings'}};
+  const NAV_META={dashboard:{ic:'📊',lbl:'Dashboard'},leads:{ic:'👤',lbl:'Applicants'},clients:{ic:'🗂️',lbl:'Case Management'},lifecycle:{ic:'🔄',lbl:'Lead Life Cycle'},pipeline:{ic:'📊',lbl:'Pipeline'},calls:{ic:'📞',lbl:'Calls'},tasks:{ic:'✅',lbl:'Tasks'},activities:{ic:'📡',lbl:'Activities'},messages:{ic:'✉️',lbl:'Messages'},files:{ic:'📂',lbl:'Files'},documents:{ic:'📁',lbl:'Documents'},calendar:{ic:'📅',lbl:'Calendar'},reports:{ic:'📈',lbl:'Reports'},automations:{ic:'⚡',lbl:'Automation'},invoices:{ic:'💳',lbl:'Invoices'},settings:{ic:'⚙️',lbl:'Settings'}};
   function getFavs(){ try{ return JSON.parse(localStorage.getItem('imig_crm_favs')||'[]'); }catch(e){ return []; } }
   function setFavs(a){ try{ localStorage.setItem('imig_crm_favs',JSON.stringify(a)); }catch(e){} }
   function toggleFav(view,ev){ if(ev){ev.stopPropagation();} let f=getFavs(); if(f.includes(view))f=f.filter(x=>x!==view); else f.push(view); setFavs(f); initFavorites(); }
@@ -614,10 +616,10 @@
   function toast(msg,kind){ let w=$('toastWrap'); if(!w){ w=document.createElement('div'); w.id='toastWrap'; document.body.appendChild(w); } const t=document.createElement('div'); t.className='toast '+(kind==='ok'?'ok':kind==='err'?'err':''); t.innerHTML=(kind==='ok'?'✓ ':kind==='err'?'⚠ ':'')+esc(msg); w.appendChild(t); setTimeout(()=>{ t.style.transition='opacity .3s,transform .3s'; t.style.opacity='0'; t.style.transform='translateX(20px)'; setTimeout(()=>t.remove(),300); },3200); }
   function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'Applicants',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',clients:'Case Management',lifecycle:'Lead Life Cycle',activities:'Activities',messages:'Messages & Email',documents:'Documents',invoices:'Invoices & Payments',automations:'Automation',settings:'Settings',profile:'Applicant Profile'};
+    const titles={dashboard:'Dashboard',leads:'Applicants',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',calls:'Call Log',tasks:'Tasks & Follow-Ups',clients:'Case Management',lifecycle:'Lead Life Cycle',activities:'Activities',messages:'Messages & Email',files:'File Manager',documents:'Documents',invoices:'Invoices & Payments',automations:'Automation',settings:'Settings',profile:'Applicant Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,lifecycle:renderLifecycle,companies:renderCompanies,activities:renderActivities,messages:renderMessages,documents:renderDocuments,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,calls:renderCalls,tasks:renderTasks,clients:renderClients,lifecycle:renderLifecycle,companies:renderCompanies,activities:renderActivities,messages:renderMessages,files:renderFiles,documents:renderDocuments,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- GLOBAL SEARCH ---------- */
@@ -1996,20 +1998,214 @@
       </div></div>`;
   }
 
-  /* ---------- reports view (global) ---------- */
+  /* ════════════ DYNAMIC REPORTS BUILDER (filters, grouping, charts, export) ════════════ */
+  let RB_FILTER={stage:'',country:'',occupation:'',source:'',hasReport:''},RB_GROUPBY='stage',RB_CHART='table';
   function renderReports(){
-    const reps=CONTACTS.filter(c=>c.isAI || c.reports.length || c.storedReports.length);
-    $('content').innerHTML=`<div class="toolbar"><span class="muted">${reps.length} lead(s) with reports · ${REPORTS.length} stored version(s)</span></div>
-      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Lead</th><th>Type</th><th>Occupation</th><th>Points</th><th>Visa pathways</th><th>Versions</th><th>Stage</th><th class="right">Actions</th></tr></thead>
-      <tbody>${reps.map(c=>`<tr>
-        <td class="clk" onclick="openProfile('${esc(c.ckey)}')"><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}<div class="muted">${esc(c.email||'')}</div></td>
-        <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
-        <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
-        <td>${c.storedReports.length||'—'}</td><td>${stageBadge(stageLabel(c.stage))}</td>
-        <td class="right"><button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','')">View</button>
-        <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','')">PDF</button>
-        <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">Email</button>
-        <button class="btn btn-sm" onclick="openProfile('${esc(c.ckey)}')">Open</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted" style="padding:20px">No reports yet.</td></tr>'}</tbody></table></div>`;
+    const allLeads=leadRows().filter(c=>!empty(c._deleted));
+    const stages=[...new Set(allLeads.map(c=>c.stage||'—'))].sort();
+    const countries=[...new Set(allLeads.flatMap(c=>(c.country||'').split(/[,;]/)).map(x=>x.trim()).filter(x=>x))].sort();
+    const occupations=[...new Set(allLeads.map(c=>c.occupation||'—'))].sort();
+    const sources=[...new Set(allLeads.map(c=>c.source||'—'))].sort();
+    const q=RB_FILTER.stage||'';
+    const filtered=allLeads.filter(c=>{
+      if(RB_FILTER.stage && c.stage!==RB_FILTER.stage) return false;
+      if(RB_FILTER.country && !((c.country||'').includes(RB_FILTER.country))) return false;
+      if(RB_FILTER.occupation && c.occupation!==RB_FILTER.occupation) return false;
+      if(RB_FILTER.source && c.source!==RB_FILTER.source) return false;
+      if(RB_FILTER.hasReport==='yes' && (!c.storedReports||!c.storedReports.length)) return false;
+      if(RB_FILTER.hasReport==='no' && c.storedReports&&c.storedReports.length) return false;
+      return true;
+    });
+    const grouped={}; (RB_GROUPBY==='none'?[['all',filtered]]:
+      RB_GROUPBY==='stage'?([...new Set(filtered.map(c=>c.stage||'New Lead'))].sort().map(g=>[g,filtered.filter(c=>(c.stage||'New Lead')===g)])):
+      RB_GROUPBY==='country'?([...new Set(filtered.flatMap(c=>(c.country||'—').split(/[,;]/)).map(x=>x.trim()))].sort().map(g=>[g,filtered.filter(c=>(c.country||'').includes(g))])):
+      RB_GROUPBY==='source'?([...new Set(filtered.map(c=>c.source||'—'))].sort().map(g=>[g,filtered.filter(c=>(c.source||'—')===g)])):
+      []
+    ).forEach(([k,v])=>grouped[k]=v);
+    const rptAction=(ckey)=>`<button class="btn btn-sm" onclick="viewReport('${esc(ckey)}','')">View</button>
+      <button class="btn btn-sm" onclick="downloadPdf('${esc(ckey)}','')">PDF</button>
+      <button class="btn btn-sm" onclick="openProfile('${esc(ckey)}')">Open</button>`;
+    const data=Object.entries(grouped).map(([grp,items])=>({group:grp,count:items.length,leads:items}));
+    const csv=()=>{
+      let out='Group,Count,Lead Name,Email,Stage,Country,Source,Has Report\n';
+      filtered.forEach(c=>{ out+=[esc(RB_GROUPBY==='none'?'All':(c[RB_GROUPBY.replace('country','country').replace('source','source')]||'—')).replace(/"/g,'""'),c.name||'',c.email||'',c.stage||'',c.country||'',c.source||'',c.storedReports?.length?'Yes':'No'].map(x=>`"${x}"`).join(',')+'\n'; });
+      const link=document.createElement('a'); link.href='data:text/csv;charset=utf-8,'+encodeURIComponent(out); link.download='reports-'+new Date().toISOString().slice(0,10)+'.csv'; link.click();
+    };
+    $('content').innerHTML=`
+      <div class="card" style="margin-bottom:10px"><h3 style="margin-top:0">Dynamic Reports Builder</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Stage</label><select onchange="RB_FILTER.stage=this.value;renderReports()" style="width:100%"><option value="">All stages</option>${stages.map(s=>`<option value="${esc(s)}" ${RB_FILTER.stage===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Country</label><select onchange="RB_FILTER.country=this.value;renderReports()" style="width:100%"><option value="">All countries</option>${countries.map(c=>`<option value="${esc(c)}" ${RB_FILTER.country===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Occupation</label><select onchange="RB_FILTER.occupation=this.value;renderReports()" style="width:100%"><option value="">All occupations</option>${occupations.map(o=>`<option value="${esc(o)}" ${RB_FILTER.occupation===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Source</label><select onchange="RB_FILTER.source=this.value;renderReports()" style="width:100%"><option value="">All sources</option>${sources.map(s=>`<option value="${esc(s)}" ${RB_FILTER.source===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Has Report</label><select onchange="RB_FILTER.hasReport=this.value;renderReports()" style="width:100%"><option value="">All</option><option value="yes" ${RB_FILTER.hasReport==='yes'?'selected':''}>Yes</option><option value="no" ${RB_FILTER.hasReport==='no'?'selected':''}>No</option></select></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Group by</label><select onchange="RB_GROUPBY=this.value;renderReports()" style="width:auto"><option value="none">None</option><option value="stage" ${RB_GROUPBY==='stage'?'selected':''}>Stage</option><option value="country" ${RB_GROUPBY==='country'?'selected':''}>Country</option><option value="source" ${RB_GROUPBY==='source'?'selected':''}>Source</option></select></div>
+          <div><label class="muted" style="font-size:11px;text-transform:uppercase">Chart</label><select onchange="RB_CHART=this.value;renderReports()" style="width:auto"><option value="table" ${RB_CHART==='table'?'selected':''}>Table</option><option value="bar" ${RB_CHART==='bar'?'selected':''}>Bar</option></select></div>
+          <button class="btn btn-sm btn-primary" onclick="(()=>{${csv.toString()}csv();})()">📥 Export CSV</button>
+          <span class="muted" style="margin-left:auto">${filtered.length} lead(s)</span>
+        </div>
+      </div>
+      ${RB_CHART==='bar'?`<div class="card" style="height:300px;display:flex;align-items:flex-end;gap:8px;padding:20px 10px">${data.map(d=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:#2563eb;height:${d.count?Math.max(20,d.count*20):10}px;border-radius:4px;margin-bottom:8px;position:relative"><span style="position:absolute;top:-20px;width:100%;text-align:center;font-size:12px;font-weight:600">${d.count}</span></div><div style="font-size:11px;text-align:center;max-width:80px;word-wrap:break-word">${esc(d.group)}</div></div>`).join('')}</div>`:`<div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Lead</th><th>Stage</th><th>Country</th><th>Occupation</th><th>Source</th><th>Reports</th><th class="right">Actions</th></tr></thead><tbody>${filtered.map(c=>`<tr><td class="clk" onclick="openProfile('${esc(c.ckey)}')" style="cursor:pointer"><strong>${esc(c.name)}</strong><div class="muted">${esc(c.email||'')}</div></td><td>${stageBadge(stageLabel(c.stage))}</td><td>${esc(c.country||'—')}</td><td>${esc(c.occupation||'—')}</td><td>${esc(c.source||'—')}</td><td>${c.storedReports?.length||'—'}</td><td class="right">${rptAction(c.ckey)}</td></tr>`).join('')||`<tr><td colspan="7" class="muted" style="padding:20px">No leads match the filter.</td></tr>`}</tbody></table></div>`}`;
+  }
+
+  /* ════════════ CALLS MODULE (call log + statistics) ════════════ */
+  let CALLS=[],CALLS_LEAD_FILTER='';
+  async function renderCalls(){
+    $('content').innerHTML='<div class="card"><h3>📞 Calls</h3><p class="muted">Loading…</p></div>';
+    const r=await api('/crm-calls.php',{action:'list'});
+    CALLS=(r&&r.calls)||[];
+    const total=CALLS.length;
+    const completed=CALLS.filter(c=>c.outcome==='completed').length;
+    const missed=CALLS.filter(c=>c.outcome==='missed').length;
+    const scheduled=CALLS.filter(c=>c.outcome==='scheduled').length;
+    const filtered=CALLS_LEAD_FILTER?CALLS.filter(c=>(c.leadName||'').toLowerCase().includes(CALLS_LEAD_FILTER.toLowerCase())||c.leadEmail.includes(CALLS_LEAD_FILTER)):CALLS;
+    const avgDur=CALLS.length?Math.round(CALLS.reduce((s,c)=>s+parseInt(c.duration||0),0)/CALLS.length):0;
+    const leads=[...new Set(CALLS.map(c=>c.leadEmail))];
+    $('content').innerHTML=`
+      <div class="grid stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px">
+        <div class="card"><div class="muted" style="font-size:12px">Total calls</div><div style="font-size:26px;font-weight:800">${total}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Completed</div><div style="font-size:26px;font-weight:800;color:#1a7f37">${completed}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Missed</div><div style="font-size:26px;font-weight:800;color:#b91c1c">${missed}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Scheduled</div><div style="font-size:26px;font-weight:800;color:#2563eb">${scheduled}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Avg duration (min)</div><div style="font-size:26px;font-weight:800">${avgDur}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Unique leads</div><div style="font-size:26px;font-weight:800">${leads.length}</div></div>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="clq" placeholder="Search calls by lead…" value="${esc(CALLS_LEAD_FILTER)}" oninput="CALLS_LEAD_FILTER=this.value;renderCalls()">
+        <span class="muted">${filtered.length} call(s)</span>
+        <div style="margin-left:auto"><button class="btn btn-sm btn-primary" onclick="callNew()">+ New call</button></div>
+      </div>
+      <div id="callEditor"></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table><thead><tr><th>Lead</th><th>Date & time</th><th>Duration</th><th>Outcome</th><th>Consultant</th><th>Notes</th><th class="right">Actions</th></tr></thead>
+        <tbody>${filtered.sort((a,b)=>((b.date||'')+' '+(b.time||'')).localeCompare((a.date||'')+' '+(a.time||''))).map(c=>`<tr>
+          <td><div style="font-weight:600">${esc(c.leadName||'(no name)')}</div><div class="muted" style="font-size:11px">${esc(c.leadEmail||'')}</div></td>
+          <td>${esc(c.date)} ${c.time?esc(c.time):''}</td>
+          <td>${c.duration} min</td>
+          <td><span class="badge" style="background:${c.outcome==='completed'?'#1a7f371a':c.outcome==='missed'?'#b91c1c1a':'#2563eb1a'};color:${c.outcome==='completed'?'#1a7f37':c.outcome==='missed'?'#b91c1c':'#2563eb'}">${c.outcome}</span></td>
+          <td class="muted">${esc(c.consultant)}</td>
+          <td class="muted" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.notes.substring(0,50))}</td>
+          <td class="right" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="callEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="callDelete('${esc(c.id)}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted" style="padding:20px">No calls yet.</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+  function callNew(ckey,email,name){ const tpl=`<button class="modal-x" onclick="closeModal()">×</button>
+    <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:10px">New call</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted)">Lead (optional)</label><input id="cn_lead" value="${esc(name||'')}" placeholder="Lead name" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Email</label><input id="cn_email" value="${esc(email||'')}" placeholder="lead@example.com" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted)">Date</label><input id="cn_date" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Time</label><input id="cn_time" type="time" value="${new Date().toISOString().slice(11,16)}" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Duration (min)</label><input id="cn_duration" type="number" value="15" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted)">Outcome</label><select id="cn_outcome" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"><option value="completed">Completed</option><option value="missed">Missed</option><option value="scheduled">Scheduled</option></select></div>
+      <div><label style="font-size:12px;color:var(--muted)">Consultant</label><input id="cn_consultant" value="Consultant" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+    </div>
+    <div><label style="font-size:12px;color:var(--muted)">Notes</label><textarea id="cn_notes" placeholder="Call notes…" style="width:100%;height:80px;padding:8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-primary" onclick="callSaveNew()">Save call</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`; openModal(tpl,false);
+  }
+  function callSaveNew(){ const lead=$('cn_lead').value, email=$('cn_email').value, date=$('cn_date').value, time=$('cn_time').value, dur=$('cn_duration').value, outcome=$('cn_outcome').value, cons=$('cn_consultant').value, notes=$('cn_notes').value;
+    if(!email.trim()){ toast('Email is required'); return; }
+    api('/crm-calls.php',{action:'add',email,leadName:lead,date,time,duration:dur,outcome,consultant:cons,notes}).then(r=>{ if(r.ok){ closeModal(); renderCalls(); toast('Call saved'); } else toast('Error: '+(r.error||'unknown')); });
+  }
+  function callEdit(id){ const c=CALLS.find(x=>x.id===id); if(!c) return;
+    const tpl=`<button class="modal-x" onclick="closeModal()">×</button>
+    <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:10px">Edit call</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted)">Lead</label><input value="${esc(c.leadName||'')}" disabled style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--panel)"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Email</label><input value="${esc(c.leadEmail)}" disabled style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--panel)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:var(--muted)">Date</label><input id="ce_date" type="date" value="${esc(c.date)}" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Time</label><input id="ce_time" type="time" value="${esc(c.time)}" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+      <div><label style="font-size:12px;color:var(--muted)">Duration (min)</label><input id="ce_duration" type="number" value="${c.duration}" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></div>
+    </div>
+    <div><label style="font-size:12px;color:var(--muted)">Outcome</label><select id="ce_outcome" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;margin-bottom:12px"><option value="completed" ${c.outcome==='completed'?'selected':''}>Completed</option><option value="missed" ${c.outcome==='missed'?'selected':''}>Missed</option><option value="scheduled" ${c.outcome==='scheduled'?'selected':''}>Scheduled</option></select></div>
+    <div><label style="font-size:12px;color:var(--muted)">Notes</label><textarea id="ce_notes" style="width:100%;height:80px;padding:8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px">${esc(c.notes)}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-primary" onclick="callSaveEdit('${esc(id)}')">Save</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`; openModal(tpl,false);
+  }
+  function callSaveEdit(id){ const date=$('ce_date').value, time=$('ce_time').value, dur=$('ce_duration').value, outcome=$('ce_outcome').value, notes=$('ce_notes').value;
+    api('/crm-calls.php',{action:'edit',id,date,time,duration:dur,outcome,notes}).then(r=>{ if(r.ok){ closeModal(); renderCalls(); toast('Call updated'); } else toast('Error: '+(r.error||'unknown')); });
+  }
+  function callDelete(id){ if(!confirm('Delete this call?')) return;
+    api('/crm-calls.php',{action:'delete',id}).then(r=>{ if(r.ok){ renderCalls(); toast('Call deleted'); } else toast('Error: '+(r.error||'unknown')); });
+  }
+
+  /* ════════════ FILE MANAGER (uploads, file list, stats) ════════════ */
+  let FILES=[],FM_LEAD_FILTER='';
+  async function renderFiles(){
+    $('content').innerHTML='<div class="card"><h3>📁 File Manager</h3><p class="muted">Loading…</p></div>';
+    const r=await api('/crm-files.php',{action:'list'});
+    FILES=(r&&r.files)||[];
+    const total=FILES.length;
+    const totalSize=Math.round(FILES.reduce((s,f)=>s+(f.size||0),0)/1024/1024*100)/100;
+    const byCategory={}; FILES.forEach(f=>{ const cat=f.category||'general'; byCategory[cat]=(byCategory[cat]||0)+1; });
+    const filtered=FM_LEAD_FILTER?FILES.filter(f=>(f.leadName||'').toLowerCase().includes(FM_LEAD_FILTER.toLowerCase())||f.leadEmail.includes(FM_LEAD_FILTER)):FILES;
+    const leads=[...new Set(FILES.map(f=>f.leadEmail))];
+    $('content').innerHTML=`
+      <div class="grid stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px">
+        <div class="card"><div class="muted" style="font-size:12px">Total files</div><div style="font-size:26px;font-weight:800">${total}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Total size</div><div style="font-size:26px;font-weight:800">${totalSize} MB</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Unique leads</div><div style="font-size:26px;font-weight:800">${leads.length}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Categories</div><div style="font-size:26px;font-weight:800">${Object.keys(byCategory).length}</div></div>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="flq" placeholder="Search files by lead…" value="${esc(FM_LEAD_FILTER)}" oninput="FM_LEAD_FILTER=this.value;renderFiles()">
+        <span class="muted">${filtered.length} file(s)</span>
+        <div style="margin-left:auto"><button class="btn btn-sm btn-primary" onclick="fileUploadModal()">+ Upload file</button></div>
+      </div>
+      <div id="fileUploadBox"></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table><thead><tr><th>Lead</th><th>Filename</th><th>Category</th><th>Size</th><th>Uploaded</th><th>By</th><th class="right">Actions</th></tr></thead>
+        <tbody>${filtered.sort((a,b)=>(b.uploadedAt||'').localeCompare(a.uploadedAt||'')).map(f=>{const sz=Math.round(f.size/1024*100)/100; return `<tr>
+          <td><div style="font-weight:600">${esc(f.leadName||'(no lead)')}</div><div class="muted" style="font-size:11px">${esc(f.leadEmail||'')}</div></td>
+          <td><a href="#" onclick="event.preventDefault();toast('Download not configured')" title="${esc(f.originalName)}">${esc(f.originalName||f.filename||'file')}</a></td>
+          <td class="muted">${esc(f.category||'general')}</td>
+          <td class="muted">${sz} KB</td>
+          <td class="muted">${esc((f.uploadedAt||'').slice(0,10))}</td>
+          <td class="muted">${esc(f.uploadedBy||'—')}</td>
+          <td class="right" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="fileDelete('${esc(f.id)}')">Delete</button></td></tr>`; }).join('')||'<tr><td colspan="7" class="muted" style="padding:20px">No files yet. Upload files tied to a lead.</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+  function fileUploadModal(){
+    const box=$('fileUploadBox');
+    if(!box) return;
+    const leads=leadRows().filter(c=>!c._deleted);
+    const leadOpts=leads.map(l=>'<option value="'+esc(l.ckey)+'">'+esc(l.name)+' ('+esc(l.email)+')</option>').join('');
+    box.innerHTML='<div class="card" style="background:var(--hover);border:1px dashed var(--border);padding:14px;margin-bottom:10px">'+
+      '<div style="font-weight:600;margin-bottom:10px">Upload new file</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'+
+      '<div><label style="font-size:12px;color:var(--muted)">Select lead</label><select id="fm_lead" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"><option value="">— Pick a lead —</option>'+leadOpts+'</select></div>'+
+      '<div><label style="font-size:12px;color:var(--muted)">Category</label><select id="fm_cat" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"><option>Document</option><option>Resume</option><option>Passport</option><option>Certificate</option><option>Other</option></select></div>'+
+      '</div>'+
+      '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">File</label><input type="file" id="fm_file" style="padding:6px;border:1px solid var(--border);border-radius:4px;width:100%;box-sizing:border-box"></div>'+
+      '<div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="fileUploadSave()">Upload</button><button class="btn" onclick="document.getElementById(\'fileUploadBox\').innerHTML=\'\'">Cancel</button></div>'+
+      '</div>';
+  }
+  function fileUploadSave(){
+    const leadCkey=$('fm_lead').value, cat=$('fm_cat').value, file=$('fm_file').files[0];
+    if(!leadCkey){ toast('Please select a lead'); return; }
+    if(!file){ toast('Please select a file'); return; }
+    const c=findByKey(leadCkey);
+    api('/crm-files.php',{action:'add-meta',key:leadCkey,leadName:c?.name||'',email:c?.email||'',originalName:file.name,filename:file.name,size:file.size,type:file.type,category:cat}).then(r=>{
+      if(r.ok){ document.getElementById('fileUploadBox').innerHTML=''; renderFiles(); toast('File metadata saved (actual upload requires file hosting)'); }
+      else toast('Error: '+(r.error||'unknown'));
+    });
+  }
+  function fileDelete(id){ if(!confirm('Delete this file metadata?')) return;
+    api('/crm-files.php',{action:'delete',id}).then(r=>{ if(r.ok){ renderFiles(); toast('File deleted'); } else toast('Error: '+(r.error||'unknown')); });
   }
 
   /* ---------- pipeline (kanban) ---------- */
