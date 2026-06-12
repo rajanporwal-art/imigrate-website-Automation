@@ -518,6 +518,14 @@
       m.textContent = CONTACTS.length+' contacts · '+REPORTS.length+' reports';
       if(cont)cont.dataset.loaded='1';
       render();
+      // QUICK WIN #1: Polish nav icons (emoji → SVG)
+      setTimeout(()=>{
+        const iconMap={'📊':'dashboard','👤':'leads','🗂️':'cases','🔄':'lifecycle','📞':'calls','✅':'tasks','📡':'activities','✉️':'messages','📂':'files','📁':'documents','📅':'calendar','📈':'reports','⚡':'automations','💳':'invoices','⚙️':'settings'};
+        document.querySelectorAll('.navitem .ic').forEach(el=>{
+          const emoji=el.textContent.trim(); const iconName=iconMap[emoji];
+          if(iconName){ el.innerHTML=`<span style="width:18px;height:18px;display:flex;align-items:center;justify-content:center;overflow:hidden">${svgIcon(iconName)}</span>`; }
+        });
+      },50);
       try{ refreshNotifBadge(); }catch(_){}
       // Zero-config automatic daily backup (no-op if a snapshot was taken in the last 24h).
       try{ api('/crm-backup.php',{action:'auto'}); }catch(_){}
@@ -850,6 +858,7 @@
     {id:'status',label:'Lead Status',td:c=>esc(c.eligibilityStatus||'—')},
     {id:'source',label:'Source',td:c=>`<span class="muted">${esc(c.source||'—')}</span>`},
     {id:'updated',label:'Updated',td:c=>`<span class="muted">${esc(c.latestDate||'')}</span>`},
+    {id:'lastActivity',label:'Last Activity',td:c=>{const lastAct=getLastActivityTime(c);return lastAct?`<span class="muted">${esc(lastAct.slice(0,10))}</span><div style="font-size:11px;color:var(--muted)">${esc(lastAct.slice(11,16))}</div>`:'<span class="muted">—</span>';}},
   ];
   const DEFAULT_COLS=['name','type','contact','occupation','points','stage','score','source','updated'];
   function visibleCols(){ try{ const s=JSON.parse(localStorage.getItem('imig_crm_cols')||'null'); if(Array.isArray(s)&&s.length) return s; }catch(e){} return DEFAULT_COLS.slice(); }
@@ -866,6 +875,12 @@
       return true;
     });
   }
+  /* QUICK WIN #3: Last activity timestamp on lead cards */
+  function getLastActivityTime(c){
+    const act=c.activity||[]; if(!act.length) return null;
+    return act[act.length-1].at||null;
+  }
+
   function renderLeads(){
     if(SPLIT_VIEW) return renderSplitLeads();
     const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
@@ -2107,7 +2122,10 @@
     const missed=CALLS.filter(c=>c.outcome==='missed').length;
     const scheduled=CALLS.filter(c=>c.outcome==='scheduled').length;
     const filtered=CALLS_LEAD_FILTER?CALLS.filter(c=>(c.leadName||'').toLowerCase().includes(CALLS_LEAD_FILTER.toLowerCase())||c.leadEmail.includes(CALLS_LEAD_FILTER)):CALLS;
-    const avgDur=CALLS.length?Math.round(CALLS.reduce((s,c)=>s+parseInt(c.duration||0),0)/CALLS.length):0;
+    // QUICK WIN #2: Call duration trends
+    const completedCalls=CALLS.filter(c=>c.outcome==='completed');const avgDur=completedCalls.length?Math.round(completedCalls.reduce((s,c)=>s+parseInt(c.duration||0),0)/completedCalls.length):0;
+    const maxDur=completedCalls.length?Math.max(...completedCalls.map(c=>parseInt(c.duration||0))):0;
+    const trendBar=completedCalls.length?`<div style="display:flex;gap:2px;height:6px;margin-top:4px">${completedCalls.slice(-10).map(c=>`<div style="flex:1;height:6px;background:rgba(0,163,140,${Math.max(0.3,parseInt(c.duration||0)/maxDur)});border-radius:2px" title="${c.duration}min on ${c.date}"></div>`).join('')}</div>`:'';
     const leads=[...new Set(CALLS.map(c=>c.leadEmail))];
     $('content').innerHTML=`
       <div class="grid stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px">
@@ -2115,9 +2133,10 @@
         <div class="card"><div class="muted" style="font-size:12px">Completed</div><div style="font-size:26px;font-weight:800;color:#1a7f37">${completed}</div></div>
         <div class="card"><div class="muted" style="font-size:12px">Missed</div><div style="font-size:26px;font-weight:800;color:#b91c1c">${missed}</div></div>
         <div class="card"><div class="muted" style="font-size:12px">Scheduled</div><div style="font-size:26px;font-weight:800;color:#2563eb">${scheduled}</div></div>
-        <div class="card"><div class="muted" style="font-size:12px">Avg duration (min)</div><div style="font-size:26px;font-weight:800">${avgDur}</div></div>
+        <div class="card"><div class="muted" style="font-size:12px">Avg duration (min)</div><div style="font-size:26px;font-weight:800">${avgDur}</div><div class="muted" style="font-size:11px;margin-top:4px">${completedCalls.length} calls analyzed</div></div>
         <div class="card"><div class="muted" style="font-size:12px">Unique leads</div><div style="font-size:26px;font-weight:800">${leads.length}</div></div>
       </div>
+      ${trendBar?`<div class="card" style="margin-bottom:14px"><div class="muted" style="font-size:12px">Call duration trend (last 10 completed)</div>${trendBar}</div>`:''}
       <div class="toolbar">
         <input type="search" id="clq" placeholder="Search calls by lead…" value="${esc(CALLS_LEAD_FILTER)}" oninput="CALLS_LEAD_FILTER=this.value;renderCalls()">
         <span class="muted">${filtered.length} call(s)</span>
@@ -2197,6 +2216,72 @@
   }
   function callDelete(id){ if(!confirm('Delete this call?')) return;
     api('/crm-calls.php',{action:'delete',id}).then(r=>{ if(r.ok){ renderCalls(); toast('Call deleted'); } else toast('Error: '+(r.error||'unknown')); });
+  }
+
+  /* ════════════ HUBSPOT MIGRATION (batch import + duplicate detection) ════════════ */
+  let MIGRATION_STATE={inProgress:false,totalCreated:0,totalMerged:0,batchNum:0};
+  async function openHubSpotMigration(){
+    const status=await api('/hubspot-migration.php',{action:'status'});
+    const msg=!status.hubspot_connected?'HubSpot connection failed (check API key)':
+      `Connected! ${status.hubspot_contacts_total} contacts ready to import`;
+    const disabledMsg=status.hubspot_connected?'':'disabled';
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button>
+      <div style="font-weight:800;color:var(--navy);font-size:16px;margin-bottom:4px">HubSpot CRM Migration</div>
+      <div class="muted" style="font-size:12px;margin-bottom:14px">${msg}</div>
+      ${status.hubspot_connected?`
+        <div class="card" style="background:rgba(0,163,140,.06);border:1px solid rgba(0,163,140,.2);margin-bottom:14px;padding:12px">
+          <strong style="color:var(--ok);font-size:13px">✓ ${status.hubspot_contacts_total} contacts</strong> ready to import
+          <div class="muted" style="font-size:11px;margin-top:6px">Existing CRM data will be preserved. Duplicates detected by email/phone + name.</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn btn-primary" onclick="startHubSpotMigration()">▶ Start Import</button>
+          <button class="btn" onclick="viewHubSpotMappings()">Stage Mapping</button>
+          <button class="btn" onclick="viewMigrationLog()">View Log</button>
+        </div>
+        <div id="hsProgress" style="display:none;margin-top:14px">
+          <div style="font-size:12px;margin-bottom:6px">Progress: <strong id="hsProg">0</strong> batches | <strong id="hsCreated">0</strong> created | <strong id="hsMerged">0</strong> merged</div>
+          <div style="width:100%;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+            <div id="hsBar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--ok),var(--accent));transition:width 0.3s"></div>
+          </div>
+        </div>
+      `:''}
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn" onclick="closeModal()">Close</button>
+      </div>`,false);
+  }
+  function startHubSpotMigration(){
+    MIGRATION_STATE={inProgress:true,totalCreated:0,totalMerged:0,batchNum:0,nextAfter:null};
+    document.getElementById('hsProgress').style.display='block';
+    api('/hubspot-migration.php',{action:'start'}).then(()=>importNextBatch());
+  }
+  async function importNextBatch(){
+    if(!MIGRATION_STATE.inProgress) return;
+    const r=await api('/hubspot-migration.php',{action:'import-batch',after:MIGRATION_STATE.nextAfter||''});
+    if(!r.ok){toast('Migration error: '+r.error);MIGRATION_STATE.inProgress=false;return;}
+    MIGRATION_STATE.batchNum++;MIGRATION_STATE.totalCreated+=r.batch_created||0;MIGRATION_STATE.totalMerged+=r.batch_merged||0;
+    document.getElementById('hsProg').textContent=MIGRATION_STATE.batchNum;
+    document.getElementById('hsCreated').textContent=MIGRATION_STATE.totalCreated;
+    document.getElementById('hsMerged').textContent=MIGRATION_STATE.totalMerged;
+    document.getElementById('hsBar').style.width=(MIGRATION_STATE.batchNum*10)+'%';
+    if(r.has_more){MIGRATION_STATE.nextAfter=r.next_after;setTimeout(importNextBatch,500);}
+    else{MIGRATION_STATE.inProgress=false;toast('Migration complete: '+MIGRATION_STATE.totalCreated+' created, '+MIGRATION_STATE.totalMerged+' merged');}
+  }
+  function viewHubSpotMappings(){
+    api('/hubspot-migration.php',{action:'get-stage-mapping'}).then(r=>{
+      const rows=Object.entries(r.mapping||{}).map(([hs,crm])=>`<tr><td class="muted"><code>${hs}</code></td><td style="font-weight:600">${esc(crm)}</td></tr>`).join('');
+      openModal(`<button class="modal-x" onclick="closeModal()">×</button>
+        <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:12px">HubSpot Stage → CRM Stage Mapping</div>
+        <table style="width:100%;font-size:13px"><thead><tr><th>HubSpot Status</th><th>Maps to CRM Stage</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="muted" style="font-size:11px;margin-top:12px">Unmapped values default to "New Lead". Contact admin to update mappings.</div>`,false);
+    });
+  }
+  function viewMigrationLog(){
+    api('/hubspot-migration.php',{action:'get-log'}).then(r=>{
+      const log=(r.log||[]).map(l=>`<div style="font-family:monospace;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)">${esc(l)}</div>`).join('');
+      openModal(`<button class="modal-x" onclick="closeModal()">×</button>
+        <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:12px">Migration Log (Last 50 entries)</div>
+        <div style="max-height:400px;overflow:auto;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border)">${log||'<div class="muted">No migration log yet</div>'}</div>`,false);
+    });
   }
 
   /* ════════════ FILE MANAGER (uploads, file list, stats) ════════════ */
@@ -2897,12 +2982,13 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="recalculateAllScores()">🔄 Recalculate all scores</button><button class="btn btn-sm" onclick="viewScoringReport()">📈 Scoring report</button><span id="scoringMsg" class="muted" style="font-size:12px;align-self:center"></span></div>
         <div id="scoringReport" style="margin-top:10px"></div>
       </div>
-      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">HubSpot integration</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px">Sync contacts + email activity from HubSpot. Matched by email address: new contacts become leads, existing leads get updated with phone/company/engagement data.</p>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">🔗 HubSpot integration &amp; migration</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px"><strong>Migration:</strong> Intelligent batch import of all HubSpot contacts. Detects duplicates by email/phone, merges with existing leads, preserves history. <strong>Sync:</strong> Continuous sync of contacts + email activity.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button class="btn btn-primary btn-sm" onclick="hsSync('sync-all')">🔄 Sync contacts + emails</button>
-          <button class="btn btn-sm" onclick="hsSync('sync-contacts')">Contacts only</button>
-          <button class="btn btn-sm" onclick="hsSync('sync-emails')">Emails only</button>
+          <button class="btn btn-cta btn-sm" onclick="openHubSpotMigration()" style="background:linear-gradient(135deg,#e11d2a,#c4121f)">⬇ HubSpot Migration</button>
+          <button class="btn btn-primary btn-sm" onclick="hsSync('sync-all')">🔄 Sync (continuous)</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-contacts')">Contacts</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-emails')">Emails</button>
           <span id="hsSyncMsg" class="muted" style="font-size:12px;align-self:center"></span>
         </div>
         <div id="hsSyncProgress" style="margin-top:8px"></div>
