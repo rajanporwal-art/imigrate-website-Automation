@@ -81,7 +81,18 @@ jobs:
             fi
           fi
 
-      - name: Deploy dist/apps/web to Hostinger via FTP
+      # Hostinger's FTPS control socket intermittently drops (ETIMEDOUT on :21).
+      # A single failed attempt leaves the web root partial → whole-site 404.
+      # FIX: up to 3 sequential attempts. A dropped control socket fails fast, so
+      # a retry reconnects and completes the publish. Attempts 1–2 are
+      # continue-on-error; only a 3rd consecutive failure fails the job.
+      #
+      # ⚠️ exclude list MUST keep leads/** auth/** hubspot.json m365-config.php
+      # ai-data/** system-backups/** — these are never in the repo; the mirror
+      # would DELETE them otherwise, disconnecting integrations + wiping CRM data.
+      - name: Deploy to Hostinger via FTP (attempt 1)
+        id: ftp1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -89,42 +100,10 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/apps/web/
-          # The FTP account is rooted AT the website's web root
-          # (/home/u982334410/domains/imigratesolution.com/public_html), so deploy to
-          # the FTP root directly. Any path prefix here just nests files in an unserved
-          # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
           server-dir: ./
           dangerous-clean-slate: false
-          # Hostinger's FTP control socket drops on the default 30s timeout during
-          # larger syncs, which fails the job; the rerun then starts a FULL
-          # re-upload (sync-state never persisted) and times out again — a cascade
-          # that briefly 404s the whole site. A generous timeout lets the sync
-          # finish in one pass and persist .ftp-deploy-sync-state.json, so the
-          # NEXT deploy only uploads changed files (fast, no outage).
           timeout: 600000
-          # IMPORTANT: this FTP action MIRRORS state — excluding a file that was
-          # previously uploaded DELETES it from the server. So repo-shipped content
-          # (content.json, blog.json, faqs.json) must NOT be excluded, or it gets
-          # wiped. The CMS keeps edits durable instead by writing SERVER-ONLY
-          # override files that are never in the repo (so the mirror never touches
-          # them) — see cms-content.php. Only never-in-repo dirs are excluded here.
-          #
-          # ⚠️ INTEGRATION CREDENTIALS MUST STAY EXCLUDED — removing any of the
-          # following from this list would let the FTP mirror DELETE it, which
-          # DISCONNECTS the integration and forces a manual reconnect:
-          #   m365-config.php          → Microsoft 365 Azure app credentials
-          #   leads/**                 → M365 OAuth tokens (leads/m365-tokens.json,
-          #                              incl. the refresh token that keeps M365
-          #                              connected) + all CRM data
-          #   hubspot.json             → HubSpot Portal ID + Form GUID
-          #   auth/**                  → auth/secrets.php (HubSpot API key, CRON secret,
-          #                              M365 credentials) + integrations.json + portal users
-          #                              ⚠️ CRITICAL: NEVER DELETE auth/secrets.php
-          #   ai-data/**               → Claude AI API key + drafts
-          #   system-backups/**        → full-system backups (CRM+portal+config+
-          #                              integrations) + audit log + live mirror
-          # Connect each integration ONCE; these files persist across every deploy.
-          exclude: |
+          exclude: &ftp_exclude |
             **/.git*
             **/.git*/**
             .htpasswd
@@ -139,6 +118,36 @@ jobs:
             cms-overrides/**
             ai-data/**
             system-backups/**
+
+      - name: Deploy to Hostinger via FTP (attempt 2)
+        id: ftp2
+        if: steps.ftp1.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/apps/web/
+          server-dir: ./
+          dangerous-clean-slate: false
+          timeout: 600000
+          exclude: *ftp_exclude
+
+      - name: Deploy to Hostinger via FTP (attempt 3 - final)
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/apps/web/
+          server-dir: ./
+          dangerous-clean-slate: false
+          timeout: 600000
+          exclude: *ftp_exclude
 
       # After deploy: verify the live site responds, log the event, and take a
       # post-deploy snapshot. This step NEVER restores/overwrites data — it only
