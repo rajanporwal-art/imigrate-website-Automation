@@ -66,6 +66,15 @@ if (is_file($file)) {
 
 $action = $payload['action'] ?? 'list';
 
+/* ---- safety check: verify leads directory exists (deploy health check) ---- */
+if ($action === 'check') {
+    $dir = __DIR__ . '/leads';
+    $ok = is_dir($dir) && is_file($file);
+    $count = count($leads);
+    echo json_encode(['ok' => $ok, 'directory_exists' => is_dir($dir), 'leads_file_exists' => is_file($file), 'lead_count' => $count, 'message' => $ok ? "Leads directory healthy ($count leads)" : "Leads directory missing or corrupted"]);
+    exit;
+}
+
 if ($action === 'retry') {
     require __DIR__ . '/hubspot-lib.php';
     $cfgPath = __DIR__ . '/hubspot.json';

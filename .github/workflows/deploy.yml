@@ -30,6 +30,21 @@ jobs:
       - name: Build (Vite → dist/apps/web)
         run: npm run build
 
+      - name: Copy PHP + server-side files to dist (before FTP deploy)
+        run: |
+          echo "Copying PHP files from source to dist…"
+          # Copy all PHP files from apps/web/public to dist/apps/web
+          find apps/web/public -maxdepth 1 -name "*.php" -exec cp {} dist/apps/web/ \;
+          # Copy system-backup.php (critical for data safety)
+          cp apps/web/public/system-backup.php dist/apps/web/ 2>/dev/null || true
+          # Copy integration files (hubspot.json, etc.) if they exist in source
+          cp apps/web/public/hubspot.json dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/hubspot-lib.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365-lib.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365-config.example.php dist/apps/web/ 2>/dev/null || true
+          echo "PHP files copied to dist."
+
       # Take a point-in-time snapshot of the live CRM record store BEFORE
       # deploying, so lead data can be restored if anything goes wrong.
       # Best-effort: requires the CRM_BACKUP_KEY secret (matches $CRON_SECRET in
@@ -45,6 +60,17 @@ jobs:
             curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null || true
           else
             echo "CRM_BACKUP_KEY not set — skipping pre-deploy snapshot (all data is excluded from deploys regardless)."
+          fi
+
+      - name: Pre-FTP safety - restore critical data from backup
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "Pre-FTP: Restoring leads/, auth/, and integration files from latest backup…"
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=pre-deploy-restore&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "Pre-deploy restore requested" || echo "(backup unavailable — continuing with deploy)"
+          else
+            echo "CRM_BACKUP_KEY not set — skipping pre-deploy restore."
           fi
 
       - name: Deploy dist/apps/web to Hostinger via FTP
@@ -105,15 +131,25 @@ jobs:
             ai-data/**
             system-backups/**
 
-      # After deploy: log the event + take a post-deploy backup so there is a
-      # known-good restore point captured immediately after every release.
-      - name: Post-deploy backup + audit (best-effort)
+      # After deploy: verify critical directories still exist, and restore if missing
+      - name: Post-deploy safety check + restore-on-fail
         if: always()
         continue-on-error: true
         run: |
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "Verifying critical CRM data directories exist post-deploy…"
+            # Check if leads/ directory is accessible (exists on server)
+            LEADS_CHECK=$(curl -fsS "https://www.imigratesolution.com/leads-read.php?action=check&key=${{ secrets.CRM_BACKUP_KEY }}" 2>/dev/null || echo '{"ok":false}')
+            if echo "$LEADS_CHECK" | grep -q '"ok":true'; then
+              echo "✓ Leads directory verified — data is intact"
+            else
+              echo "⚠️  Leads directory check failed — attempting restore from latest backup"
+              curl -fsS "https://www.imigratesolution.com/system-backup.php?action=restore-latest&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "Restore initiated" || echo "Restore request sent (check manually if needed)"
+            fi
+            # Log post-deploy
             curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged post-deploy" || true
+            # Take post-deploy snapshot
             curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "post-deploy snapshot taken" || true
           else
-            echo "CRM_BACKUP_KEY not set — skipping post-deploy backup/audit."
+            echo "CRM_BACKUP_KEY not set — skipping post-deploy verification."
           fi

@@ -356,6 +356,44 @@ if ($action === 'onedrive-restore') {
     exit;
 }
 
+/* PRE-DEPLOY RESTORE: restore critical dirs from latest backup before FTP deploy */
+if ($action === 'pre-deploy-restore' || $action === 'restore-latest') {
+    // No auth check — called from CI/cron. Rate-limit by checking the key instead.
+    $key = (string) ($p['key'] ?? '');
+    if (!isset($CRON_SECRET) || $CRON_SECRET === '' || !hash_equals($CRON_SECRET, $key)) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Invalid key']);
+        exit;
+    }
+    // Find latest snapshot
+    $snaps = array_filter(glob($BK . '/*', GLOB_ONLYDIR), fn($d) => is_dir($d));
+    if (empty($snaps)) {
+        echo json_encode(['ok' => false, 'error' => 'No backups available']);
+        exit;
+    }
+    rsort($snaps);
+    $latestSnap = $snaps[0];
+    $files = [];
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($latestSnap, FilesystemIterator::SKIP_DOTS));
+    foreach ($it as $fi) {
+        if (!$fi->isFile()) continue;
+        $rel = ltrim(str_replace($latestSnap, '', $fi->getPathname()), '/');
+        if ($rel === '_manifest.json') continue;
+        // Only restore critical dirs (leads/, auth/, integrations)
+        if (preg_match('#^(leads/|auth/|system-backups/|ai-data/)#', $rel)) {
+            $files[$rel] = (string) @file_get_contents($fi->getPathname());
+        }
+    }
+    if (empty($files)) {
+        echo json_encode(['ok' => false, 'error' => 'No critical files in latest backup']);
+        exit;
+    }
+    $r = restore_map($ROOT, $BK, $map, $files);
+    audit_log($AUDIT, 'restore.pre-deploy', ['from' => basename($latestSnap), 'restored' => $r['restored']]);
+    echo json_encode(['ok' => true, 'restored' => $r['restored'], 'from' => basename($latestSnap)]);
+    exit;
+}
+
 if ($action === 'download') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
     $ts = preg_replace('/[^0-9\-]/', '', (string) ($p['ts'] ?? ''));
