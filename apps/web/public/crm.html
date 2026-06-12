@@ -457,6 +457,28 @@
     if(report)report.innerHTML=html;
   }
 
+  /* ---------- HUBSPOT SYNC ---------- */
+  async function hsSync(type){
+    const msg=$('hsSyncMsg'); if(msg)msg.textContent='Syncing…';
+    const prog=$('hsSyncProgress'); if(prog)prog.innerHTML='<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;background:var(--accent);width:30%;animation:pulse 1s infinite"></div></div>';
+    const r=await api('/hubspot-sync.php',{action:type});
+    if(!r||!r.ok){ if(msg)msg.textContent='Sync failed: '+((r&&r.error)||'unknown error'); if(msg)msg.className='err'; if(prog)prog.innerHTML=''; return; }
+    if(msg){ msg.textContent=`✓ Synced: ${r.imported||0} leads, ${r.emailsImported||0} emails`; msg.className='ok'; }
+    if(prog)prog.innerHTML='';
+    const report=$('hsSyncReport');
+    const errors=r.errors&&r.errors.length?'<div style="margin-top:8px;padding:8px;background:#fee;border-radius:4px;font-size:12px;color:#c00"><strong>Errors:</strong> '+esc(r.errors.join('; '))+'</div>':'';
+    const html=`<div style="font-size:13px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Contacts imported (new)</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.created||0}</strong></td></tr>
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Contacts merged (updated)</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.merged||0}</strong></td></tr>
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Email threads imported</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.emailsImported||0}</strong></td></tr>
+      </table>
+      ${errors}
+    </div>`;
+    if(report)report.innerHTML=html;
+    setTimeout(()=>{ CONTACTS=CONTACTS||[]; loadAll(); },1000);
+  }
+
   /* ---------- dashboard (clickable widgets) ---------- */
   function renderDashboard(){
     const total=CONTACTS.length;
@@ -1928,7 +1950,15 @@
         <div id="scoringReport" style="margin-top:10px"></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">HubSpot integration</h3>
-        <div id="hubspotPanel"><p class="muted">Loading…</p></div>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px">Sync contacts + email activity from HubSpot. Matched by email address: new contacts become leads, existing leads get updated with phone/company/engagement data.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-primary btn-sm" onclick="hsSync('sync-all')">🔄 Sync contacts + emails</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-contacts')">Contacts only</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-emails')">Emails only</button>
+          <span id="hsSyncMsg" class="muted" style="font-size:12px;align-self:center"></span>
+        </div>
+        <div id="hsSyncProgress" style="margin-top:8px"></div>
+        <div id="hsSyncReport" style="margin-top:10px"></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Microsoft 365 integration</h3>
         <div id="m365Status"><p class="muted">Checking connection…</p></div>
