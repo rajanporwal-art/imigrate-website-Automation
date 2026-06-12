@@ -125,6 +125,20 @@ function leads_valid($root) {
 }
 function snap_time($ts) { $dt = DateTime::createFromFormat('Ymd-His', substr($ts, 0, 15)); return $dt ? $dt->getTimestamp() : @strtotime(substr($ts, 0, 8)); }
 
+/* Human-readable age string (e.g., "5 min", "2 hours", "yesterday") */
+function age_str($mins) {
+    if ($mins === null) return 'never';
+    if ($mins < 1) return 'now';
+    if ($mins < 60) return $mins . ' min' . ($mins !== 1 ? 's' : '');
+    $hrs = (int) ($mins / 60);
+    if ($hrs < 24) return $hrs . ' hour' . ($hrs !== 1 ? 's' : '');
+    $days = (int) ($hrs / 24);
+    if ($days === 1) return 'yesterday';
+    if ($days < 7) return $days . ' days';
+    $wks = (int) ($days / 7);
+    return $wks . ' week' . ($wks !== 1 ? 's' : '');
+}
+
 /* Write a file, creating parent dirs. */
 function put_file($dest, $content) {
     $dir = dirname($dest);
@@ -219,6 +233,18 @@ function onedrive_list_full($root) {
     return $out;
 }
 
+/* Verify a OneDrive backup is non-empty and lead-count matches. Re-downloads to confirm. */
+function verify_onedrive_backup($root, $file) {
+    if (!is_file($root . '/m365-lib.php')) return ['ok' => false, 'error' => 'M365 not configured'];
+    require_once $root . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) return ['ok' => false, 'error' => 'M365 not connected'];
+    $bundle = function_exists('m365_onedrive_download') ? @json_decode((string) m365_onedrive_download($file, 'iMigrate System Backups'), true) : null;
+    if (!is_array($bundle)) return ['ok' => false, 'error' => 'Could not re-download bundle'];
+    $bundleLeads = (int) ($bundle['leads'] ?? 0);
+    $isNonEmpty = ($bundleLeads > 0 && !empty($bundle['files']) && count($bundle['files']) > 2);
+    return ['ok' => true, 'verified' => $isNonEmpty, 'bundleLeads' => $bundleLeads, 'fileCount' => count($bundle['files'] ?? [])];
+}
+
 /* Restore a [rel => content] map into the web root. Empty-guarded + reversible. */
 function restore_map($root, $bk, $map, $files) {
     // Safety: snapshot current state first.
@@ -246,12 +272,36 @@ $state = state_load($STATE);
 $now = time();
 
 if ($action === 'status') {
+    $curLeads = leads_count($ROOT);
+    // Track high-water mark (highest lead count ever seen — basis for crash detection)
+    $hwm = (int) ($state['highWaterMark'] ?? 0);
+    if ($curLeads > $hwm) { $hwm = $curLeads; $state['highWaterMark'] = $hwm; state_save($STATE, $state); }
+    // Anomaly detection: has the lead count crashed >50% from the high-water mark?
+    $isCrash = ($hwm > 100 && $curLeads < $hwm * 0.5);
+    // Last backup age (minutes)
+    $lastServerAge = $lastOnedriveAge = null;
+    if (!empty($state['lastServer'])) $lastServerAge = (int) (($now - (int) $state['lastServer']) / 60);
+    if (!empty($state['lastOnedrive'])) $lastOnedriveAge = (int) (($now - (int) $state['lastOnedrive']) / 60);
+    $isServerStale = ($lastServerAge !== null && $lastServerAge > 480);  // >8 hours
+    $isOnedriveStale = ($lastOnedriveAge !== null && $lastOnedriveAge > 480);
+    // Get last snapshot details
+    $snaps = list_server_snapshots($BK);
+    $lastSnap = $snaps[0] ?? null;
     echo json_encode(['ok' => true,
-        'leads' => leads_count($ROOT), 'leadsValid' => leads_valid($ROOT),
+        'leads' => $curLeads, 'leadsValid' => leads_valid($ROOT),
+        'highWaterMark' => $hwm,
+        'anomalies' => [
+            'isCrash' => $isCrash,
+            'crashDetail' => $isCrash ? sprintf('Lead count dropped from %d to %d (%.0f%%)', $hwm, $curLeads, ($curLeads / max(1, $hwm)) * 100) : null,
+            'serverStale' => $isServerStale,
+            'onedriveStale' => $isOnedriveStale,
+            'noServer' => $lastSnap === null,
+            'noOnedrive' => empty($state['lastOnedriveFile']),
+        ],
         'sources' => count($map), 'bytes' => sources_bytes($map),
-        'lastServer' => $state['lastServer'] ?? null,
-        'lastOnedrive' => $state['lastOnedrive'] ?? null,
-        'serverSnapshots' => count(list_server_snapshots($BK))]);
+        'lastServer' => $lastSnap ? ['ts' => $lastSnap['ts'], 'leads' => $lastSnap['leads'], 'ageMinutes' => $lastServerAge] : null,
+        'lastOnedrive' => !empty($state['lastOnedriveFile']) ? ['file' => $state['lastOnedriveFile'], 'ageMinutes' => $lastOnedriveAge, 'verified' => !empty($state['lastOnedriveVerified'])] : null,
+        'serverSnapshots' => count($snaps)]);
     exit;
 }
 
@@ -308,6 +358,66 @@ if ($action === 'onedrive-list') {
     $files = onedrive_list_full($ROOT);
     if ($files === null) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not connected']); exit; }
     echo json_encode(['ok' => true, 'files' => $files]);
+    exit;
+}
+
+/* Rich health data for the backup health UI panel. */
+if ($action === 'backup-health') {
+    $curLeads = leads_count($ROOT);
+    $hwm = (int) ($state['highWaterMark'] ?? 0);
+    if ($curLeads > $hwm) { $hwm = $curLeads; $state['highWaterMark'] = $hwm; state_save($STATE, $state); }
+    $snaps = list_server_snapshots($BK);
+    $lastSnap = $snaps[0] ?? null;
+    $lastServerAge = $lastOnedriveAge = null;
+    if (!empty($state['lastServer'])) $lastServerAge = (int) (($now - (int) $state['lastServer']) / 60);
+    if (!empty($state['lastOnedrive'])) $lastOnedriveAge = (int) (($now - (int) $state['lastOnedrive']) / 60);
+    $isServerStale = ($lastServerAge !== null && $lastServerAge > 480);
+    $isOnedriveStale = ($lastOnedriveAge !== null && $lastOnedriveAge > 480);
+    $isCrash = ($hwm > 100 && $curLeads < $hwm * 0.5);
+    $onedriveVerified = !empty($state['lastOnedriveVerified']);
+    $alerts = [];
+    if ($isCrash) $alerts[] = ['level' => 'critical', 'msg' => sprintf('Lead count crashed: %d → %d (%.0f%% loss)', $hwm, $curLeads, (1 - $curLeads / max(1, $hwm)) * 100)];
+    if ($curLeads === 0 && $hwm > 0) $alerts[] = ['level' => 'critical', 'msg' => 'All leads missing. Last known: ' . $hwm];
+    if ($isServerStale) $alerts[] = ['level' => 'warning', 'msg' => sprintf('Server backup stale: %d minutes old', $lastServerAge)];
+    if ($isOnedriveStale && !empty($state['lastOnedriveFile'])) $alerts[] = ['level' => 'warning', 'msg' => sprintf('OneDrive backup stale: %d minutes old', $lastOnedriveAge)];
+    if (empty($state['lastOnedriveFile'])) $alerts[] = ['level' => 'warning', 'msg' => 'No OneDrive backup yet'];
+    if ($lastSnap === null) $alerts[] = ['level' => 'warning', 'msg' => 'No server backup yet'];
+    echo json_encode(['ok' => true,
+        'curLeads' => $curLeads,
+        'highWaterMark' => $hwm,
+        'isCrash' => $isCrash,
+        'lastServer' => $lastSnap ? ['ts' => $lastSnap['ts'], 'leads' => $lastSnap['leads'], 'ageMinutes' => $lastServerAge, 'ageStr' => age_str($lastServerAge)] : null,
+        'lastOnedrive' => !empty($state['lastOnedriveFile']) ? ['file' => $state['lastOnedriveFile'], 'ageMinutes' => $lastOnedriveAge, 'ageStr' => age_str($lastOnedriveAge), 'verified' => $onedriveVerified] : null,
+        'alerts' => $alerts]);
+    exit;
+}
+
+/* Scheduled backup with verification (for cron). */
+if ($action === 'schedule-backup') {
+    if (!$hasData) { echo json_encode(['ok' => true, 'skipped' => 'no data']); exit; }
+    $snap = make_server_snapshot($ROOT, $BK, $map, 'scheduled');
+    update_mirror($ROOT, $MIRROR, $map);
+    prune_server($BK);
+    $state['lastServer'] = $now;
+    $state['lastServerTs'] = $snap['ts'];
+    audit_log($AUDIT, 'backup.scheduled', ['ts' => $snap['ts'], 'leads' => $snap['leads']]);
+    // OneDrive: upload + verify
+    $od = onedrive_push_full($ROOT, $map);
+    $verified = false;
+    if (!empty($od['ok'])) {
+        $ver = verify_onedrive_backup($ROOT, $od['file']);
+        if (!empty($ver['ok']) && !empty($ver['verified'])) {
+            $verified = true;
+            $state['lastOnedrive'] = $now;
+            $state['lastOnedriveFile'] = $od['file'];
+            $state['lastOnedriveVerified'] = $now;
+            audit_log($AUDIT, 'backup.scheduled.onedrive', ['file' => $od['file'], 'verified' => true, 'bundleLeads' => $ver['bundleLeads']]);
+        } else {
+            audit_log($AUDIT, 'backup.scheduled.onedrive', ['file' => $od['file'], 'error' => 'verification failed', 'detail' => $ver['error'] ?? '']);
+        }
+    }
+    state_save($STATE, $state);
+    echo json_encode(['ok' => true, 'server' => $snap, 'onedrive' => $od, 'verified' => $verified]);
     exit;
 }
 

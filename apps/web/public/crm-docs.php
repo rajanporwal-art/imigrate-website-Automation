@@ -71,6 +71,13 @@ if ($action === 'list') {
     d_json(['ok' => true, 'docs' => $out]);
 }
 
+/* Global listing of every uploaded document (for the Documents module). */
+if ($action === 'all') {
+    $out = $rows;
+    usort($out, fn($a, $b) => strcmp($b['at'] ?? '', $a['at'] ?? ''));
+    d_json(['ok' => true, 'docs' => array_values($out)]);
+}
+
 if ($action === 'delete') {
     $id = (string) ($p['id'] ?? '');
     foreach ($rows as $r) if (($r['id'] ?? '') === $id) { @unlink($docsDir . '/' . basename($r['stored'] ?? '')); }

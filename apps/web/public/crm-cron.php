@@ -41,8 +41,13 @@ $res2 = @file_get_contents($proto . '://' . $host . '/marketing.php?action=run-b
 $ctx3 = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => json_encode(['action' => 'check-inactivity', 'checkKey' => $CRON_SECRET, 'password' => $EDIT_PASSWORD]), 'timeout' => 15]]);
 $res3 = @file_get_contents($proto . '://' . $host . '/crm-automation.php', false, $ctx3);
 
+// 4. Scheduled verified backup (every 6 hours): server snapshot + OneDrive with verification
+$ctx4 = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => json_encode(['action' => 'schedule-backup', 'password' => $EDIT_PASSWORD]), 'timeout' => 60]]);
+$res4 = @file_get_contents($proto . '://' . $host . '/system-backup.php', false, $ctx4);
+
 $r1 = $res1 !== false ? json_decode($res1, true) : ['ok' => false, 'error' => 'crm-email.php unreachable'];
 $r2 = $res2 !== false ? json_decode($res2, true) : ['ok' => false, 'error' => 'marketing.php unreachable'];
 $r3 = $res3 !== false ? json_decode($res3, true) : ['ok' => false, 'error' => 'crm-automation.php unreachable'];
+$r4 = $res4 !== false ? json_decode($res4, true) : ['ok' => false, 'error' => 'system-backup.php unreachable'];
 
-echo json_encode(['ok' => ($r1['ok'] ?? false) || ($r2['ok'] ?? false) || ($r3['ok'] ?? false), 'scheduled_emails' => $r1, 'campaign_sends' => $r2, 'inactivity_checks' => $r3]);
+echo json_encode(['ok' => ($r1['ok'] ?? false) || ($r2['ok'] ?? false) || ($r3['ok'] ?? false) || ($r4['ok'] ?? false), 'scheduled_emails' => $r1, 'campaign_sends' => $r2, 'inactivity_checks' => $r3, 'scheduled_backup' => $r4]);
