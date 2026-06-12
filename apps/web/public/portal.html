@@ -13,7 +13,20 @@
   button{font-family:inherit;cursor:pointer}
   .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600}
   .btn:hover{border-color:var(--accent)} .btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)} .btn-sm{padding:4px 9px;font-size:12px} .btn-cta{background:var(--cta);color:#fff;border-color:var(--cta)}
-  input,select{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  input,select,textarea{font-family:inherit;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+  textarea{min-height:110px;resize:vertical;line-height:1.5}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0}
+  .tab{padding:8px 14px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;color:var(--muted);background:transparent;cursor:pointer}
+  .tab.active{color:var(--navy);background:var(--panel);border-color:var(--border);margin-bottom:-1px}
+  .aiout{white-space:pre-wrap;font-size:13px;line-height:1.6;background:#fbfcfe;border:1px solid var(--border);border-radius:8px;padding:14px;max-height:60vh;overflow:auto}
+  .chatwrap{display:flex;flex-direction:column;height:62vh;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .chatlog{flex:1;overflow:auto;padding:14px;background:#fbfcfe}
+  .msg{margin-bottom:12px;display:flex} .msg.u{justify-content:flex-end}
+  .bub{max-width:80%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+  .msg.u .bub{background:var(--navy);color:#fff;border-bottom-right-radius:3px}
+  .msg.a .bub{background:#fff;border:1px solid var(--border);border-bottom-left-radius:3px}
+  .chatbar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--panel)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(11,31,68,.08);color:var(--navy);margin-right:5px}
   label.fl{font-size:12px;color:var(--muted);display:block;margin:8px 0 3px}
   #gate{max-width:380px;margin:11vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
   #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 16px}
@@ -22,8 +35,17 @@
   .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 12px}
   .sidebar .brand span{color:var(--accent)}
   .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7e8aa6;margin:12px 8px 4px}
-  .navitem{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:8px;color:#cdd7ea;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:1px}
-  .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
+  .navgrp{margin-bottom:2px}
+  .grphd{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:#dbe3f3;font-size:13px;font-weight:700;cursor:pointer;user-select:none}
+  .grphd:hover{background:rgba(255,255,255,.07)}
+  .grphd .gi{width:18px;text-align:center}
+  .grphd .chev{margin-left:auto;transition:transform .2s ease;font-size:10px;color:#8593b3}
+  .navgrp.open .grphd .chev{transform:rotate(90deg)}
+  .grpbody{overflow:hidden;max-height:0;transition:max-height .26s ease}
+  .navgrp.open .grpbody{max-height:760px}
+  .navitem{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 34px;border-radius:8px;color:#b9c4dc;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:1px}
+  .navitem.active{background:rgba(200,162,74,.18);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+  .navitem:hover{background:rgba(255,255,255,.1);color:#fff}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
   .topbar h2{margin:0;font-size:17px}
   .who{font-size:12px;color:var(--muted)}
@@ -77,21 +99,32 @@ const esc=(v)=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 const fmtDT=(s)=>(s||'').slice(0,16).replace('T',' ');
 let TOKEN=sessionStorage.getItem('imig_portal_token')||'',SVC='',USER={},PERMS={all:false,perms:{}},VIEW='dashboard';
 
-const MODULE_LABELS={'cms.pages':'Pages','cms.blogs':'Blogs','cms.faqs':'FAQs','cms.media':'Media','cms.menus':'Menus','cms.forms':'Forms','cms.seo':'SEO','cms.settings':'CMS Settings','crm.leads':'Leads','crm.aileads':'AI Leads','crm.reports':'Reports','crm.pipeline':'Pipeline','crm.tasks':'Tasks','crm.documents':'Documents','crm.notes':'Notes','crm.activities':'Activities','mkt.social':'Social Media','mkt.gbp':'Google Business','mkt.email':'Email Campaigns','mkt.emailauto':'Email Automations','mkt.whatsapp':'WhatsApp','mkt.ads':'Ads Manager','mkt.calendar':'Content Calendar','mkt.analytics':'Analytics','int.m365':'Microsoft 365','int.google':'Google','int.hubspot':'HubSpot','int.mailchimp':'Mailchimp','int.activecampaign':'ActiveCampaign','int.whatsappapi':'WhatsApp API','settings.company':'Company','settings.users':'Users','settings.roles':'Roles & Permissions','settings.apikeys':'API Keys','settings.backup':'Backup','settings.security':'Security'};
+const MODULE_LABELS={'dashboard':'Dashboard','dash.analytics':'Analytics','dash.notifications':'Notifications','cms.pages':'Pages','cms.blogs':'Blogs','cms.faqs':'FAQs','cms.media':'Media','cms.menus':'Menus','cms.headfoot':'Header & Footer','cms.forms':'Forms','cms.seo':'SEO','cms.settings':'CMS Settings','crm.leads':'Leads','crm.aileads':'AI Leads','crm.reports':'Reports','crm.pipeline':'Pipeline','crm.tasks':'Tasks','crm.documents':'Documents','crm.notes':'Notes','crm.activities':'Activities','mkt.dashboard':'Marketing Dashboard','mkt.aistudio':'AI Content Studio','mkt.social':'Social Media','mkt.gbp':'Google Business Profile','mkt.email':'Email Marketing','mkt.emailauto':'Email Automations','mkt.whatsapp':'WhatsApp Automations','mkt.ads':'Ads Manager','mkt.campaigns':'Campaigns','mkt.calendar':'Content Calendar','mkt.analytics':'Analytics','consult.upcoming':'Upcoming Consultations','consult.completed':'Completed Consultations','consult.calendar':'Consultation Calendar','int.anthropic':'Claude AI (Anthropic)','int.m365':'Microsoft 365','int.outlook':'Outlook','int.onedrive':'OneDrive','int.google':'Google','int.email':'Email Settings','int.api':'API Connections','int.hubspot':'HubSpot','int.mailchimp':'Mailchimp','int.activecampaign':'ActiveCampaign','int.whatsappapi':'WhatsApp API','settings.company':'Company Information','settings.users':'Users','settings.roles':'Roles','um.permissions':'Permissions','settings.apikeys':'API Keys','settings.backup':'Backups','settings.security':'Security','sys.logs':'Logs'};
 
-/* nav: [group, [ [moduleKey, label, target] ]]; target: app url (#m=) or 'native' */
+/* Grouped collapsible nav: [groupIcon, groupLabel, [ [moduleKey, label, target] ]]
+   target: app url (#m=…) for embedded CMS/CRM, or 'native' for a portal-rendered view. */
 const NAV=[
-  [null,[['dashboard','📊 Dashboard','native']]],
-  ['Website CMS',[['cms.pages','Pages','cms.html#m=pagelist'],['cms.blogs','Blogs','cms.html#m=blog'],['cms.faqs','FAQs','cms.html#m=faqs'],['cms.media','Media Library','cms.html#m=media'],['cms.menus','Menus','cms.html#m=menus'],['cms.forms','Forms','cms.html#m=forms'],['cms.seo','SEO','cms.html#m=seo'],['cms.settings','Settings','cms.html#m=settings']]],
-  ['CRM',[['crm.leads','Leads','crm.html#m=leads'],['crm.aileads','AI Leads','crm.html#m=leads'],['crm.reports','Reports','crm.html#m=reports'],['crm.pipeline','Pipeline','crm.html#m=pipeline'],['crm.tasks','Tasks','crm.html#m=tasks'],['crm.documents','Documents','crm.html#m=leads'],['crm.notes','Notes','crm.html#m=leads'],['crm.activities','Activities','crm.html#m=leads']]],
-  ['Marketing Hub',[['mkt.social','Social Media','native'],['mkt.gbp','Google Business','native'],['mkt.email','Email Campaigns','native'],['mkt.emailauto','Email Automations','native'],['mkt.whatsapp','WhatsApp','native'],['mkt.ads','Ads Manager','native'],['mkt.calendar','Content Calendar','native'],['mkt.analytics','Analytics','native']]],
-  ['Integrations',[['int.m365','Microsoft 365','native'],['int.google','Google','native'],['int.hubspot','HubSpot','native'],['int.mailchimp','Mailchimp','native'],['int.activecampaign','ActiveCampaign','native'],['int.whatsappapi','WhatsApp API','native']]],
-  ['Settings',[['settings.company','Company Info','native'],['settings.users','Users','native'],['settings.roles','Roles & Permissions','native'],['settings.apikeys','API Keys','native'],['settings.backup','Backup','native'],['settings.security','Security','native']]],
+  ['📊','Dashboard',[['dashboard','Overview','native'],['dash.analytics','Analytics','native'],['dash.notifications','Notifications','native']]],
+  ['🌐','CMS',[['cms.pages','Pages','cms.html#m=pagelist'],['cms.blogs','Blogs','cms.html#m=blog'],['cms.faqs','FAQs','cms.html#m=faqs'],['cms.media','Media Library','cms.html#m=media'],['cms.forms','Forms','cms.html#m=forms'],['cms.seo','SEO','cms.html#m=seo'],['cms.menus','Menus','cms.html#m=menus'],['cms.headfoot','Header & Footer','cms.html#m=headfoot'],['cms.settings','Settings','cms.html#m=settings']]],
+  ['👥','CRM',[['crm.leads','Leads','crm.html#m=leads'],['crm.aileads','AI Leads','crm.html#m=leads'],['crm.pipeline','Pipeline','crm.html#m=pipeline'],['crm.tasks','Tasks','crm.html#m=tasks'],['crm.documents','Documents','crm.html#m=leads'],['crm.notes','Notes','crm.html#m=leads'],['crm.reports','Reports','crm.html#m=reports'],['crm.activities','Activities','crm.html#m=leads']]],
+  ['📢','Marketing Hub',[['mkt.dashboard','Dashboard','native'],['mkt.social','Social Media','native'],['mkt.gbp','Google Business Profile','native'],['mkt.email','Email Marketing','native'],['mkt.emailauto','Email Automations','native'],['mkt.whatsapp','WhatsApp Automations','native'],['mkt.ads','Ads Manager','native'],['mkt.campaigns','Campaigns','native'],['mkt.aistudio','✨ AI Content Studio','native'],['mkt.calendar','Content Calendar','native'],['mkt.analytics','Analytics','native']]],
+  ['📅','Consultations',[['consult.upcoming','Upcoming','native'],['consult.completed','Completed','native'],['consult.calendar','Calendar','native']]],
+  ['⚙️','Integrations',[['int.m365','Microsoft 365','native'],['int.outlook','Outlook','native'],['int.onedrive','OneDrive','native'],['int.google','Google','native'],['int.anthropic','Claude AI','native'],['int.hubspot','HubSpot','native'],['int.email','Email Settings','native'],['int.api','API Connections','native'],['int.mailchimp','Mailchimp','native'],['int.activecampaign','ActiveCampaign','native'],['int.whatsappapi','WhatsApp API','native']]],
+  ['👤','User Management',[['settings.users','Users','native'],['settings.roles','Roles','native'],['um.permissions','Permissions','native']]],
+  ['🛠️','System Settings',[['settings.company','Company Information','native'],['settings.backup','Backups','native'],['settings.security','Security','native'],['sys.logs','Logs','native']]],
 ];
+/* Map pseudo nav keys to the real permission module that gates them (null = admin-only). */
+const PERM_OF={'dash.analytics':'mkt.analytics','dash.notifications':null,'cms.headfoot':'cms.settings','mkt.dashboard':'mkt.email','mkt.campaigns':'mkt.ads','consult.upcoming':'crm.tasks','consult.completed':'crm.tasks','consult.calendar':'crm.tasks','int.outlook':'int.m365','int.onedrive':'int.m365','int.email':'int.m365','int.api':'settings.apikeys','um.permissions':'settings.roles','sys.logs':'settings.security'};
+function leafVisible(mod){ if(mod==='dashboard')return true; if(PERMS.all)return true; const pk=(mod in PERM_OF)?PERM_OF[mod]:mod; if(pk===null)return false; return can(pk); }
 
 function can(mod,act){ act=act||'view'; if(PERMS.all)return true; const a=(PERMS.perms||{})[mod]||[]; return a.includes(act); }
 
-async function api(body){ const r=await fetch('/portal.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,...body})}); return r.json().catch(()=>({ok:false})); }
+// Real-time auto-backup: after any config/integration/user change in the portal,
+// debounce a full dual backup (server + OneDrive) via system-backup.php.
+const BK_READONLY=new Set(['status','list','get','load','audit','read','overview','me','perms','count']);
+let _bkTimer=null;
+function scheduleBackup(reason){ try{ if(!SVC)return; clearTimeout(_bkTimer); _bkTimer=setTimeout(()=>{ fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,action:'change',reason:String(reason||'portal')})}).catch(()=>{}); },4000); }catch(e){} }
+async function api(body){ const r=await fetch('/portal.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,...body})}); const j=await r.json().catch(()=>({ok:false})); try{ const a=body&&body.action; if(a&&!BK_READONLY.has(a)&&j&&j.ok!==false) scheduleBackup('portal:'+a); }catch(e){} return j; }
 
 /* ---------- auth ---------- */
 async function doLogin(){
@@ -116,30 +149,54 @@ async function doLogout(){ await api({action:'logout'}); sessionStorage.removeIt
 async function restore(){ if(!TOKEN)return false; const r=await api({action:'session'}); if(r.ok){ applySession({token:TOKEN,svc:r.svc,user:r.user,permissions:r.permissions}); return true; } sessionStorage.removeItem('imig_portal_token'); return false; }
 
 /* ---------- nav / routing ---------- */
-function navTargetFor(mod){ for(const [grp,items] of NAV) for(const it of items) if(it[0]===mod) return it[2]; return 'native'; }
+function navTargetFor(mod){ for(const g of NAV) for(const it of g[2]) if(it[0]===mod) return it[2]; return 'native'; }
+let NAV_OPEN=null;
+function navOpen(){ if(NAV_OPEN)return NAV_OPEN; try{NAV_OPEN=new Set(JSON.parse(localStorage.getItem('imig_nav_open')||'[0]'));}catch(e){NAV_OPEN=new Set([0]);} return NAV_OPEN; }
+function toggleGrp(gi){ const s=navOpen(); s.has(gi)?s.delete(gi):s.add(gi); localStorage.setItem('imig_nav_open',JSON.stringify([...s])); buildNav(); }
+function groupOfView(mod){ for(let gi=0;gi<NAV.length;gi++){ if(NAV[gi][2].some(l=>l[0]===mod))return gi; } return 0; }
 function buildNav(){
+  const open=navOpen(); open.add(groupOfView(VIEW));
   let h='';
-  for(const [grp,items] of NAV){
-    const visible=items.filter(([mod])=>mod==='dashboard'||can(mod));
-    if(!visible.length)continue;
-    if(grp)h+=`<div class="grp">${esc(grp)}</div>`;
-    h+=visible.map(([mod,lab])=>`<div class="navitem ${VIEW===mod?'active':''}" onclick="go('${mod}')">${esc(lab)}</div>`).join('');
-  }
+  NAV.forEach(([icon,label,leaves],gi)=>{
+    const vis=leaves.filter(l=>leafVisible(l[0]));
+    if(!vis.length)return;
+    h+=`<div class="navgrp ${open.has(gi)?'open':''}"><div class="grphd" onclick="toggleGrp(${gi})"><span class="gi">${icon}</span><span>${esc(label)}</span><span class="chev">▶</span></div><div class="grpbody">`;
+    h+=vis.map(([mod,lab])=>`<div class="navitem ${VIEW===mod?'active':''}" onclick="go('${mod}')">${esc(lab)}</div>`).join('');
+    h+=`</div></div>`;
+  });
   $('nav').innerHTML=h;
 }
 function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
-  $('viewTitle').textContent= mod==='dashboard'?'Dashboard':(MODULE_LABELS[mod]||mod);
-  if(mod!=='dashboard' && mod.startsWith('settings.')) return renderSettings(mod);
-  if(mod!=='dashboard' && (mod.startsWith('mkt.')||mod.startsWith('int.'))) return renderFramework(mod);
-  if(mod==='dashboard') return renderDashboard();
-  if(tgt!=='native'){ $('view').innerHTML=`<iframe src="/${esc(tgt)}" title="${esc(MODULE_LABELS[mod]||mod)}"></iframe>`; $('view').style.padding='0'; return; }
+  $('viewTitle').textContent=(MODULE_LABELS[mod]||mod);
   $('view').style.padding='20px';
+  if(mod==='dashboard') return renderDashboard();
+  if(mod==='dash.analytics') return renderFramework('mkt.analytics');
+  if(mod==='dash.notifications') return renderNotifications();
+  if(mod==='mkt.dashboard') return renderMarketingDashboard();
+  if(mod==='mkt.aistudio') return renderAIStudio();
+  if(mod==='mkt.email') return renderEmailMarketing();
+  if(mod==='mkt.campaigns') return renderCampaigns();
+  if(mod==='mkt.calendar') return renderContentCalendar();
+  if(mod==='mkt.analytics') return renderMarketingAnalytics();
+  if(mod==='mkt.social') return renderSocialMedia();
+  if(mod==='mkt.emailauto') return renderEmailAutomations();
+  if(mod==='mkt.ads') return renderAdsManager();
+  if(mod==='mkt.whatsapp') return renderWhatsAppHub();
+  if(mod==='int.anthropic') return renderAIIntegration();
+  if(mod==='int.api') return renderIntegrationsOverview();
+  if(typeof CONNECTORS!=='undefined' && CONNECTORS[mod]) return renderIntegration(mod);
+  if(mod==='um.permissions') return renderSettings('settings.roles');
+  if(mod==='sys.logs') return renderLogs();
+  if(mod.startsWith('consult.')) return renderConsultations(mod);
+  if(mod.startsWith('settings.')) return renderSettings(mod);
+  if(mod.startsWith('mkt.')||mod.startsWith('int.')) return renderFramework(mod);
+  if(tgt!=='native'){ $('view').innerHTML=`<iframe src="/${esc(tgt)}" title="${esc(MODULE_LABELS[mod]||mod)}"></iframe>`; $('view').style.padding='0'; return; }
 }
 
 /* ---------- dashboard ---------- */
 function renderDashboard(){
   $('view').style.padding='20px';
-  const CARDS=[['cms.pages','🌐','Website CMS','Pages, blogs, SEO, media','cms.pages'],['crm.leads','📇','CRM','Leads, pipeline, reports','crm.leads'],['mkt.email','📣','Marketing Hub','Campaigns & automations','mkt.email'],['crm.reports','🤖','AI Reports','Assessment reports','crm.reports'],['mkt.email','✉️','Email Marketing','Campaigns & templates','mkt.email'],['mkt.social','📱','Social Media','Posts & scheduling','mkt.social'],['mkt.analytics','📈','Analytics','Traffic & conversions','mkt.analytics'],['int.m365','🔌','Integrations','M365, HubSpot, more','int.m365'],['settings.company','⚙️','Settings','Users, roles, security','settings.company']];
+  const CARDS=[['cms.pages','🌐','Website CMS','Pages, blogs, SEO, media','cms.pages'],['crm.leads','📇','CRM','Leads, pipeline, reports','crm.leads'],['mkt.aistudio','✨','AI Studio','Generate content, ads & SEO with Claude','mkt.aistudio'],['mkt.email','📣','Marketing Hub','Campaigns & automations','mkt.email'],['crm.reports','🤖','AI Reports','Assessment reports','crm.reports'],['mkt.email','✉️','Email Marketing','Campaigns & templates','mkt.email'],['mkt.social','📱','Social Media','Posts & scheduling','mkt.social'],['mkt.analytics','📈','Analytics','Traffic & conversions','mkt.analytics'],['int.m365','🔌','Integrations','M365, HubSpot, more','int.m365'],['settings.company','⚙️','Settings','Users, roles, security','settings.company']];
   const cards=CARDS.filter(c=>can(c[0])).map(c=>`<div class="qcard" onclick="go('${c[4]}')"><div class="ic">${c[1]}</div><h3>${esc(c[2])}</h3><p>${esc(c[3])}</p></div>`).join('');
   $('view').innerHTML=`<p class="muted" style="margin-top:0">Welcome, <strong>${esc(USER.name||'')}</strong> — signed in as <strong>${esc(USER.role||'')}</strong>.</p><div class="cards">${cards}</div>
    <div class="card" style="margin-top:18px"><h3>Two systems, one portal</h3><p class="muted" style="font-size:13px;line-height:1.6">The Website CMS and the CRM run as independent applications with separate data stores and deployment protection — website updates never touch CRM data, and vice-versa. This portal is the shared, role-secured front door.</p></div>`;
@@ -280,13 +337,14 @@ function rApiKeys(){
 const FRAMEWORK={
   'mkt.social':['📱','Social Media','Schedule and publish posts to Facebook, Instagram and LinkedIn.','Connect each network (OAuth) to enable scheduling. Requires registered apps + access tokens.'],
   'mkt.gbp':['📍','Google Business Profile','Manage your Google Business listing, posts and reviews.','Connect a Google account with Business Profile API access.'],
-  'mkt.email':['✉️','Email Campaigns','Create and send email campaigns to your lead segments.','Sending uses Microsoft 365 (when connected) or the server mailer; segments come from the CRM. Compose & per-lead sends are available now in CRM → lead profile.'],
   'mkt.emailauto':['🔁','Email Automations','Drip sequences and triggered follow-ups.','Runs on the scheduled-email cron (CRM → Settings). Visual sequence builder connects here.'],
   'mkt.whatsapp':['💬','WhatsApp Automations','Automated WhatsApp messages and templates.','Requires WhatsApp Business API credentials (see Integrations).'],
   'mkt.ads':['📊','Ads Manager','Manage Google &amp; Meta ad campaigns and view spend.','Connect Google Ads and Meta Ads accounts (OAuth + API access).'],
-  'mkt.calendar':['🗓️','Content Calendar','Plan blogs, social posts and campaigns on a calendar.','Pulls scheduled blogs (CMS) and campaigns; full drag-drop calendar connects here.'],
-  'mkt.analytics':['📈','Analytics','Traffic, leads and conversion analytics.','Connect Google Analytics; CRM lead/report counts are summarised here.'],
   'int.m365':['🔌','Microsoft 365','Outlook email, Calendar and OneDrive via Microsoft Graph.','Built — connect in CRM → Settings → Microsoft 365 (Azure app required).'],
+  'int.outlook':['📧','Outlook','Send and read email via the connected Microsoft 365 account.','Built — part of the Microsoft 365 connection (CRM → Settings → Microsoft 365).'],
+  'int.onedrive':['☁️','OneDrive','Back up CRM data and store documents in OneDrive.','Built — part of the Microsoft 365 connection (CRM → Settings → Microsoft 365).'],
+  'int.email':['✉️','Email Settings','Sender address, notifications and SMTP/Graph routing for outbound email.','Outbound email uses Microsoft 365 (when connected) or the server mailer; lead-notification address is set in CRM → Settings.'],
+  'int.api':['🔑','API Connections','Manage third-party API keys and connections.','Keys are stored server-side per connector — see API Keys.'],
   'int.google':['🔵','Google','Google account: Analytics, Business Profile, Ads.','Connect a Google account (OAuth) to enable Google modules.'],
   'int.hubspot':['🟠','HubSpot','Sync website leads to HubSpot CRM.','Built — configure Portal ID + Form GUID in CRM → Settings → HubSpot.'],
   'int.mailchimp':['🐵','Mailchimp','Sync contacts and send Mailchimp campaigns.','Add a Mailchimp API key to connect.'],
@@ -297,13 +355,104 @@ function renderFramework(mod){
   const f=FRAMEWORK[mod]; if(!f){ $('view').innerHTML='<div class="card">Module.</div>'; return; }
   const built=f[3].startsWith('Built');
   let extra='';
-  if(mod==='int.m365'||mod==='int.hubspot')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Open in CRM →</a>`;
-  if(mod==='mkt.email')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Compose in CRM →</a>`;
+  if(mod==='int.m365'||mod==='int.hubspot'||mod==='int.outlook'||mod==='int.onedrive')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Open in CRM →</a>`;
+  if(mod==='mkt.email')extra=`<button class="btn btn-sm btn-primary" onclick="go('mkt.email')">Open Email Campaigns →</button>`;
+  if(mod==='mkt.campaigns')extra=`<button class="btn btn-sm btn-primary" onclick="go('mkt.aistudio')">Open AI Content Studio →</button>`;
   if(mod==='mkt.analytics')extra=`<button class="btn btn-sm" onclick="go('crm.reports')">View CRM reports</button>`;
+  if(mod==='int.api')extra=`<button class="btn btn-sm btn-primary" onclick="go('int.anthropic')">Claude AI key</button> <button class="btn btn-sm" onclick="go('int.m365')">Microsoft 365</button>`;
   $('view').innerHTML=`<div class="card"><div style="font-size:34px">${f[0]}</div><h3 style="margin:6px 0">${esc(f[1])} ${built?'<span class="badge active">Available</span>':'<span class="badge tag">Connect to enable</span>'}</h3>
     <p style="font-size:14px">${f[2]}</p>
     <p class="muted" style="font-size:13px;line-height:1.6">${f[3]}</p>
     <div style="display:flex;gap:8px;margin-top:10px">${extra||'<button class="btn btn-sm" disabled>Connect (needs API credentials)</button>'}</div></div>`;
+}
+
+/* ---------- Integrations: one-click connect with credential entry ---------- */
+const CONNECTORS={
+ 'int.hubspot':{conn:'hubspot',icon:'🟠',title:'HubSpot',desc:'Sync website leads into HubSpot CRM automatically.',help:'In HubSpot: Settings → Account → find your Hub/Portal ID; create a HubSpot form and copy its Form GUID from the embed code or share URL.',fields:[{key:'portalId',label:'Portal / Hub ID',ph:'e.g. 12345678'},{key:'formGuid',label:'Form GUID',ph:'xxxxxxxx-xxxx-xxxx-…'},{key:'notifyEmail',label:'Lead notification email (optional)',ph:'sales@imigratesolution.com'}]},
+ 'int.m365':{conn:'m365',icon:'🔌',title:'Microsoft 365',desc:'Outlook email, Calendar and OneDrive via Microsoft Graph — used by the CRM to send email and back up data.',oauth:true,help:'Register an app at entra.microsoft.com → App registrations. Redirect URI (Web): https://www.imigratesolution.com/m365.php?action=callback. Add Microsoft Graph delegated permissions: Mail.Send, Mail.Read, Calendars.ReadWrite, Files.ReadWrite, User.Read, offline_access. Create a client secret and paste its value below.',fields:[{key:'client_id',label:'Application (client) ID',ph:'GUID'},{key:'client_secret',label:'Client secret value',ph:'paste secret value',secret:true},{key:'tenant',label:'Tenant',ph:'common'},{key:'redirect_uri',label:'Redirect URI',ph:'https://www.imigratesolution.com/m365.php?action=callback'}]},
+ 'int.google':{conn:'google',icon:'🔵',title:'Google',desc:'Google Analytics / Business Profile API access.',help:'Create an API key in Google Cloud Console → APIs & Services → Credentials. For GA4, add your Measurement ID (G-XXXXXXX).',fields:[{key:'apiKey',label:'API key',ph:'AIza…',secret:true},{key:'measurementId',label:'GA4 Measurement ID (optional)',ph:'G-XXXXXXX'}]},
+ 'int.mailchimp':{conn:'mailchimp',icon:'🐵',title:'Mailchimp',desc:'Sync contacts and send Mailchimp campaigns.',help:'Mailchimp → Account → Extras → API keys. The server prefix is the part after the dash in your key (e.g. us21).',fields:[{key:'apiKey',label:'API key',ph:'xxxxxxxx-us21',secret:true},{key:'serverPrefix',label:'Server prefix',ph:'us21'},{key:'audienceId',label:'Audience / List ID (optional)',ph:''}]},
+ 'int.activecampaign':{conn:'activecampaign',icon:'🟦',title:'ActiveCampaign',desc:'Automations and email via ActiveCampaign.',help:'ActiveCampaign → Settings → Developer: copy your API URL and API key.',fields:[{key:'apiUrl',label:'API URL',ph:'https://youracct.api-us1.com'},{key:'apiKey',label:'API key',ph:'paste key',secret:true}]},
+ 'int.whatsappapi':{conn:'whatsapp',icon:'💬',title:'WhatsApp Business API',desc:'Send templated WhatsApp messages programmatically.',help:'Meta Business → WhatsApp → API setup: copy the Phone Number ID and a permanent access token.',fields:[{key:'phoneNumberId',label:'Phone Number ID',ph:''},{key:'accessToken',label:'Access token',ph:'paste token',secret:true},{key:'businessId',label:'Business Account ID (optional)',ph:''}]},
+ 'int.email':{conn:'email',icon:'✉️',title:'Email Settings',desc:'Sender identity and lead-notification address for outbound email.',help:'Outbound email uses Microsoft 365 when connected, otherwise the server mailer.',fields:[{key:'senderName',label:'Sender name',ph:'iMigrate Migration Solutions'},{key:'senderEmail',label:'Sender email',ph:'no-reply@imigratesolution.com'},{key:'notifyEmail',label:'Lead notification email',ph:'sales@imigratesolution.com'}]},
+};
+async function integrationsApi(body){ try{ const r=await fetch('/integrations.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,...body})}); const j=await r.json(); try{ const a=body&&body.action; if((a==='save'||a==='disconnect')&&j&&j.ok!==false) scheduleBackup('integration:'+a+':'+(body.connector||'')); }catch(e){} return j; }catch(e){ return {ok:false,error:'Request failed'}; } }
+async function renderIntegration(mod){
+  const d=CONNECTORS[mod]; if(!d) return renderFramework(mod);
+  $('view').innerHTML=`<div class="card"><h3>${esc(d.title)}</h3><p class="muted">Loading…</p></div>`;
+  const r=await integrationsApi({action:'status'});
+  // During a deploy the endpoint can be momentarily unreachable — don't flip a live
+  // connection to a scary "Not connected"; show a transient checking state + retry.
+  if(!r||!r.ok){ $('view').innerHTML=`<div class="card" style="max-width:680px"><div style="font-size:30px">${d.icon}</div><h3 style="margin:6px 0">${esc(d.title)} <span class="badge tag">Checking…</span></h3><p class="muted" style="font-size:13px">Couldn't reach the integration service (this can happen briefly during a deploy). Retrying…</p><button class="btn btn-sm" onclick="renderIntegration('${mod}')">Retry now</button></div>`; setTimeout(()=>{ if(typeof VIEW==='undefined'||VIEW===mod) renderIntegration(mod); },5000); return; }
+  const st=(r.connectors&&r.connectors[d.conn])||{configured:false,connected:false,fields:{}};
+  const fv=st.fields||{};
+  const fieldsHtml=d.fields.map(f=>{ const saved=fv[f.key]||''; const ph=(f.secret&&saved)?('Saved ('+esc(saved)+') — leave blank to keep'):esc(f.ph||''); return `<label class="fl">${esc(f.label)}</label><input id="ig_${f.key}" type="${f.secret?'password':'text'}" value="${f.secret?'':esc(saved)}" placeholder="${ph}" autocomplete="off">`; }).join('');
+  let oauth='';
+  if(d.oauth){ oauth=`<div class="card" style="box-shadow:none;background:#fbfcfe;margin-top:12px"><strong style="font-size:13px">Microsoft sign-in</strong> ${r.m365Connected?'<span class="badge active">Signed in</span>':'<span class="badge tag">Not signed in</span>'}<p class="muted" style="font-size:12px;margin:6px 0">${st.configured?(r.m365Connected?'Signed in — email, calendar and OneDrive are authorised. The connection persists across deploys; you should not need to sign in again unless you click Disconnect.':'Credentials saved. Sign in once to authorise sending email, calendar and OneDrive.'):'Save the app credentials above first, then sign in.'}</p>${(st.configured&&!r.m365Connected)?`<a class="btn btn-sm btn-primary" href="${esc(r.m365ConnectUrl||'/m365.php?action=connect')}" target="_blank">Connect Microsoft sign-in →</a>`:''}</div>`; }
+  // Top badge reflects the REAL state: live connection > configured-but-not-signed-in > nothing.
+  const badge = st.connected ? '<span class="badge active">Connected</span>'
+    : (st.configured ? (d.oauth ? '<span class="badge warm">Configured · sign in needed</span>' : '<span class="badge active">Connected</span>')
+    : '<span class="badge tag">Not connected</span>');
+  $('view').innerHTML=`<div class="card" style="max-width:680px"><div style="font-size:30px">${d.icon}</div>
+    <h3 style="margin:6px 0">${esc(d.title)} ${badge}</h3>
+    <p style="font-size:13px">${esc(d.desc)}</p>
+    ${fieldsHtml}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="saveIntegration('${mod}')">Save &amp; connect</button>${st.configured?`<button class="btn btn-sm" onclick="disconnectIntegration('${mod}')">Disconnect</button>`:''}<span id="ig_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    ${oauth}
+    <p class="muted" style="font-size:12px;margin-top:12px;line-height:1.6">${esc(d.help)}</p>
+    <p class="muted" style="font-size:11px">Credentials are stored server-side in the protected <code>auth/</code> folder — never returned to the browser or shipped in the website code.</p></div>`;
+}
+async function saveIntegration(mod){
+  const d=CONNECTORS[mod]; const msg=$('ig_msg'); msg.textContent='Saving…'; msg.className='muted';
+  const fields={}; d.fields.forEach(f=>{ const el=$('ig_'+f.key); if(el) fields[f.key]=el.value; });
+  const r=await integrationsApi({action:'save',connector:d.conn,fields});
+  if(r.ok){ msg.textContent='Connected ✓'; msg.className='ok'; renderIntegration(mod); } else { msg.textContent=r.error||'Save failed'; msg.className='err'; }
+}
+async function disconnectIntegration(mod){ const d=CONNECTORS[mod]; if(!confirm('Disconnect '+d.title+'? Stored credentials will be cleared.'))return; await integrationsApi({action:'disconnect',connector:d.conn}); renderIntegration(mod); }
+async function renderIntegrationsOverview(){
+  $('view').innerHTML=`<div class="card"><h3>API Connections</h3><p class="muted">Loading…</p></div>`;
+  const r=await integrationsApi({action:'status'});
+  const conns=(r.ok&&r.connectors)||{};
+  const items=Object.entries(CONNECTORS).map(([mod,d])=>{ const s=conns[d.conn]||{}; const c=(s.connected!==undefined?s.connected:s.configured); const label=c?'<span class="badge active">Connected</span>':(s.configured?'<span class="badge warm">Sign in needed</span>':'<span class="badge tag">Not connected</span>'); return `<div class="qcard" onclick="go('${mod}')"><div class="ic">${d.icon}</div><h3>${esc(d.title)}</h3><p>${label}</p></div>`; }).join('');
+  const ai=`<div class="qcard" onclick="go('int.anthropic')"><div class="ic">🤖</div><h3>Claude AI</h3><p>AI content, ads &amp; SEO</p></div>`;
+  $('view').innerHTML=`<p class="muted" style="margin-top:0">Connect your tools — enter credentials and you're live. Everything is stored securely server-side; click any card to configure.</p><div class="cards">${items}${ai}</div>`;
+}
+
+/* ---------- new native views (Dashboard extras, Marketing, Consultations, Logs) ---------- */
+async function renderNotifications(){
+  $('view').innerHTML='<div class="card"><h3>Notifications</h3><p class="muted">Loading recent activity…</p></div>';
+  const r=await api({action:'audit.list',limit:60});
+  const rows=(r.audit||[]);
+  $('view').innerHTML=`<div class="card"><h3>Notifications &amp; recent activity</h3>
+    <p class="muted" style="font-size:13px">Latest sign-ins, content changes and admin actions across the portal.</p>
+    <div style="overflow:auto"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th></tr></thead><tbody>
+    ${rows.map(e=>`<tr><td class="muted">${esc(fmtDT(e.at))}</td><td>${esc(e.user||'')} <span class="muted">${esc(e.role||'')}</span></td><td>${esc(e.action||'')}${e.detail?' — '+esc(e.detail):''}</td><td class="muted">${esc(e.module||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted" style="padding:14px">No activity yet.</td></tr>'}
+    </tbody></table></div></div>`;
+}
+function renderMarketingDashboard(){
+  const cards=[['mkt.aistudio','✨','AI Content Studio','Generate blogs, ads, SEO & social'],['mkt.email','✉️','Email Marketing','Campaigns & per-lead sends'],['mkt.social','📱','Social Media','Posts & scheduling'],['mkt.ads','📊','Ads Manager','Google & Meta campaigns'],['mkt.calendar','🗓️','Content Calendar','Plan content'],['mkt.analytics','📈','Analytics','Traffic & conversions']];
+  $('view').innerHTML=`<p class="muted" style="margin-top:0">Your marketing command centre. Generate content with Claude, then publish through the connected channels.</p>
+    <div class="cards">${cards.filter(c=>leafVisible(c[0])).map(c=>`<div class="qcard" onclick="go('${c[0]}')"><div class="ic">${c[1]}</div><h3>${esc(c[2])}</h3><p>${esc(c[3])}</p></div>`).join('')}</div>
+    <div class="card" style="margin-top:16px"><h3>Start here</h3><p class="muted" style="font-size:13px;line-height:1.6">Use <strong>AI Content Studio</strong> to draft on-brand blogs, ad copy, emails and social posts in seconds, save them as drafts with version history, then push blog drafts into the CMS for review. Channel publishing (Google/Meta/social) activates as you connect each integration.</p></div>`;
+}
+function renderConsultations(mod){
+  const tab=mod.split('.')[1]||'upcoming';
+  const tabs=[['upcoming','Upcoming'],['completed','Completed'],['calendar','Calendar']];
+  $('view').innerHTML=`<div class="tabs" style="border-bottom:1px solid var(--border);display:flex;gap:6px;margin-bottom:14px">${tabs.map(([k,l])=>`<button class="btn btn-sm ${tab===k?'btn-primary':''}" onclick="go('consult.${k}')">${l}</button>`).join('')}</div>
+    <div class="card"><div style="font-size:30px">📅</div><h3 style="margin:6px 0">${esc(MODULE_LABELS['consult.'+tab]||'Consultations')}</h3>
+    <p style="font-size:14px">Track booked consultations${tab==='completed'?' you have completed':tab==='calendar'?' on a calendar view':''}.</p>
+    <p class="muted" style="font-size:13px;line-height:1.6">Consultations are managed as CRM tasks today — open the CRM to view, schedule and complete them. A calendar sync uses Microsoft 365 when connected.</p>
+    <div style="display:flex;gap:8px;margin-top:10px"><a class="btn btn-sm btn-primary" href="/crm.html#m=tasks" target="_blank">Open CRM tasks →</a>${tab==='calendar'?'<button class="btn btn-sm" onclick="go(\'int.m365\')">Connect M365 calendar</button>':''}</div></div>`;
+}
+async function renderLogs(){
+  $('view').innerHTML='<div class="card"><h3>Logs</h3><p class="muted">Loading audit log…</p></div>';
+  const r=await api({action:'audit.list',limit:300});
+  const rows=(r.audit||[]);
+  $('view').innerHTML=`<div class="card"><h3>System logs (audit trail)</h3>
+    <p class="muted" style="font-size:13px">Every sign-in, permission change, content publish and admin action, newest first.</p>
+    <div style="overflow:auto"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th><th>IP</th></tr></thead><tbody>
+    ${rows.map(e=>`<tr><td class="muted">${esc(fmtDT(e.at))}</td><td>${esc(e.user||'')} <span class="muted">${esc(e.role||'')}</span></td><td>${esc(e.action||'')}${e.detail?' — '+esc(e.detail):''}</td><td class="muted">${esc(e.module||'')}</td><td class="muted">${esc(e.ip||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted" style="padding:14px">No activity yet.</td></tr>'}
+    </tbody></table></div></div>`;
 }
 
 /* ---------- My account (password + 2FA) ---------- */
@@ -323,6 +472,835 @@ async function setup2fa(){
 }
 async function enable2fa(secret){ const r=await api({action:'2fa.enable',secret,otp:$('tf_otp').value.trim()}); if(r.ok){$('twofaArea').innerHTML='<span class="ok">✓ 2FA enabled.</span>';}else $('tf_msg').textContent=r.error||'Failed'; }
 async function disable2fa(){ if(!confirm('Disable 2FA?'))return; await api({action:'2fa.disable'}); alert('2FA disabled.'); }
+
+/* ================= Claude AI (Anthropic) ================= */
+async function aiApi(body){
+  try{
+    const r=await fetch('/ai.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({svc:SVC,user:USER.name||'Admin',role:USER.role||'',...body})});
+    return await r.json();
+  }catch(e){ return {ok:false,error:'Request failed — check your connection.'}; }
+}
+let AI_TAB='create', AI_CHAT=[], AI_DRAFT=null;
+const AI_TYPES=[['blog','Blog article'],['social','Social media posts'],['googleads','Google Search ad'],['metaads','Meta (FB/IG) ad'],['linkedinads','LinkedIn ad'],['landing','Landing page copy'],['email','Marketing email'],['whatsapp','WhatsApp messages'],['seo_meta','SEO meta tags'],['seo_keywords','Keyword research'],['generic','Freeform']];
+function TYPE_LABEL(k){ const f=AI_TYPES.find(x=>x[0]===k); return f?f[1]:k; }
+
+/* ---- Integrations → Claude AI: API key panel ---- */
+async function renderAIIntegration(){
+  $('view').innerHTML='<div class="card"><h3>Claude AI (Anthropic)</h3><p class="muted">Loading…</p></div>';
+  const r=await aiApi({action:'config.get'});
+  const configured=r.ok&&r.configured;
+  $('view').innerHTML=`<div class="card" style="max-width:680px">
+    <div style="font-size:30px">🤖</div>
+    <h3 style="margin:6px 0">Claude AI (Anthropic) ${configured?'<span class="badge active">Connected</span>':'<span class="badge tag">Not connected</span>'}</h3>
+    <p style="font-size:13px;line-height:1.6">Powers the <strong>AI Studio</strong> (Marketing Hub) — content, ads, SEO and the admin chat assistant. Your API key is stored server-side in a protected, deploy-excluded file; it is never returned to the browser or shipped in the website code.</p>
+    <label class="fl">Anthropic API key ${configured?`<span class="muted">(saved: ${esc(r.keyHint||'')})</span>`:''}</label>
+    <input id="ai_key" type="password" placeholder="${configured?'Enter a new key to replace the saved one':'sk-ant-...'}" autocomplete="off">
+    <label class="fl">Model</label>
+    <select id="ai_model">${['claude-opus-4-8','claude-sonnet-4-6','claude-haiku-4-5'].map(m=>`<option ${(r.model||'claude-opus-4-8')===m?'selected':''}>${m}</option>`).join('')}</select>
+    <p class="muted" style="font-size:12px;margin-top:6px">Opus = highest quality · Sonnet = balanced · Haiku = fastest &amp; cheapest.</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="aiSaveKey()">Save</button>
+      <button class="btn btn-sm" onclick="aiTestKey()">Test connection</button>
+      ${configured?'<button class="btn btn-sm" onclick="aiClearKey()">Remove key</button>':''}
+      <span id="ai_keymsg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:12px;line-height:1.6">Get a key from <strong>console.anthropic.com → API Keys</strong>. Usage is billed by Anthropic to your own account. For security this app cannot create the key for you — please paste your own.</p>
+  </div>`;
+}
+async function aiSaveKey(){
+  const msg=$('ai_keymsg'); msg.textContent='Saving…'; msg.className='muted';
+  const body={action:'config.set',model:$('ai_model').value};
+  const k=$('ai_key').value.trim(); if(k) body.apiKey=k;
+  const r=await aiApi(body);
+  if(r.ok){ msg.textContent=r.configured?'Saved ✓':'Saved — add a key to enable AI'; msg.className=r.configured?'ok':'muted'; $('ai_key').value=''; if(k)renderAIIntegration(); }
+  else { msg.textContent=r.error||'Save failed'; msg.className='err'; }
+}
+async function aiTestKey(){
+  const msg=$('ai_keymsg'); msg.textContent='Testing…'; msg.className='muted';
+  const k=$('ai_key').value.trim(); if(k){ await aiApi({action:'config.set',apiKey:k,model:$('ai_model').value}); $('ai_key').value=''; }
+  const r=await aiApi({action:'test'});
+  if(r.ok){ msg.textContent='Connected ✓ ('+esc(r.model||'')+')'; msg.className='ok'; }
+  else { msg.textContent=r.error||'Test failed'; msg.className='err'; }
+}
+async function aiClearKey(){ if(!confirm('Remove the saved Anthropic API key? AI features will stop working until a new key is added.'))return; await aiApi({action:'config.set',clearKey:true}); renderAIIntegration(); }
+
+/* ---- Marketing Hub → AI Studio ---- */
+function renderAIStudio(){
+  $('view').innerHTML=`<div class="tabs">${[['create','✍️ Create'],['chat','💬 Assistant'],['drafts','📄 Drafts'],['kb','📚 Knowledge'],['log','🕒 Activity']].map(([k,l])=>`<button class="tab ${AI_TAB===k?'active':''}" onclick="aiTab('${k}')">${l}</button>`).join('')}</div><div id="aiBody"></div>`;
+  aiRenderTab();
+}
+function aiTab(t){ AI_TAB=t; renderAIStudio(); }
+function aiRenderTab(){ if(AI_TAB==='create')return aiCreate(); if(AI_TAB==='chat')return aiChat(); if(AI_TAB==='drafts')return aiDrafts(); if(AI_TAB==='kb')return aiKB(); if(AI_TAB==='log')return aiLog(); }
+
+function aiCreate(){
+  $('aiBody').innerHTML=`<div class="row" style="grid-template-columns:1fr 1fr;align-items:start">
+    <div class="card">
+      <h3>Create content</h3>
+      <label class="fl">What do you want to create?</label>
+      <select id="g_type">${AI_TYPES.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+      <label class="fl">Brief — describe the topic, offer or angle</label>
+      <textarea id="g_brief" placeholder="e.g. A blog post explaining Canada Express Entry for IT professionals from Malaysia, highlighting our free eligibility assessment."></textarea>
+      <div class="row"><div><label class="fl">Target keywords (optional)</label><input id="g_keywords" placeholder="canada express entry, IT PR"></div><div><label class="fl">Audience (optional)</label><input id="g_audience" placeholder="IT professionals, Malaysia"></div></div>
+      <div class="row"><div><label class="fl">Tone (optional)</label><input id="g_tone" placeholder="professional, encouraging"></div><div><label class="fl">Language</label><input id="g_lang" value="English"></div></div>
+      <div style="margin-top:12px"><button class="btn btn-primary" id="g_btn" onclick="aiGenerate()">✨ Generate</button> <span id="g_msg" class="muted" style="font-size:12px"></span></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Result</h3><span id="g_meta" class="muted" style="font-size:11px"></span></div>
+      <textarea id="g_out" style="min-height:46vh" placeholder="Generated content appears here — you can edit it before saving as a draft."></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" onclick="aiCopy('g_out')">Copy</button><button class="btn btn-sm" onclick="aiDownload('g_out')">Download</button><button class="btn btn-sm btn-primary" onclick="aiSaveDraft()">Save as draft</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('g_out').value,$('g_brief').value,$('g_type').value)" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}${aiCanEmail()?`<button class="btn btn-sm" onclick="aiToEmailTemplate($('g_out').value,$('g_brief').value)" title="Save as a reusable CRM email template">📧 Send to CRM templates</button>`:''}</div>
+    </div>
+  </div>`;
+}
+async function aiGenerate(){
+  const brief=$('g_brief').value.trim(); const msg=$('g_msg'); const btn=$('g_btn');
+  if(!brief){ msg.textContent='Add a brief first.'; msg.className='err'; return; }
+  btn.disabled=true; msg.textContent='Generating with Claude… (10–40s)'; msg.className='muted';
+  const r=await aiApi({action:'generate',type:$('g_type').value,brief,options:{keywords:$('g_keywords').value,audience:$('g_audience').value,tone:$('g_tone').value,language:$('g_lang').value}});
+  btn.disabled=false;
+  if(!r.ok){ msg.textContent=r.error||'Generation failed'; msg.className='err'; return; }
+  $('g_out').value=r.text||''; msg.textContent='Done ✓'; msg.className='ok';
+  const u=r.usage||{}; $('g_meta').textContent=(r.model||'')+(u.output_tokens?(' · '+u.output_tokens+' tokens'):'');
+}
+async function aiSaveDraft(){
+  const content=$('g_out').value.trim(); if(!content){ alert('Nothing to save yet.'); return; }
+  const type=$('g_type').value;
+  const title=prompt('Title for this draft:', TYPE_LABEL(type)+' — '+($('g_brief').value.trim().slice(0,40)||'untitled'));
+  if(title===null) return;
+  const r=await aiApi({action:'drafts.save',draft:{title:title||'Untitled',type,content}});
+  if(r.ok) alert('Saved to Drafts ✓'); else alert(r.error||'Save failed');
+}
+
+function aiChat(){
+  $('aiBody').innerHTML=`<div class="chatwrap">
+    <div class="chatlog" id="chatlog">${AI_CHAT.length?AI_CHAT.map(m=>chatBubble(m)).join(''):'<p class="muted" style="text-align:center;margin-top:30px">Ask the assistant to draft posts, plan a campaign, improve SEO or write ad copy — anything marketing. It knows your brand.</p>'}</div>
+    <div class="chatbar"><textarea id="chatin" style="min-height:44px;max-height:140px" placeholder="Message the AI marketing assistant…  (Enter to send, Shift+Enter for newline)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiChatSend();}"></textarea><button class="btn btn-primary" id="chatbtn" onclick="aiChatSend()">Send</button></div>
+  </div>
+  <div style="margin-top:8px"><button class="btn btn-sm" onclick="AI_CHAT=[];aiChat()">Clear conversation</button></div>`;
+  const log=$('chatlog'); if(log)log.scrollTop=log.scrollHeight;
+}
+function chatBubble(m){ return `<div class="msg ${m.role==='user'?'u':'a'}"><div class="bub">${esc(m.content)}</div></div>`; }
+async function aiChatSend(){
+  const inp=$('chatin'); const text=inp.value.trim(); if(!text)return;
+  AI_CHAT.push({role:'user',content:text}); inp.value='';
+  const log=$('chatlog'); log.innerHTML=AI_CHAT.map(m=>chatBubble(m)).join('')+'<div class="msg a"><div class="bub muted">Thinking…</div></div>'; log.scrollTop=log.scrollHeight;
+  $('chatbtn').disabled=true;
+  const r=await aiApi({action:'chat',messages:AI_CHAT.slice(-16)});
+  $('chatbtn').disabled=false;
+  AI_CHAT.push({role:'assistant',content:r.ok?(r.reply||''):('⚠️ '+(r.error||'Failed to respond.'))});
+  aiChat();
+}
+
+async function aiDrafts(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading drafts…</p></div>';
+  const r=await aiApi({action:'drafts.list'}); const d=r.drafts||[];
+  $('aiBody').innerHTML=`<div class="card"><h3>Saved drafts (${d.length})</h3>
+    <table><thead><tr><th>Title</th><th>Type</th><th>Updated</th><th>By</th><th>Versions</th><th class="right"></th></tr></thead><tbody>
+    ${d.map(x=>`<tr><td><strong>${esc(x.title)}</strong></td><td><span class="pill">${esc(TYPE_LABEL(x.type))}</span></td><td class="muted">${esc(fmtDT(x.updatedAt))}</td><td class="muted">${esc(x.author||'')}</td><td class="muted">${x.versions}</td><td class="right"><button class="btn btn-sm" onclick="aiOpenDraft('${esc(x.id)}')">Open</button> <button class="btn btn-sm" onclick="aiDelDraft('${esc(x.id)}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted" style="padding:14px">No drafts yet. Generate content in the Create tab and click “Save as draft”.</td></tr>'}
+    </tbody></table></div><div id="draftEditor"></div>`;
+}
+async function aiOpenDraft(id){
+  const r=await aiApi({action:'drafts.get',id}); if(!r.ok){alert(r.error||'Not found');return;}
+  const x=r.draft; AI_DRAFT=x; const vers=(x.versions||[]).slice().reverse();
+  $('draftEditor').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Edit draft</h3><span class="muted" style="font-size:12px">${esc(TYPE_LABEL(x.type))} · ${(x.versions||[]).length} version(s)</span></div>
+    <label class="fl">Title</label><input id="d_title" value="${esc(x.title)}">
+    <label class="fl">Content</label><textarea id="d_content" style="min-height:40vh">${esc(x.content)}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="aiUpdateDraft('${esc(x.id)}')">Save changes</button><button class="btn btn-sm" onclick="aiCopy('d_content')">Copy</button><button class="btn btn-sm" onclick="aiDownload('d_content')">Download</button>${aiCanBlog()?`<button class="btn btn-sm" onclick="aiToBlog($('d_content').value,$('d_title').value,AI_DRAFT?AI_DRAFT.type:'')" title="Creates a hidden draft post in the Blogs CMS for review">📤 Send to Blogs CMS</button>`:''}${aiCanEmail()?`<button class="btn btn-sm" onclick="aiToEmailTemplate($('d_content').value,$('d_title').value)" title="Save as a reusable CRM email template">📧 Send to CRM templates</button>`:''} <span id="d_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    ${vers.length>1?`<div style="margin-top:14px"><div class="grp" style="color:var(--muted);margin-left:0">Version history</div>${vers.map(v=>`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:6px 0;font-size:12px"><span class="muted">${esc(fmtDT(v.ts))} · ${esc(v.note||'')} · ${esc(v.by||'')}</span><button class="btn btn-sm" onclick="aiRestoreVer('${esc(x.id)}','${esc(v.ts)}')">Restore</button></div>`).join('')}</div>`:''}
+  </div>`;
+  $('draftEditor').scrollIntoView({behavior:'smooth'});
+}
+async function aiUpdateDraft(id){
+  const r=await aiApi({action:'drafts.save',draft:{id,title:$('d_title').value,type:AI_DRAFT?AI_DRAFT.type:'generic',content:$('d_content').value}});
+  const m=$('d_msg'); if(r.ok){ m.textContent='Saved ✓'; m.className='ok'; aiDrafts(); } else { m.textContent=r.error||'Failed'; m.className='err'; }
+}
+async function aiDelDraft(id){ if(!confirm('Delete this draft?'))return; await aiApi({action:'drafts.delete',id}); aiDrafts(); }
+async function aiRestoreVer(id,ts){ if(!confirm('Restore this version? Current content is saved to history first.'))return; const r=await aiApi({action:'draft.restore',id,ts}); if(r.ok)aiOpenDraft(id); else alert(r.error||'Failed'); }
+
+async function aiKB(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading knowledge base…</p></div>';
+  const r=await aiApi({action:'kb.get'}); const kb=r.kb||{};
+  const cfg=await aiApi({action:'config.get'});
+  $('aiBody').innerHTML=`<div class="card"><h3>Brand knowledge base</h3>
+    <p style="font-size:13px;line-height:1.6">Claude uses this to keep every piece of content on-brand. It is built from your live website content, blog topics and FAQs. ${kb.builtAt?`<span class="muted">Last built: ${esc(fmtDT(kb.builtAt))}</span>`:'<span class="muted">Not built yet.</span>'}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><button class="btn btn-sm btn-primary" onclick="aiKBBuild(false)">Rebuild from website</button><button class="btn btn-sm" onclick="aiKBBuild(true)">Rebuild + AI brand-voice analysis</button> <span id="kb_msg" class="muted" style="font-size:12px;align-self:center"></span></div>
+    <label class="fl">Brand facts (auto-extracted)</label><textarea readonly style="min-height:140px;background:#fbfcfe">${esc(kb.facts||'(empty — click “Rebuild from website”)')}</textarea>
+    ${kb.brandVoiceGuide?`<label class="fl">AI brand-voice guide</label><textarea readonly style="min-height:170px;background:#fbfcfe">${esc(kb.brandVoiceGuide)}</textarea>`:''}
+    <label class="fl">Additional brand-voice notes (always applied to generations)</label><textarea id="kb_notes" placeholder="e.g. Always mention our 100% money-back guarantee; avoid jargon.">${esc(cfg.brandVoice||'')}</textarea>
+    <div style="margin-top:8px"><button class="btn btn-sm btn-primary" onclick="aiSaveNotes()">Save notes</button> <span id="kb_nmsg" class="muted" style="font-size:12px"></span></div>
+  </div>`;
+}
+async function aiKBBuild(analyze){
+  const m=$('kb_msg'); m.textContent=analyze?'Building + analysing with Claude…':'Building from website…'; m.className='muted';
+  const r=await aiApi({action:'kb.build',analyze:!!analyze});
+  if(r.ok){ m.textContent='Done ✓'; m.className='ok'; aiKB(); } else { m.textContent=r.error||'Failed'; m.className='err'; }
+}
+async function aiSaveNotes(){ const r=await aiApi({action:'config.set',brandVoice:$('kb_notes').value}); const m=$('kb_nmsg'); m.textContent=r.ok?'Saved ✓':'Failed'; m.className=r.ok?'ok':'err'; }
+
+async function aiLog(){
+  $('aiBody').innerHTML='<div class="card"><p class="muted">Loading…</p></div>';
+  const r=await aiApi({action:'log.list'}); const rows=r.log||[];
+  $('aiBody').innerHTML=`<div class="card"><h3>AI activity log</h3><div style="overflow:auto"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+    ${rows.map(e=>`<tr><td class="muted">${esc(fmtDT(e.at))}</td><td>${esc(e.user||'')} <span class="muted">${esc(e.role||'')}</span></td><td>${esc(e.action||'')}</td><td class="muted">${esc(e.detail||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted" style="padding:14px">No AI activity yet.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+function aiCopy(id){ const el=$(id); if(el.select)el.select(); const t=el.value!=null?el.value:el.textContent||''; if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{}); }
+function aiDownload(id){ const el=$(id); const t=el.value!=null?el.value:el.textContent||''; const b=new Blob([t],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-content-'+Date.now()+'.md'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+
+/* ---- Publish an AI blog draft into the Blogs CMS (via the CMS's own API) ---- */
+function aiCanBlog(){ return PERMS.all || can('cms.blogs','create'); }
+async function cmsApi(body){ try{ const r=await fetch('/cms-content.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'CMS request failed'}; } }
+function aiSlugify(s){ return (s||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,80); }
+function aiParseBlog(md, fallbackTitle){
+  md=md||''; let title='', metaTitle='', metaDescription='';
+  for(const l of md.split('\n')){ const m=l.match(/^#\s+(.+)/); if(m){ title=m[1].trim(); break; } }
+  if(!title) title=(fallbackTitle||'Untitled').slice(0,120);
+  let body=md;
+  const seoIdx=md.search(/\n#{1,6}\s*SEO\b/i);
+  if(seoIdx>=0){ const seo=md.slice(seoIdx); body=md.slice(0,seoIdx).trim();
+    const mt=seo.match(/meta\s*title[^\n:]*[:\-]\s*(.+)/i); if(mt) metaTitle=mt[1].replace(/\(\s*\d+[^)]*\)/g,'').replace(/["'`*]/g,'').trim();
+    const md2=seo.match(/meta\s*desc[^\n:]*[:\-]\s*(.+)/i); if(md2) metaDescription=md2[1].replace(/\(\s*\d+[^)]*\)/g,'').replace(/["'`*]/g,'').trim();
+  }
+  body=body.replace(/^#\s+.+(\n|$)/,'').trim();
+  const plain=body.replace(/\[(.*?)\]\(.*?\)/g,'$1').replace(/[#*_`>]/g,' ').replace(/\s+/g,' ').trim();
+  const excerpt=plain.slice(0,180);
+  if(!metaTitle) metaTitle=title.slice(0,60);
+  if(!metaDescription) metaDescription=excerpt.slice(0,155);
+  return {title,metaTitle,metaDescription,content:body,excerpt};
+}
+async function aiToBlog(content, fallbackTitle, type){
+  if(!aiCanBlog()){ alert('You do not have permission to create blog posts.'); return; }
+  if(!content||!content.trim()){ alert('No content to publish yet — generate or open something first.'); return; }
+  if(type && type!=='blog' && !confirm('This content was created as “'+TYPE_LABEL(type)+'”. Create a BLOG draft from it anyway?')) return;
+  const cat=prompt('Blog category for this draft:', 'Immigration News'); if(cat===null) return;
+  const meta=aiParseBlog(content, fallbackTitle);
+  const today=new Date().toISOString().slice(0,10);
+  const words=(content.match(/\S+/g)||[]).length; const readTime=Math.max(1,Math.round(words/200));
+  const load=await cmsApi({action:'load',domain:'blog'});
+  if(!load.ok){ alert('Could not reach the Blogs CMS: '+(load.error||'')); return; }
+  const data=(load.data&&Array.isArray(load.data.posts))?load.data:{posts:[]};
+  let slug=aiSlugify(meta.title)||('post-'+Date.now()), base=slug, n=2;
+  while(data.posts.some(x=>x.slug===slug)){ slug=base+'-'+n; n++; }
+  data.posts.unshift({ title:meta.title, slug, excerpt:meta.excerpt, author:USER.name||'iMigrate Migration Solutions', category:cat||'Immigration News', tags:[], featuredImage:'', imageAlt:meta.title, readTime, publishedDate:today, draft:true, metaTitle:meta.metaTitle, metaDescription:meta.metaDescription, content:meta.content, faqs:[] });
+  const save=await cmsApi({action:'save',domain:'blog',data,editor:(USER.name||'AI Studio')});
+  if(save.ok){ if(confirm('Saved to Blogs CMS as a DRAFT ✓\n\nIt stays hidden from the public site until you publish it. Open the Blogs CMS now to review & publish?')) window.open('/cms.html#m=blog','_blank'); }
+  else alert('Save to Blogs CMS failed: '+(save.error||''));
+}
+
+/* ---- Save an AI email draft as a reusable CRM email template (via the CRM API) ---- */
+function aiCanEmail(){ return PERMS.all || can('mkt.email','create') || can('crm.leads','create'); }
+async function crmEmailApi(body){ try{ const r=await fetch('/crm-email.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})}); return await r.json(); }catch(e){ return {ok:false,error:'CRM request failed'}; } }
+function aiEmailParse(md, fallbackName){
+  md=(md||'').replace(/\r/g,''); const lines=md.split('\n');
+  let subject='';
+  for(const l of lines){ const m=l.match(/subject(?:\s*line)?\s*\d*\s*[:)\-]\s*(.+)/i); if(m){ subject=m[1].replace(/[*"'`]/g,'').replace(/\(\s*\d+[^)]*\)/g,'').trim(); break; } }
+  if(!subject){ const h=lines.find(l=>/^#{1,6}\s+/.test(l)); if(h)subject=h.replace(/^#{1,6}\s+/,'').replace(/[*"'`]/g,'').trim(); }
+  if(!subject)subject=(fallbackName||'iMigrate email').slice(0,120);
+  const skip=/^\s*(?:[-*]\s*|\d+[.)]\s*)?(subject|preview|preheader|pre-header)\b/i;
+  const bodyLines=lines.filter(l=>!skip.test(l));
+  const escH=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fmt=(s)=>escH(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\[(.+?)\]\((https?:[^)]+)\)/g,'<a href="$2">$1</a>');
+  const blocks=bodyLines.join('\n').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const html=blocks.map(b=>/^#{1,6}\s+/.test(b)?('<p><strong>'+fmt(b.replace(/^#{1,6}\s+/,''))+'</strong></p>'):('<p>'+fmt(b).replace(/\n/g,'<br>')+'</p>')).join('\n');
+  return { subject:subject.slice(0,200), html: html||'<p></p>' };
+}
+async function aiToEmailTemplate(content, fallbackName){
+  if(!aiCanEmail()){ alert('You do not have permission to manage email templates.'); return; }
+  if(!content||!content.trim()){ alert('No content to save yet — generate or open an email first.'); return; }
+  const name=prompt('Template name (shown in the CRM compose dropdown):', (fallbackName||'AI email').slice(0,60));
+  if(name===null||!name.trim()) return;
+  const {subject,html}=aiEmailParse(content, name);
+  const r=await crmEmailApi({action:'template-save',name:name.trim(),subject,body:html,source:'ai',author:USER.name||'AI Studio'});
+  if(r&&r.ok){ alert('Saved to CRM email templates ✓\n\nIt now appears in CRM → lead → Emails → Template dropdown. Use {{name}} {{occupation}} {{points}} {{visas}} for per-lead personalisation.'); }
+  else alert('Save failed: '+((r&&r.error)||''));
+}
+
+/* ============================================================
+   MARKETING HUB — Email Campaigns, Campaign Pipeline,
+   Content Calendar, Analytics
+   ============================================================ */
+
+async function mktApi(body){
+  try{
+    const r=await fetch('/marketing.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})});
+    return await r.json();
+  }catch(e){ return {ok:false,error:'Request failed — check your connection.'}; }
+}
+function mktFmt(n){ return n==null?'—':n.toLocaleString(); }
+function mktRate(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
+function mktStatusBadge(s){
+  const m={'draft':'<span class="badge tag">Draft</span>','queued':'<span class="badge warm">Queued</span>','sending':'<span class="badge warm">Sending…</span>','sent':'<span class="badge active">Sent</span>','scheduled':'<span class="badge std">Scheduled</span>','cancelled':'<span style="color:var(--muted);font-size:12px">Cancelled</span>'};
+  return m[s]||`<span class="badge tag">${esc(s)}</span>`;
+}
+
+/* ---- Email Marketing ---- */
+async function renderEmailMarketing(){
+  $('view').innerHTML='<div class="card"><h3>Email Campaigns</h3><p class="muted">Loading…</p></div>';
+  const [camps,stats]=await Promise.all([mktApi({action:'campaign.list'}),mktApi({action:'stats'})]);
+  const list=(camps.campaigns||[]);
+  const s=stats;
+  const summary=`<div class="grid stats" style="margin-bottom:16px">
+    <div class="card stat"><div class="n">${mktFmt(s.emailsSent)}</div><div class="l">Emails sent</div></div>
+    <div class="card stat"><div class="n">${mktFmt(s.emailsOpened)}</div><div class="l">Unique opens</div><div class="hint">${mktRate(s.emailsOpened,s.emailsSent)}</div></div>
+    <div class="card stat"><div class="n">${mktFmt(s.emailsClicked)}</div><div class="l">Clicks</div><div class="hint">${mktRate(s.emailsClicked,s.emailsSent)}</div></div>
+    <div class="card stat"><div class="n">${list.length}</div><div class="l">Campaigns</div></div>
+  </div>`;
+  const rows=list.map(c=>`<tr>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td class="muted" style="font-size:12px">${esc(c.subject||'').slice(0,60)}</td>
+    <td>${mktStatusBadge(c.status)}</td>
+    <td class="muted">${mktFmt(c.totalRecipients||0)}</td>
+    <td class="muted">${mktFmt(c.sent||0)} / ${mktFmt(c.failed||0)}</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(c.createdAt))}</td>
+    <td style="text-align:right">
+      ${c.status==='draft'?`<button class="btn btn-sm btn-primary" onclick="mktSendCampaign('${esc(c.id)}')">Send</button> `:''}
+      <button class="btn btn-sm" onclick="mktEditCampaign(${esc(JSON.stringify(c))})">Edit</button>
+      ${['draft','cancelled'].includes(c.status)?`<button class="btn btn-sm" onclick="mktDeleteCampaign('${esc(c.id)}')">Delete</button>`:''}
+      ${['queued','scheduled'].includes(c.status)?`<button class="btn btn-sm" onclick="mktCancelCampaign('${esc(c.id)}')">Cancel</button>`:''}
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=summary+`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0">Campaigns</h3>
+        <button class="btn btn-primary btn-sm" onclick="mktNewCampaign()">+ New Campaign</button>
+      </div>
+      <div style="overflow:auto"><table>
+        <thead><tr><th>Name</th><th>Subject</th><th>Status</th><th>Recipients</th><th>Sent / Failed</th><th>Created</th><th class="right">Actions</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="muted" style="padding:14px">No campaigns yet. Click "+ New Campaign" to start.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+  <div id="mktCampForm"></div>`;
+}
+
+async function mktNewCampaign(){ mktEditCampaign(null); }
+async function mktEditCampaign(camp){
+  const segs=await mktApi({action:'segments'});
+  const stages=(segs.stages||[]).map(s=>`<option value="stage:${esc(s)}">${esc(s)}</option>`).join('');
+  const countries=(segs.countries||[]).map(c=>`<option value="country:${esc(c)}">${esc(c)}</option>`).join('');
+  const segOpts=`<option value="all">All leads (${mktFmt(segs.total||0)})</option>${stages}${countries}`;
+  const c=camp||{};
+  const formHtml=`<div class="card" id="mktForm">
+    <h3 style="margin-top:0">${c.id?'Edit Campaign':'New Email Campaign'}</h3>
+    <div class="fgrid">
+      <div class="full"><label class="fl">Campaign name</label><input id="mf_name" value="${esc(c.name||'')}" placeholder="e.g. January Visa Update Newsletter"></div>
+      <div class="full"><label class="fl">Email subject line</label><input id="mf_subject" value="${esc(c.subject||'')}" placeholder="e.g. Your immigration pathway for 2026 — iMigrate"></div>
+      <div><label class="fl">Recipient segment</label><select id="mf_seg">${segOpts}</select></div>
+      <div><label class="fl">Schedule (leave blank to send now)</label><input id="mf_sched" type="datetime-local" value="${esc(c.scheduleAt?c.scheduleAt.slice(0,16):'')}"></div>
+    </div>
+    <label class="fl">Email body (HTML supported; use {{name}}, {{first_name}}, {{country}}, {{occupation}}, {{stage}})</label>
+    <textarea id="mf_html" style="min-height:260px;font-family:monospace;font-size:12px">${esc(c.html||'')}</textarea>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="mktSaveCampaignForm('${esc(c.id||'')}')">Save draft</button>
+      <button class="btn btn-sm" onclick="mktPreviewSegment()">Preview recipients</button>
+      ${c.id?`<button class="btn btn-sm btn-primary" onclick="mktSaveAndSend('${esc(c.id)}')">Save &amp; Send now</button>`:''}
+      <button class="btn btn-sm" onclick="$('mktCampForm').innerHTML=''">Cancel</button>
+      <span id="mf_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <div id="mf_preview" style="margin-top:10px"></div>
+  </div>`;
+  const el=$('mktCampForm');
+  el.innerHTML=formHtml;
+  // Pre-select segment
+  if(c.segment) { const s=$('mf_seg'); if(s) { for(let i=0;i<s.options.length;i++) if(s.options[i].value===c.segment){ s.selectedIndex=i; break; } } }
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+async function mktPreviewSegment(){
+  const seg=$('mf_seg')&&$('mf_seg').value||'all';
+  const r=await mktApi({action:'campaign.preview',segment:seg});
+  const el=$('mf_preview'); if(!el)return;
+  if(!r.ok){ el.innerHTML=`<p class="err">${esc(r.error||'Failed')}</p>`; return; }
+  el.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px">
+    <strong>${mktFmt(r.count)} recipient${r.count!==1?'s':''}</strong> will receive this email.
+    ${r.sample&&r.sample.length?'<div class="muted" style="margin-top:6px">First 5: '+(r.sample.map(x=>esc(x.name||x.email)).join(', '))+'…</div>':''}
+  </div>`;
+}
+
+async function mktSaveCampaignForm(existingId){
+  const msg=$('mf_msg'); if(msg) msg.textContent='Saving…';
+  const camp={
+    id:existingId||undefined,
+    name:$('mf_name')&&$('mf_name').value||'Untitled',
+    subject:$('mf_subject')&&$('mf_subject').value||'',
+    html:$('mf_html')&&$('mf_html').value||'',
+    segment:$('mf_seg')&&$('mf_seg').value||'all',
+    scheduleAt:$('mf_sched')&&$('mf_sched').value||'',
+  };
+  if(!camp.subject.trim()){ if(msg){msg.textContent='Subject is required.';msg.className='err';} return null; }
+  if(!camp.html.trim()){ if(msg){msg.textContent='Email body is required.';msg.className='err';} return null; }
+  const r=await mktApi({action:'campaign.save',campaign:camp,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderEmailMarketing(); return r.id||existingId; }
+  else { if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} return null; }
+}
+
+async function mktSaveAndSend(existingId){
+  const id=await mktSaveCampaignForm(existingId); if(!id)return;
+  mktSendCampaign(id);
+}
+
+async function mktSendCampaign(id){
+  const sched=$('mf_sched')&&$('mf_sched').value;
+  if(!confirm('Send this campaign? The emails will be dispatched to all matching leads now (via the background cron). Continue?'))return;
+  const r=await mktApi({action:'campaign.send',id,scheduleAt:sched||''});
+  if(r.ok){ alert(`Campaign queued ✓\n${mktFmt(r.queued)} emails will be sent by the background cron (every 5 min, ~20 per run).`); renderEmailMarketing(); }
+  else alert(r.error||'Could not queue campaign.');
+}
+
+async function mktCancelCampaign(id){ if(!confirm('Cancel this campaign? Unsent emails will be skipped.'))return; await mktApi({action:'campaign.cancel',id}); renderEmailMarketing(); }
+async function mktDeleteCampaign(id){ if(!confirm('Delete this draft campaign? This cannot be undone.'))return; await mktApi({action:'campaign.delete',id}); renderEmailMarketing(); }
+
+/* ---- Campaign Pipeline ---- */
+async function renderCampaigns(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading campaigns…</p></div>';
+  const r=await mktApi({action:'campaign.list'});
+  const camps=(r.campaigns||[]);
+  const cols=[
+    {key:'draft',     label:'Draft',     color:'#94a3b8'},
+    {key:'queued',    label:'Queued',    color:'#f59e0b'},
+    {key:'sending',   label:'Sending',   color:'#3b82f6'},
+    {key:'scheduled', label:'Scheduled', color:'#6366f1'},
+    {key:'sent',      label:'Sent',      color:'#16a34a'},
+    {key:'cancelled', label:'Cancelled', color:'#ef4444'},
+  ];
+  const kanban=cols.map(col=>{
+    const cards=camps.filter(c=>c.status===col.key).map(c=>`<div class="kcard">
+      <div class="nm">${esc(c.name)}</div>
+      <div class="meta">${esc((c.subject||'').slice(0,55))}</div>
+      <div class="meta" style="margin-top:4px">${mktFmt(c.totalRecipients||0)} recipients · Sent ${mktFmt(c.sent||0)}</div>
+      <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">
+        ${col.key==='draft'?`<button class="btn btn-sm btn-primary" style="font-size:11px;padding:2px 7px" onclick="mktSendCampaign('${esc(c.id)}')">Send</button>`:''}
+        <button class="btn btn-sm" style="font-size:11px;padding:2px 7px" onclick="go('mkt.email')">View</button>
+      </div>
+    </div>`).join('');
+    return `<div class="kcol"><h4 style="border-left:3px solid ${col.color}">${esc(col.label)} <span style="color:var(--muted)">${camps.filter(c=>c.status===col.key).length}</span></h4><div class="kbody">${cards||'<div class="muted" style="font-size:12px;padding:6px">None</div>'}</div></div>`;
+  }).join('');
+  $('view').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <p class="muted" style="margin:0">Your campaign pipeline — all channels in one view.</p>
+    <button class="btn btn-primary btn-sm" onclick="go('mkt.email')">+ New Campaign</button>
+  </div>
+  <div class="kanban">${kanban}</div>`;
+}
+
+/* ---- Content Calendar ---- */
+async function renderContentCalendar(){
+  $('view').innerHTML='<div class="card"><p class="muted">Building calendar…</p></div>';
+  const r=await mktApi({action:'campaign.list'});
+  const camps=(r.campaigns||[]);
+  const now=new Date();
+  let yr=now.getFullYear(), mo=now.getMonth();
+  const render=(y,m)=>{
+    const first=new Date(y,m,1); const last=new Date(y,m+1,0);
+    const pad=first.getDay(); // 0=Sun
+    const monthName=first.toLocaleString('default',{month:'long',year:'numeric'});
+    // events: scheduled + sent campaigns
+    const events={};
+    camps.forEach(c=>{
+      const d=c.scheduleAt||c.sentAt||c.createdAt||'';
+      if(!d)return;
+      const k=d.slice(0,10);
+      if(!events[k])events[k]=[];
+      events[k].push(c);
+    });
+    let cells='';
+    for(let i=0;i<pad;i++) cells+=`<div class="cal-cell dim"></div>`;
+    for(let d=1;d<=last.getDate();d++){
+      const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday=(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate());
+      const evs=(events[key]||[]).map(c=>`<div class="cal-ev" title="${esc(c.name)}">${esc(c.name.slice(0,22))}</div>`).join('');
+      cells+=`<div class="cal-cell ${isToday?'today':''}"><div class="d">${d}</div>${evs}</div>`;
+    }
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <button class="btn btn-sm" onclick="mktCalNav(${y},${m-1})">◀</button>
+        <strong style="font-size:15px">${monthName}</strong>
+        <button class="btn btn-sm" onclick="mktCalNav(${y},${m+1})">▶</button>
+        <button class="btn btn-sm" onclick="mktCalNav(${now.getFullYear()},${now.getMonth()})">Today</button>
+        <span class="muted" style="margin-left:auto;font-size:12px">${camps.length} campaigns total</span>
+      </div>
+      <div class="cal-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:6px">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      </div>
+      <div class="cal-grid">${cells}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Campaign dots show scheduled send dates. Create campaigns in <button class="btn btn-sm" onclick="go('mkt.email')" style="font-size:12px">Email Campaigns →</button></p>
+    `;
+  };
+  const draw=(y,m)=>{ $('view').innerHTML=render(y,m); };
+  window.mktCalNav=(y,m)=>{ if(m<0){y--;m=11;} if(m>11){y++;m=0;} draw(y,m); };
+  draw(yr,mo);
+}
+
+/* ---- Marketing Analytics ---- */
+async function renderMarketingAnalytics(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading analytics…</p></div>';
+  const [st,lr]=await Promise.all([
+    mktApi({action:'stats'}),
+    mktApi({action:'lead-summary'}),
+  ]);
+  const leads=(lr.leads||[]);
+  // Stage breakdown
+  const stageCounts={};
+  leads.forEach(l=>{ const s=l._stage||l.stage||'Unknown'; stageCounts[s]=(stageCounts[s]||0)+1; });
+  const stageRows=Object.entries(stageCounts).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<tr><td>${esc(s)}</td><td><strong>${mktFmt(n)}</strong></td><td class="muted">${mktRate(n,leads.length)}</td></tr>`).join('');
+  const campRows=(st.campaigns||[]).map(c=>`<tr>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td>${mktStatusBadge(c.status)}</td>
+    <td>${mktFmt(c.totalRecipients||0)}</td>
+    <td>${mktFmt(c.sent||0)}</td>
+    <td>${mktFmt(c.emailOpens||0)} <span class="muted">(${mktRate(c.emailOpens||0,c.sent||0)})</span></td>
+    <td>${mktFmt(c.emailClicks||0)} <span class="muted">(${mktRate(c.emailClicks||0,c.sent||0)})</span></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="grid stats" style="margin-bottom:16px">
+      <div class="card stat"><div class="n">${mktFmt(leads.length)}</div><div class="l">Total leads</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsSent)}</div><div class="l">Total emails sent</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsOpened)}</div><div class="l">Total opens</div><div class="hint">${mktRate(st.emailsOpened,st.emailsSent)}</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsClicked)}</div><div class="l">Total clicks</div><div class="hint">${mktRate(st.emailsClicked,st.emailsSent)}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr 2fr;gap:16px;align-items:start">
+      <div class="card">
+        <h3>Leads by stage</h3>
+        <table><thead><tr><th>Stage</th><th>Leads</th><th>%</th></tr></thead>
+        <tbody>${stageRows||'<tr><td colspan="3" class="muted">No leads yet.</td></tr>'}</tbody></table>
+      </div>
+      <div class="card">
+        <h3>Campaign performance</h3>
+        <table><thead><tr><th>Campaign</th><th>Status</th><th>Recipients</th><th>Sent</th><th>Opens</th><th>Clicks</th></tr></thead>
+        <tbody>${campRows||'<tr><td colspan="6" class="muted" style="padding:12px">No sent campaigns yet. <button class="btn btn-sm" onclick="go(\'mkt.email\')">Create one →</button></td></tr>'}</tbody>
+      </table>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   SOCIAL MEDIA HUB
+   ============================================================ */
+async function renderSocialMedia(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading social posts…</p></div>';
+  const r=await mktApi({action:'social.list'});
+  const posts=(r.items||[]);
+  const PLATFORMS=['Facebook','Instagram','LinkedIn','Twitter/X','Google Business'];
+  const statusColor={Draft:'tag',Scheduled:'warm',Published:'active',Paused:'tag'};
+  const rows=posts.map(p=>`<tr>
+    <td style="max-width:260px"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.text||'').slice(0,80)}</div>
+      <div class="muted" style="font-size:11px">${esc((p.platforms||[]).join(', '))}</div></td>
+    <td><span class="badge ${statusColor[p.status]||'tag'}">${esc(p.status||'Draft')}</span></td>
+    <td class="muted" style="font-size:12px">${esc(p.scheduledFor||'—')}</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(p.updatedAt))}</td>
+    <td class="right"><button class="btn btn-sm" onclick="socialEdit(${esc(JSON.stringify(p))})">Edit</button> <button class="btn btn-sm" onclick="socialDelete('${esc(p.id)}')">Delete</button></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">Social Media Posts</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="go('mkt.aistudio')" title="Generate content with AI">✨ AI Studio</button>
+          <button class="btn btn-sm btn-primary" onclick="socialNew()">+ New Post</button>
+        </div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Draft and schedule posts. Connect Facebook/Instagram/LinkedIn in Integrations to publish directly; until then use the Copy button to post manually.</p>
+      <table><thead><tr><th>Post</th><th>Status</th><th>Scheduled for</th><th>Updated</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="muted" style="padding:14px">No posts yet. Click "+ New Post" to start drafting.</td></tr>'}</tbody></table>
+    </div>
+    <div id="socialForm"></div>`;
+}
+function socialNew(){ socialEdit({id:'',text:'',platforms:['Facebook','Instagram'],status:'Draft',scheduledFor:'',notes:''}); }
+function socialEdit(post){
+  const PLATFORMS=['Facebook','Instagram','LinkedIn','Twitter/X','Google Business'];
+  const p=typeof post==='string'?JSON.parse(post):post;
+  const plCks=PLATFORMS.map(pl=>`<label style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><input type="checkbox" style="width:auto" ${(p.platforms||[]).includes(pl)?'checked':''} value="${esc(pl)}" class="pl_ck"> ${esc(pl)}</label>`).join('');
+  const stOpts=['Draft','Scheduled','Published','Paused'].map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('');
+  $('socialForm').innerHTML=`<div class="card" id="sfBox">
+    <h3 style="margin-top:0">${p.id?'Edit post':'New post'}</h3>
+    <label class="fl">Post content</label>
+    <textarea id="sf_text" style="min-height:120px" placeholder="Write your social post…">${esc(p.text||'')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn btn-sm" onclick="aiSocialDraft()">✨ Draft with AI</button>
+      <span id="sf_ai" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <label class="fl">Platforms</label><div style="margin-top:4px">${plCks}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div><label class="fl">Status</label><select id="sf_status">${stOpts}</select></div>
+      <div><label class="fl">Schedule date/time (optional)</label><input id="sf_sched" type="datetime-local" value="${esc(p.scheduledFor?p.scheduledFor.slice(0,16):'')}"></div>
+    </div>
+    <label class="fl">Notes (internal)</label><input id="sf_notes" value="${esc(p.notes||'')}" placeholder="Campaign name, hashtags, image URL…">
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="socialSave('${esc(p.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('sf_text').value);this.textContent='Copied ✓'">📋 Copy text</button>
+      <button class="btn btn-sm" onclick="$('socialForm').innerHTML=''">Cancel</button>
+      <span id="sf_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('socialForm').scrollIntoView({behavior:'smooth'});
+}
+async function aiSocialDraft(){
+  const msg=$('sf_ai'); if(msg){msg.textContent='Generating…';msg.className='muted';}
+  const r=await aiApi({action:'generate',type:'social',brief:'Write 3 social media post variations for iMigrate Migration Solutions. Focus on immigration pathways to Australia and Canada. Include a call to action.'});
+  if(r.ok){ const t=$('sf_text'); if(t) t.value=r.text||''; if(msg){msg.textContent='Done ✓';msg.className='ok';} }
+  else if(msg){ msg.textContent=r.error||'AI not available'; msg.className='err'; }
+}
+async function socialSave(existingId){
+  const msg=$('sf_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const platforms=[...document.querySelectorAll('.pl_ck:checked')].map(x=>x.value);
+  const item={id:existingId||undefined,text:$('sf_text').value,platforms,status:$('sf_status').value,scheduledFor:$('sf_sched').value,notes:$('sf_notes').value};
+  const r=await mktApi({action:'social.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderSocialMedia(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function socialDelete(id){ if(!confirm('Delete this post?'))return; await mktApi({action:'social.delete',id}); renderSocialMedia(); }
+
+/* ============================================================
+   EMAIL AUTOMATIONS (drip sequences)
+   ============================================================ */
+async function renderEmailAutomations(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading sequences…</p></div>';
+  const r=await mktApi({action:'seq.list'});
+  const seqs=(r.items||[]);
+  const stBadge=s=>s==='Active'?'<span class="badge active">Active</span>':s==='Paused'?'<span class="badge warm">Paused</span>':'<span class="badge tag">Draft</span>';
+  const rows=seqs.map(s=>`<tr>
+    <td><strong>${esc(s.name||'Untitled')}</strong><div class="muted" style="font-size:11px">${esc(s.trigger||'')}</div></td>
+    <td>${stBadge(s.status||'Draft')}</td>
+    <td class="muted">${(s.steps||[]).length} step(s)</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(s.updatedAt))}</td>
+    <td class="right">
+      <button class="btn btn-sm btn-primary" onclick="seqToggle('${esc(s.id)}','${s.status==='Active'?'Paused':'Active'}')">${s.status==='Active'?'Pause':'Activate'}</button>
+      <button class="btn btn-sm" onclick="seqEdit(${esc(JSON.stringify(s))})">Edit</button>
+      <button class="btn btn-sm" onclick="seqDelete('${esc(s.id)}')">Delete</button>
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">Email Automations</h3>
+        <button class="btn btn-sm btn-primary" onclick="seqNew()">+ New Sequence</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Drip sequences automatically send timed emails when a lead hits a trigger. The cron job (every 5 min) processes due steps.</p>
+      <table><thead><tr><th>Sequence</th><th>Status</th><th>Steps</th><th>Updated</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="muted" style="padding:14px">No sequences yet. Click "+ New Sequence" to build a drip campaign.</td></tr>'}</tbody></table>
+    </div>
+    <div id="seqForm"></div>`;
+}
+function seqNew(){ seqEdit({id:'',name:'',trigger:'Stage: New Lead',status:'Draft',steps:[{delay:0,subject:'Welcome to iMigrate!',body:'<p>Hi {{name}},</p><p>Thank you for reaching out. We look forward to helping you with your immigration journey.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'}]}); }
+function seqEdit(seq){
+  const s=typeof seq==='string'?JSON.parse(seq):seq;
+  const TRIGGERS=['Stage: New Lead','Stage: Signed Up','Stage: Under Assessment','Stage: Appointment Scheduled','Stage: Does Not Qualify','Lead Created','Invoice Paid'];
+  const trOpts=TRIGGERS.map(t=>`<option ${t===s.trigger?'selected':''}>${t}</option>`).join('');
+  const stOpts=['Draft','Active','Paused'].map(st=>`<option ${st===(s.status||'Draft')?'selected':''}>${st}</option>`).join('');
+  const steps=(s.steps||[]);
+  const stepHtml=steps.map((st,i)=>`<div class="note" id="seqStep_${i}" style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <strong style="font-size:13px">Step ${i+1}</strong>
+      <button class="btn btn-sm" onclick="seqRemoveStep(${i})">✕ Remove</button>
+    </div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:8px">
+      <div><label class="fl" style="margin-top:0">Wait (days)</label><input type="number" min="0" id="sq_delay_${i}" value="${st.delay||0}" style="width:100%"></div>
+      <div><label class="fl" style="margin-top:0">Subject</label><input id="sq_subj_${i}" value="${esc(st.subject||'')}" placeholder="Email subject…"></div>
+    </div>
+    <label class="fl">Email body (HTML)</label>
+    <textarea id="sq_body_${i}" style="min-height:80px;font-family:monospace;font-size:12px">${esc(st.body||'')}</textarea>
+  </div>`).join('');
+  $('seqForm').innerHTML=`<div class="card" id="seqBox">
+    <h3 style="margin-top:0">${s.id?'Edit sequence':'New sequence'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="fl" style="margin-top:0">Sequence name</label><input id="sq_name" value="${esc(s.name||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Trigger</label><select id="sq_trigger">${trOpts}</select></div>
+      <div><label class="fl" style="margin-top:0">Status</label><select id="sq_status">${stOpts}</select></div>
+    </div>
+    <h4 style="margin:0 0 8px">Steps (emails)</h4>
+    <div id="seqSteps">${stepHtml||'<p class="muted" style="font-size:13px">No steps yet — add one below.</p>'}</div>
+    <button class="btn btn-sm" style="margin-bottom:12px" onclick="seqAddStep()">+ Add step</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="seqSave('${esc(s.id||'')}')">Save sequence</button>
+      <button class="btn btn-sm" onclick="$('seqForm').innerHTML=''">Cancel</button>
+      <span id="sq_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Use {{name}}, {{occupation}}, {{stage}} in subject and body for personalisation. Step 1 (delay=0) fires immediately on trigger.</p>
+  </div>`;
+  $('seqForm').scrollIntoView({behavior:'smooth'});
+}
+let SEQ_STEPS=[];
+function seqAddStep(){
+  const steps=seqCollectSteps(); steps.push({delay:3,subject:'Following up — iMigrate',body:'<p>Hi {{name}},</p><p>Just checking in on your immigration plans. We are here to help whenever you are ready.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'});
+  const box=$('seqForm'); if(!box) return;
+  const s={id:box.dataset.id||'',name:$('sq_name')&&$('sq_name').value||'',trigger:$('sq_trigger')&&$('sq_trigger').value||'',status:$('sq_status')&&$('sq_status').value||'Draft',steps};
+  seqEdit(s);
+}
+function seqRemoveStep(i){
+  const steps=seqCollectSteps(); steps.splice(i,1);
+  const box=$('seqForm'); if(!box) return;
+  const s={id:box.dataset.id||'',name:$('sq_name')&&$('sq_name').value||'',trigger:$('sq_trigger')&&$('sq_trigger').value||'',status:$('sq_status')&&$('sq_status').value||'Draft',steps};
+  seqEdit(s);
+}
+function seqCollectSteps(){
+  const steps=[]; let i=0;
+  while($(`sq_delay_${i}`)!==null){
+    steps.push({delay:parseInt($(`sq_delay_${i}`).value)||0,subject:$(`sq_subj_${i}`).value,body:$(`sq_body_${i}`).value}); i++;
+  }
+  return steps;
+}
+async function seqSave(existingId){
+  const msg=$('sq_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('sq_name').value,trigger:$('sq_trigger').value,status:$('sq_status').value,steps:seqCollectSteps()};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'seq.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderEmailAutomations(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function seqToggle(id,newStatus){
+  const r=await mktApi({action:'seq.list'});
+  const seq=(r.items||[]).find(s=>s.id===id); if(!seq)return;
+  seq.status=newStatus;
+  await mktApi({action:'seq.save',item:seq}); renderEmailAutomations();
+}
+async function seqDelete(id){ if(!confirm('Delete this sequence?'))return; await mktApi({action:'seq.delete',id}); renderEmailAutomations(); }
+
+/* ============================================================
+   ADS MANAGER
+   ============================================================ */
+async function renderAdsManager(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading ad campaigns…</p></div>';
+  const r=await mktApi({action:'ads.list'});
+  const camps=(r.items||[]);
+  const tot=camps.reduce((s,c)=>s+(parseFloat(c.spend)||0),0);
+  const leads=camps.reduce((s,c)=>s+(parseInt(c.leads)||0),0);
+  const conv=camps.reduce((s,c)=>s+(parseInt(c.conversions)||0),0);
+  const cpl=leads?'$'+(tot/leads).toFixed(2):'—';
+  const rows=camps.map(c=>`<tr>
+    <td><strong>${esc(c.name||'—')}</strong><div class="muted" style="font-size:11px">${esc(c.platform||'')}</div></td>
+    <td class="muted">${esc(c.dateRange||'—')}</td>
+    <td><strong>$${parseFloat(c.spend||0).toFixed(2)}</strong></td>
+    <td>${mktFmt(parseInt(c.impressions||0))}</td>
+    <td>${mktFmt(parseInt(c.clicks||0))}</td>
+    <td>${mktFmt(parseInt(c.leads||0))}</td>
+    <td><strong>${mktFmt(parseInt(c.conversions||0))}</strong></td>
+    <td class="muted">${(c.leads&&c.spend)?'$'+(parseFloat(c.spend)/parseInt(c.leads)).toFixed(2):'—'}</td>
+    <td class="right"><button class="btn btn-sm" onclick="adsEdit(${esc(JSON.stringify(c))})">Edit</button> <button class="btn btn-sm" onclick="adsDelete('${esc(c.id)}')">Delete</button></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="grid stats" style="margin-bottom:16px">
+      <div class="card stat"><div class="n">$${tot.toFixed(2)}</div><div class="l">Total spend</div></div>
+      <div class="card stat"><div class="n">${mktFmt(leads)}</div><div class="l">Total leads</div></div>
+      <div class="card stat"><div class="n">${mktFmt(conv)}</div><div class="l">Conversions</div></div>
+      <div class="card stat"><div class="n">${cpl}</div><div class="l">Cost per lead</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="margin:0">Ad Campaigns</h3>
+        <button class="btn btn-sm btn-primary" onclick="adsNew()">+ New Campaign</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Track ad spend and results across Google, Meta, LinkedIn and other platforms. Connect Google/Meta APIs in Integrations for live data pull.</p>
+      <div style="overflow:auto"><table><thead><tr><th>Campaign</th><th>Dates</th><th>Spend</th><th>Impressions</th><th>Clicks</th><th>Leads</th><th>Signups</th><th>CPL</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="9" class="muted" style="padding:14px">No campaigns yet. Track your first ad campaign.</td></tr>'}</tbody></table></div>
+    </div>
+    <div id="adsForm"></div>`;
+}
+function adsNew(){ adsEdit({id:'',name:'',platform:'Google Ads',dateRange:'',spend:'',impressions:'',clicks:'',leads:'',conversions:'',notes:''}); }
+function adsEdit(camp){
+  const c=typeof camp==='string'?JSON.parse(camp):camp;
+  const PLATS=['Google Ads','Meta (Facebook/Instagram)','LinkedIn Ads','TikTok Ads','Twitter/X Ads','YouTube Ads','Other'];
+  const plOpts=PLATS.map(p=>`<option ${p===c.platform?'selected':''}>${p}</option>`).join('');
+  $('adsForm').innerHTML=`<div class="card" id="adsBox">
+    <h3 style="margin-top:0">${c.id?'Edit campaign':'New campaign'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div><label class="fl" style="margin-top:0">Campaign name</label><input id="ad_name" value="${esc(c.name||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Platform</label><select id="ad_plat">${plOpts}</select></div>
+      <div><label class="fl" style="margin-top:0">Date range</label><input id="ad_dates" value="${esc(c.dateRange||'')}" placeholder="e.g. Jun 1–30, 2026"></div>
+      <div><label class="fl" style="margin-top:0">Spend (USD)</label><input id="ad_spend" type="number" step="0.01" min="0" value="${esc(c.spend||'')}" placeholder="0.00"></div>
+      <div><label class="fl" style="margin-top:0">Impressions</label><input id="ad_imp" type="number" min="0" value="${esc(c.impressions||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Clicks</label><input id="ad_clicks" type="number" min="0" value="${esc(c.clicks||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Leads generated</label><input id="ad_leads" type="number" min="0" value="${esc(c.leads||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Signed up (conversions)</label><input id="ad_conv" type="number" min="0" value="${esc(c.conversions||'')}"></div>
+    </div>
+    <label class="fl">Notes</label><input id="ad_notes" value="${esc(c.notes||'')}">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm btn-primary" onclick="adsSave('${esc(c.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="$('adsForm').innerHTML=''">Cancel</button>
+      <span id="ad_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('adsForm').scrollIntoView({behavior:'smooth'});
+}
+async function adsSave(existingId){
+  const msg=$('ad_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('ad_name').value,platform:$('ad_plat').value,dateRange:$('ad_dates').value,spend:$('ad_spend').value,impressions:$('ad_imp').value,clicks:$('ad_clicks').value,leads:$('ad_leads').value,conversions:$('ad_conv').value,notes:$('ad_notes').value};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'ads.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderAdsManager(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function adsDelete(id){ if(!confirm('Delete this campaign?'))return; await mktApi({action:'ads.delete',id}); renderAdsManager(); }
+
+/* ============================================================
+   WHATSAPP HUB
+   ============================================================ */
+async function renderWhatsAppHub(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading templates…</p></div>';
+  const r=await mktApi({action:'wa.list'});
+  const tmpls=(r.items||[]);
+  const rows=tmpls.map(t=>`<tr>
+    <td><strong>${esc(t.name||'—')}</strong><div class="muted" style="font-size:11px">${esc(t.category||'')}</div></td>
+    <td style="max-width:300px"><div style="white-space:pre-wrap;font-size:12px;max-height:60px;overflow:hidden">${esc((t.body||'').slice(0,120))}</div></td>
+    <td class="right">
+      <button class="btn btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc((t.body||'').replace(/'/g,"\\'"))}');this.textContent='Copied ✓'">Copy</button>
+      <button class="btn btn-sm" onclick="waEdit(${esc(JSON.stringify(t))})">Edit</button>
+      <button class="btn btn-sm" onclick="waDelete('${esc(t.id)}')">Delete</button>
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">WhatsApp Templates</h3>
+        <div style="display:flex;gap:8px">
+          <a class="btn btn-sm" href="https://business.whatsapp.com" target="_blank">WhatsApp Business →</a>
+          <button class="btn btn-sm btn-primary" onclick="waNew()">+ New Template</button>
+        </div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Save reusable message templates. Click Copy to paste into WhatsApp Business. Connect the WhatsApp Business API in Integrations to send programmatically from the CRM.</p>
+      <table><thead><tr><th>Template name</th><th>Preview</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="3" class="muted" style="padding:14px">No templates yet. Add one below.</td></tr>'}</tbody></table>
+    </div>
+    <div id="waForm"></div>`;
+}
+function waNew(){ waEdit({id:'',name:'',category:'Follow-up',body:'Hi {{name}}, this is iMigrate Migration Solutions! 🌏\n\nWe\'d love to discuss your immigration options to Australia or Canada.\n\nWould you be available for a quick call this week?\n\nReply YES to book your free consultation.\n\niMigrate Team'}); }
+function waEdit(tmpl){
+  const t=typeof tmpl==='string'?JSON.parse(tmpl):tmpl;
+  const catOpts=['Follow-up','Welcome','Appointment Reminder','Assessment Ready','Re-engagement','Promotion','Other'].map(c=>`<option ${c===t.category?'selected':''}>${c}</option>`).join('');
+  $('waForm').innerHTML=`<div class="card" id="waBox">
+    <h3 style="margin-top:0">${t.id?'Edit template':'New template'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="fl" style="margin-top:0">Template name</label><input id="wa_name" value="${esc(t.name||'')}" placeholder="e.g. New Lead Welcome"></div>
+      <div><label class="fl" style="margin-top:0">Category</label><select id="wa_cat">${catOpts}</select></div>
+    </div>
+    <label class="fl">Message body</label>
+    <textarea id="wa_body" style="min-height:160px" placeholder="Write your WhatsApp message…">${esc(t.body||'')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn btn-sm" onclick="aiWaDraft()">✨ Draft with AI</button>
+      <span id="wa_ai" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:6px">Use {{name}}, {{occupation}}, {{stage}} for personalisation. WhatsApp limits messages to 1024 characters.</p>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm btn-primary" onclick="waSave('${esc(t.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="$('waForm').innerHTML=''">Cancel</button>
+      <span id="wa_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('waForm').scrollIntoView({behavior:'smooth'});
+}
+async function aiWaDraft(){
+  const msg=$('wa_ai'); if(msg){msg.textContent='Generating…';msg.className='muted';}
+  const r=await aiApi({action:'generate',type:'whatsapp',brief:'Write a short WhatsApp message (under 200 words) for iMigrate Migration Solutions to follow up with an immigration lead. Be warm, professional, mention free consultation, use {{name}} placeholder.'});
+  if(r.ok){ const t=$('wa_body'); if(t) t.value=r.text||''; if(msg){msg.textContent='Done ✓';msg.className='ok';} }
+  else if(msg){ msg.textContent=r.error||'AI not available'; msg.className='err'; }
+}
+async function waSave(existingId){
+  const msg=$('wa_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('wa_name').value,category:$('wa_cat').value,body:$('wa_body').value};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'wa.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderWhatsAppHub(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function waDelete(id){ if(!confirm('Delete this template?'))return; await mktApi({action:'wa.delete',id}); renderWhatsAppHub(); }
 
 /* ---------- boot ---------- */
 restore();

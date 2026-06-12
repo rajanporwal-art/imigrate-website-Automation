@@ -51,6 +51,10 @@ function ServicesPage() {
         <meta property="og:url" content="https://www.imigratesolution.com/services" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Immigration Services | Skilled Migration, Express Entry, C11 Work Permit | iMigrate Migration Solutions" />
+        <meta name="twitter:description" content="Comprehensive immigration services for Australia and Canada including skilled migration, student visas, family sponsorship, and business immigration." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",

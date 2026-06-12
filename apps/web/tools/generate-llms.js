@@ -21,7 +21,7 @@ const EXTRACTION_REGEX = {
 	route: /<Route\s+[^>]*>/g,
 	path: /path=["']([^"']+)["']/,
 	element: /element=\{<(\w+)[^}]*\/?\s*>\}/,
-	helmet: /<Helmet[^>]*?>([\s\S]*?)<\/Helmet>/i,
+	helmet: /<Helmet[^>]*?>([\s\S]*?)<\/Helmet>/gi,
 	helmetTest: /<Helmet[\s\S]*?<\/Helmet>/i,
 	title: /<title[^>]*?>\s*(.*?)\s*<\/title>/i,
 	description: /<meta\s+name=["']description["']\s+content=["'](.*?)["']/i
@@ -92,10 +92,21 @@ function extractHelmetData(content, filePath, routes) {
 		return null;
 	}
 
-	const helmetMatch = content.match(EXTRACTION_REGEX.helmet);
-	if (!helmetMatch) return null;
+	// Reset lastIndex since the regex is now global (gi flag).
+	EXTRACTION_REGEX.helmet.lastIndex = 0;
+	const helmetMatches = [...content.matchAll(EXTRACTION_REGEX.helmet)];
+	if (!helmetMatches.length) return null;
 
-	const helmetContent = helmetMatch[1];
+	// Pick the Helmet block that has both a title and a description.
+	// Fall back to the last block, then the first.
+	let bestMatch = helmetMatches[0];
+	for (const m of helmetMatches) {
+		const hasTitle = EXTRACTION_REGEX.title.test(m[1]);
+		const hasDesc = EXTRACTION_REGEX.description.test(m[1]);
+		if (hasTitle && hasDesc) { bestMatch = m; break; }
+	}
+
+	const helmetContent = bestMatch[1];
 	const titleMatch = helmetContent.match(EXTRACTION_REGEX.title);
 	const descMatch = helmetContent.match(EXTRACTION_REGEX.description);
 

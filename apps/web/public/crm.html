@@ -30,13 +30,23 @@
   #gate{max-width:380px;margin:12vh auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);text-align:center}
   #gate h1{font-size:20px;margin:0 0 4px} #gate p{color:var(--muted);font-size:13px;margin:0 0 18px}
   /* App shell */
-  #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto}
-  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px}
+  #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;transition:grid-template-columns .22s ease}
+  #app.nav-collapsed{grid-template-columns:62px 1fr}
+  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;overflow-x:hidden;transition:padding .22s ease}
+  #app.nav-collapsed .sidebar{padding:16px 8px}
+  .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px;white-space:nowrap;overflow:hidden}
+  .sidebar .brand .logo{display:none;font-size:16px;color:var(--accent)}
   .sidebar .brand span{color:var(--accent)}
-  .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px}
+  .navitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#cdd7ea;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden}
   .navitem.active,.navitem:hover{background:rgba(255,255,255,.1);color:#fff}
-  .navitem .ic{width:18px;text-align:center}
+  .navitem .ic{width:18px;text-align:center;flex:0 0 18px}
+  .navitem .lbl,.brand .lbl{transition:opacity .15s ease}
+  #app.nav-collapsed .navitem{justify-content:center;padding:10px 0;gap:0}
+  #app.nav-collapsed .navitem .lbl,#app.nav-collapsed .brand .lbl{display:none}
+  #app.nav-collapsed .brand{justify-content:center;padding:6px 0 16px}
+  #app.nav-collapsed .brand .logo{display:inline}
+  .navtoggle{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;width:34px;height:34px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .navtoggle:hover{border-color:var(--accent)}
   .main{padding:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:5}
   .topbar h2{margin:0;font-size:18px}
@@ -101,7 +111,61 @@
   .tl-item .t{color:var(--muted);font-size:11px}
   .status{font-size:13px} .ok{color:var(--ok)} .err{color:var(--cta)}
   .muted{color:var(--muted)} .right{text-align:right}
-  @media(max-width:820px){#app{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}.kv .k{min-width:110px}}
+  /* Modal */
+  .modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;z-index:50;overflow:auto}
+  .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);width:100%;max-width:560px;padding:20px}
+  .modal-box.wide{max-width:780px}
+  .modal-box h3{margin:0 0 4px;font-size:18px}
+  .modal-x{float:right;border:none;background:none;font-size:20px;color:var(--muted);line-height:1;padding:0 4px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .fgrid .full{grid-column:1 / -1}
+  .fl{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:8px 0 3px}
+  /* Column chooser menu */
+  .menu{position:relative;display:inline-block}
+  .menu-pop{position:absolute;top:110%;right:0;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:8px;z-index:20;min-width:200px;max-height:320px;overflow:auto}
+  .menu-pop label{display:flex;align-items:center;gap:8px;padding:5px 6px;font-size:13px;border-radius:6px;cursor:pointer} .menu-pop label:hover{background:var(--bg)}
+  .menu-pop input{width:auto}
+  /* Activity panel (lead detail) */
+  .lead-split{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+  @media(max-width:1100px){.lead-split{grid-template-columns:1fr}}
+  .act-panel{position:sticky;top:80px;border:1px solid var(--border);border-radius:12px;background:var(--panel);max-height:78vh;display:flex;flex-direction:column}
+  .act-panel h3{margin:0;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .act-body{overflow:auto;padding:12px 14px;flex:1}
+  .act-filter{display:flex;gap:4px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--border)}
+  .act-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:var(--bg);cursor:pointer}
+  .act-chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-cell{min-height:88px;border:1px solid var(--border);border-radius:8px;padding:5px;background:var(--panel);font-size:12px}
+  .cal-cell.dim{background:var(--bg);opacity:.55} .cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .cal-cell .d{font-weight:700;color:var(--muted);font-size:11px}
+  .cal-ev{background:rgba(11,31,68,.1);color:var(--navy);border-radius:5px;padding:1px 5px;margin-top:3px;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  [data-theme="dark"] .cal-ev{background:rgba(255,255,255,.12);color:#fff}
+  .cal-dow{font-size:11px;color:var(--muted);text-transform:uppercase;text-align:center;padding:4px 0;font-weight:600}
+  @media(max-width:820px){#app{grid-template-columns:1fr}#app.nav-collapsed{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}#app.nav-collapsed .navitem .lbl{display:inline}.kv .k{min-width:110px};.lead-split{grid-template-columns:1fr}.sp-wrap{grid-template-columns:1fr!important}}
+  /* ── HubSpot-style split-panel leads view ── */
+  .sp-wrap{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - 106px);overflow:hidden;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+  .sp-list{overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .sp-list-head{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:2}
+  .sp-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+  .sp-row:hover{background:rgba(0,0,0,.025)} [data-theme="dark"] .sp-row:hover{background:rgba(255,255,255,.04)}
+  .sp-row.active{background:rgba(11,31,68,.06);border-left:3px solid var(--accent)} [data-theme="dark"] .sp-row.active{background:rgba(200,162,74,.12)}
+  .sp-row.checked{background:rgba(200,162,74,.08)}
+  .sp-avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 34px}
+  .sp-row-info{flex:1;min-width:0}
+  .sp-row-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sp-row-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .sp-detail{overflow-y:auto;background:var(--bg);padding:0;display:flex;flex-direction:column}
+  .sp-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
+  .sp-panel-head{padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}
+  .sp-panel-tabs{display:flex;gap:2px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--border)}
+  .sp-panel-tab{padding:7px 12px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+  .sp-panel-tab.active{color:var(--navy);border-bottom-color:var(--accent)} [data-theme="dark"] .sp-panel-tab.active{color:#fff}
+  .sp-panel-body{padding:14px 16px;flex:1}
+  /* ── Bulk action bar ── */
+  .bulk-bar{display:flex;gap:8px;align-items:center;padding:7px 12px;background:var(--navy);color:#fff;border-radius:8px;margin-bottom:8px;flex-wrap:wrap;font-size:13px}
+  .bulk-bar select,.bulk-bar button{font-size:12px}
+  .bulk-bar .bulk-count{font-weight:700;min-width:80px}
 </style>
 </head>
 <body data-theme="light">
@@ -118,18 +182,29 @@
 <!-- App -->
 <div id="app" class="hidden">
   <aside class="sidebar">
-    <div class="brand">iMigrate <span>CRM</span></div>
-    <div class="navitem active" data-view="dashboard" onclick="go('dashboard')"><span class="ic">📊</span> Dashboard</div>
-    <div class="navitem" data-view="leads" onclick="go('leads')"><span class="ic">👥</span> CRM / Leads</div>
-    <div class="navitem" data-view="pipeline" onclick="go('pipeline')"><span class="ic">🗂️</span> Pipeline</div>
-    <div class="navitem" data-view="reports" onclick="go('reports')"><span class="ic">📄</span> Reports</div>
-    <div class="navitem" data-view="tasks" onclick="go('tasks')"><span class="ic">✅</span> Tasks &amp; Follow-Ups</div>
-    <div class="navitem" data-view="settings" onclick="go('settings')"><span class="ic">⚙️</span> Settings</div>
+    <div class="brand"><span class="logo">iM</span><span class="lbl">iMigrate <span>CRM</span></span></div>
+    <div class="navitem active" data-view="dashboard" onclick="go('dashboard')" title="Dashboard"><span class="ic">📊</span> <span class="lbl">Dashboard</span></div>
+    <div class="navitem" data-view="leads" onclick="go('leads')" title="Leads"><span class="ic">👥</span> <span class="lbl">Leads</span></div>
+    <div class="navitem" data-view="calendar" onclick="go('calendar')" title="Calendar"><span class="ic">📅</span> <span class="lbl">Calendar</span></div>
+    <div class="navitem" data-view="pipeline" onclick="go('pipeline')" title="Pipeline"><span class="ic">🗂️</span> <span class="lbl">Pipeline</span></div>
+    <div class="navitem" data-view="reports" onclick="go('reports')" title="Reports"><span class="ic">📄</span> <span class="lbl">Reports</span></div>
+    <div class="navitem" data-view="tasks" onclick="go('tasks')" title="Tasks &amp; Follow-Ups"><span class="ic">✅</span> <span class="lbl">Tasks &amp; Follow-Ups</span></div>
+    <div class="navitem" data-view="clients" onclick="go('clients')" title="Clients &amp; Cases"><span class="ic">🧾</span> <span class="lbl">Clients &amp; Cases</span></div>
+    <div class="navitem" data-view="invoices" onclick="go('invoices')" title="Invoices &amp; Payments"><span class="ic">💳</span> <span class="lbl">Invoices &amp; Payments</span></div>
+    <div class="navitem" data-view="automations" onclick="go('automations')" title="Automations"><span class="ic">⚡</span> <span class="lbl">Automations</span></div>
+    <div class="navitem" data-view="settings" onclick="go('settings')" title="Settings"><span class="ic">⚙️</span> <span class="lbl">Settings</span></div>
   </aside>
 
   <div class="main">
     <div class="topbar">
-      <h2 id="viewTitle">Dashboard</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="navtoggle" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle menu">☰</button>
+        <h2 id="viewTitle">Dashboard</h2>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex:1;max-width:300px;margin:0 16px" id="searchBox">
+        <input id="globalSearch" type="text" placeholder="🔍 Search… (Ctrl+K)" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--border);font-size:13px" oninput="globalSearchInput(this.value)">
+        <div id="searchResults" style="position:absolute;top:100%;left:0;right:0;margin-top:2px;background:var(--bg);border:1px solid var(--border);border-radius:6px;max-height:400px;overflow:auto;z-index:100;display:none" onclick="event.stopPropagation()"></div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span id="loadMsg" class="status muted"></span>
         <button class="btn btn-sm" onclick="loadAll()">↻ Refresh</button>
@@ -140,6 +215,7 @@
     <div class="content" id="content"></div>
   </div>
 </div>
+<div id="modalRoot"></div>
 
 <script>
   const $ = (id) => document.getElementById(id);
@@ -147,11 +223,20 @@
   const CRM_USER = () => localStorage.getItem('imig_crm_user') || 'Consultant';
   let LEADS = [], CONTACTS = [], META = {}, TASKS = [], REPORTS = [], VIEW = 'dashboard';
   let PROFILE_KEY = null, PROFILE_TAB = 'contact';
+  // Split-panel & bulk-select state
+  let SPLIT_VIEW = (()=>{ try{ return localStorage.getItem('imig_split')==='1'; }catch(e){ return false; } })();
+  let PANEL_KEY = null, PANEL_TAB = 'overview';
+  let BULK_MODE = false, SELECTED = new Set();
 
-  const STAGES = ['New Lead','Contact Attempted','CV Requested','CV Received','Assessment Completed','Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved','Lost Opportunity'];
-  // Display-only relabel — stored stage VALUES are unchanged (data integrity); only the UI label differs.
-  const STAGE_LABELS={'Assessment Completed':'Lead Assessed'};
+  const STAGES = ['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Future Lead','No Answer – Follow-up Sent','No Pickup – Email/WhatsApp Sent','Does Not Qualify','Signed Up','Lost Lead','Duplicate Lead','Invalid Lead / Spam'];
+  // Legacy stage names stay displayable for backward compat (stored values unchanged).
+  const STAGE_LABELS={};
   const stageLabel=(s)=>STAGE_LABELS[s]||s;
+  // Color palette for each standardised status.
+  const STAGE_COLORS={'New Lead':{bg:'#dbeafe',color:'#1d4ed8'},'Pending Call':{bg:'#fef3c7',color:'#92400e'},'Pending CV / Resume':{bg:'#fef9c3',color:'#854d0e'},'Pending Appointment':{bg:'#fde68a',color:'#b45309'},'Appointment Scheduled':{bg:'#d1fae5',color:'#065f46'},'Pending Follow-up':{bg:'#fef3c7',color:'#92400e'},'Under Assessment':{bg:'#ede9fe',color:'#5b21b6'},'Future Lead':{bg:'#e0f2fe',color:'#0369a1'},'No Answer – Follow-up Sent':{bg:'#fee2e2',color:'#b91c1c'},'No Pickup – Email/WhatsApp Sent':{bg:'#fee2e2',color:'#b91c1c'},'Does Not Qualify':{bg:'#f1f5f9',color:'#475569'},'Signed Up':{bg:'#dcfce7',color:'#166534'},'Lost Lead':{bg:'#fecaca',color:'#991b1b'},'Duplicate Lead':{bg:'#f3f4f6',color:'#6b7280'},'Invalid Lead / Spam':{bg:'#f3f4f6',color:'#6b7280'}};
+  function stageBadge(s){const c=STAGE_COLORS[s]||{bg:'#e2e8f0',color:'#475569'};return `<span style="background:${c.bg};color:${c.color};padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block">${esc(s)}</span>`;}
+  // Safe migration map: legacy stage name → new standardised status.
+  const STAGE_MIGRATION_MAP={'Contact Attempted':'Pending Call','CV Requested':'Pending CV / Resume','CV Received':'Pending Appointment','Assessment Completed':'Under Assessment','Lead Assessed':'Under Assessment','Consultation Booked':'Appointment Scheduled','Consultation Completed':'Pending Follow-up','Qualified':'Under Assessment','Agreement Sent':'Signed Up','Payment Received':'Signed Up','Application Preparation':'Signed Up','Application Submitted':'Signed Up','Visa Approved':'Signed Up','Lost Opportunity':'Lost Lead'};
 
   /* Immigration email templates. {{name}} {{occupation}} {{points}} {{visas}} are filled per lead. */
   const EMAIL_TEMPLATES = {
@@ -185,15 +270,23 @@
     }catch(e){m.textContent='Could not reach the server.';return;}
     sessionStorage.setItem('imig_crm_pw',pw);
     $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    initSidebar();
     if(localStorage.getItem('imig_crm_theme')==='dark') setTheme('dark');
     await loadAll();
   }
   function logout(){ sessionStorage.removeItem('imig_crm_pw'); location.reload(); }
 
   /* ---------- data ---------- */
+  // Real-time auto-backup: after any data-changing CRM action, debounce a full
+  // dual backup (server + OneDrive) so nothing is ever lost. Read-only actions skip.
+  const BK_READONLY=new Set(['list','get','status','meta','read','load','audit','diag','messages','count','search','templates-list','onedrive-list','onedrive-status','reports','report-get','meta-get','overview']);
+  let _bkTimer=null;
+  function scheduleBackup(reason){ try{ clearTimeout(_bkTimer); _bkTimer=setTimeout(()=>{ fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'change',reason:String(reason||'')})}).catch(()=>{}); },4000); }catch(e){} }
   async function api(url, body){
     const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})});
-    return r.json().catch(()=>({ok:false}));
+    const j = await r.json().catch(()=>({ok:false}));
+    try{ const a=body&&body.action; const mutating=a?!BK_READONLY.has(a):false; if(mutating&&j&&j.ok!==false) scheduleBackup((url||'').replace(/^.*\//,'')+':'+a); }catch(e){}
+    return j;
   }
   async function loadAll(){
     const m=$('loadMsg'); m.textContent='Loading…';
@@ -208,6 +301,8 @@
       buildContacts();
       m.textContent = CONTACTS.length+' contacts · '+REPORTS.length+' reports';
       render();
+      // Zero-config automatic daily backup (no-op if a snapshot was taken in the last 24h).
+      try{ api('/crm-backup.php',{action:'auto'}); }catch(_){}
     }catch(e){ m.textContent='✗ Load failed (PHP enabled?)'; }
   }
 
@@ -268,7 +363,7 @@
         hasCV, cvFiles:c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile,at:s.timestamp})),
         reports, storedReports, submissions:c.submissions, score, cat, hot, isAI,
         sourceType: isAI?'AI':'Standard',
-        stage: meta.stage || (reports.length?'Assessment Completed':'New Lead'),
+        stage: meta.stage || (reports.length?'Under Assessment':'New Lead'),
         notes: meta.notes || [], activity: meta.activity || [], overrides: ov,
       };
     });
@@ -276,12 +371,112 @@
   }
 
   /* ---------- nav / render ---------- */
+  function toggleSidebar(){ const a=$('app'); const c=a.classList.toggle('nav-collapsed'); try{localStorage.setItem('imig_crm_navcollapsed',c?'1':'0');}catch(e){} }
+  function initSidebar(){ try{ if(localStorage.getItem('imig_crm_navcollapsed')==='1') $('app').classList.add('nav-collapsed'); }catch(e){} if(window.innerWidth<=820) $('app').classList.remove('nav-collapsed'); }
   function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'CRM / Leads',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',settings:'Settings',profile:'Lead Profile'};
+    const titles={dashboard:'Dashboard',leads:'Leads',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',clients:'Clients & Cases',invoices:'Invoices & Payments',automations:'Automations',settings:'Settings',profile:'Lead Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+  }
+
+  /* ---------- GLOBAL SEARCH ---------- */
+  let SEARCH_TIMEOUT;
+  async function globalSearchInput(q){
+    clearTimeout(SEARCH_TIMEOUT);
+    const $res=$('searchResults');
+    if(!q||q.length<2){if($res)$res.style.display='none';return;}
+    if($res)$res.style.display='flex';
+    SEARCH_TIMEOUT=setTimeout(async()=>{
+      const r=await api('/crm-search.php',{q});
+      if(!r||!r.results)return;
+      const results=r.results;
+      if(!results.length){if($res)$res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:13px">No results found</div>';return;}
+      const typeIcon={lead:'👥',case:'🧾',note:'📝',task:'✅',email:'✉️'};
+      const html=results.map(x=>`<div onclick="searchGoto('${esc(x.type)}','${esc(x.id)}','${esc(x.leadKey||'')}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .1s" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="font-size:16px">${typeIcon[x.type]||'·'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div>
+            <div class="muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.snippet)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+      if($res)$res.innerHTML=html;
+    },300);
+  }
+  function searchGoto(type,id,leadKey){
+    $('globalSearch').value=''; $('searchResults').style.display='none';
+    if(type==='lead'){ go('profile'); PROFILE_KEY=id; renderProfile(); }
+    else if(type==='case'){ go('clients'); CASE_PANEL_ID=id; setTimeout(()=>renderClients(),100); }
+    else if(type==='note'||type==='email'||type==='task'){
+      if(leadKey){ go('profile'); PROFILE_KEY=leadKey; setTimeout(()=>renderProfile(),100); }
+      else go('tasks');
+    }
+  }
+  document.addEventListener('keydown',(e)=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); const s=$('globalSearch'); if(s)s.focus(); }
+    if(e.key==='Escape'){ const $res=$('searchResults'); if($res)$res.style.display='none'; }
+  });
+  window.addEventListener('click',()=>{ const $res=$('searchResults'); if($res)$res.style.display='none'; });
+
+  /* ---------- LEAD SCORING ENGINE ---------- */
+  async function recalculateAllScores(){
+    const msg=$('scoringMsg'); if(msg)msg.textContent='Calculating…';
+    let done=0,total=CONTACTS.length;
+    for(const lead of CONTACTS){
+      const r=await api('/crm-scoring.php',{action:'calculate-score',ckey:lead.ckey});
+      done++;
+      if(msg)msg.textContent=`${done}/${total}…`;
+    }
+    if(msg){ msg.textContent='✓ All scores recalculated'; msg.className='ok'; }
+    CONTACTS=await api('/crm-leads.php',{action:'list'}).then(r=>(r&&r.contacts)||CONTACTS);
+    viewScoringReport();
+  }
+  async function viewScoringReport(){
+    const msg=$('scoringMsg'); if(msg)msg.className='muted';
+    const report=$('scoringReport');
+    const cats={Hot:0,Warm:0,'Sales Ready':0,Cold:0};
+    const rows=[];
+    for(const lead of CONTACTS){
+      const cat=lead.scoreCategory||'Cold';
+      if(cats.hasOwnProperty(cat))cats[cat]++;
+      if(lead.score&&lead.score>0){
+        rows.push({name:lead.name,email:lead.email,score:lead.score,cat,stage:lead.stage});
+      }
+    }
+    rows.sort((a,b)=>b.score-a.score);
+    const catBadges=(c,n)=>`<span class="pill" style="background:${c==='Hot'?'#fecaca':c==='Warm'?'#fef3c7':c==='Sales Ready'?'#dbeafe':'#f1f5f9'};color:${c==='Hot'?'#991b1b':c==='Warm'?'#b45309':c==='Sales Ready'?'#1d4ed8':'#475569'}">${n}</span>`;
+    const html=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+      ${Object.entries(cats).map(([c,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${c} leads</div></div>`).join('')}
+    </div>
+    <table style="font-size:12px"><thead><tr><th>Lead</th><th>Score</th><th>Category</th><th>Stage</th></tr></thead>
+    <tbody>${rows.slice(0,20).map(r=>`<tr><td><strong>${esc(r.name)}</strong><div class="muted">${esc(r.email)}</div></td><td><strong>${r.score}</strong></td><td>${catBadges(r.cat,r.cat)}</td><td class="muted">${esc(r.stage)}</td></tr>`).join('')}
+    ${rows.length>20?`<tr><td colspan="4" class="muted" style="padding:8px;text-align:center">…and ${rows.length-20} more</td></tr>`:''}</tbody></table>`;
+    if(report)report.innerHTML=html;
+  }
+
+  /* ---------- HUBSPOT SYNC ---------- */
+  async function hsSync(type){
+    const msg=$('hsSyncMsg'); if(msg)msg.textContent='Syncing…';
+    const prog=$('hsSyncProgress'); if(prog)prog.innerHTML='<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;background:var(--accent);width:30%;animation:pulse 1s infinite"></div></div>';
+    const r=await api('/hubspot-sync.php',{action:type});
+    if(!r||!r.ok){ if(msg)msg.textContent='Sync failed: '+((r&&r.error)||'unknown error'); if(msg)msg.className='err'; if(prog)prog.innerHTML=''; return; }
+    if(msg){ msg.textContent=`✓ Synced: ${r.imported||0} leads, ${r.emailsImported||0} emails`; msg.className='ok'; }
+    if(prog)prog.innerHTML='';
+    const report=$('hsSyncReport');
+    const errors=r.errors&&r.errors.length?'<div style="margin-top:8px;padding:8px;background:#fee;border-radius:4px;font-size:12px;color:#c00"><strong>Errors:</strong> '+esc(r.errors.join('; '))+'</div>':'';
+    const html=`<div style="font-size:13px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Contacts imported (new)</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.created||0}</strong></td></tr>
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Contacts merged (updated)</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.merged||0}</strong></td></tr>
+        <tr><td style="padding:4px;border-bottom:1px solid var(--border)">Email threads imported</td><td style="padding:4px;border-bottom:1px solid var(--border);text-align:right"><strong>${r.emailsImported||0}</strong></td></tr>
+      </table>
+      ${errors}
+    </div>`;
+    if(report)report.innerHTML=html;
+    setTimeout(()=>{ CONTACTS=CONTACTS||[]; loadAll(); },1000);
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -293,9 +488,9 @@
     const ai=CONTACTS.filter(c=>c.isAI).length;
     const std=total-ai;
     const reports=CONTACTS.filter(c=>c.reports.length).length;
-    const consultStages=['Consultation Booked','Consultation Completed','Qualified','Agreement Sent','Payment Received','Application Preparation','Application Submitted','Visa Approved'];
+    const consultStages=['Appointment Scheduled','Pending Follow-up','Under Assessment','Signed Up'];
     const consults=CONTACTS.filter(c=>consultStages.includes(c.stage)).length;
-    const approvals=CONTACTS.filter(c=>c.stage==='Visa Approved').length;
+    const approvals=CONTACTS.filter(c=>c.stage==='Signed Up').length;
     const occ={}, vis={};
     CONTACTS.forEach(c=>{ if(c.occupation)occ[c.occupation]=(occ[c.occupation]||0)+1; (c.visas||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(v=>vis[v]=(vis[v]||0)+1); });
     const top=(o)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,6);
@@ -308,8 +503,8 @@
         ${stat(ai,'AI Leads',"dashGo({type:'AI'})")}
         ${stat(std,'Standard Leads',"dashGo({type:'Standard'})")}
         ${stat(reports,'Reports Generated',"go('reports')")}
-        ${stat(consults,'Consultations',"dashGo({stage:'Consultation Booked'})")}
-        ${stat(approvals,'Visa Approvals',"dashGo({stage:'Visa Approved'})")}
+        ${stat(consults,'Consultations',"dashGo({stage:'Appointment Scheduled'})")}
+        ${stat(approvals,'Signed Up Clients',"dashGo({stage:'Signed Up'})")}
       </div>
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <div class="card"><h3 style="margin:0 0 10px">Top occupations</h3>${top(occ).map(([k,v])=>`<div class="kv"><span class="k" style="min-width:0;flex:1">${esc(k)}</span><span class="pill">${v}</span></div>`).join('')||'<span class="muted">No data yet</span>'}</div>
@@ -320,19 +515,55 @@
 
   /* ---------- leads list ---------- */
   let leadFilter={q:'',stage:'',cat:'',type:'',sort:''};
-  function renderLeads(){
-    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
-    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
-    const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
-    let rows=CONTACTS.filter(c=>{
-      const q=leadFilter.q.toLowerCase();
-      if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation}`.toLowerCase().includes(q))) return false;
+  const rf=(c,k)=>((c.rawFields||{})[k]||'');
+  // Customizable columns (saved per user in localStorage).
+  const LEAD_COLS=[
+    {id:'name',label:'Name',always:true,th:'Name',td:c=>`<strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}`},
+    {id:'type',label:'Type',td:c=>`<span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span>`},
+    {id:'contact',label:'Contact',td:c=>`${esc(c.email||'—')}<div class="muted">${esc(c.phone||'')}</div>`},
+    {id:'occupation',label:'Occupation',td:c=>`${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}`},
+    {id:'age',label:'Age',td:c=>esc(rf(c,'age')||'—')},
+    {id:'education',label:'Education',td:c=>esc(rf(c,'education')||'—')},
+    {id:'experience',label:'Experience',td:c=>esc(rf(c,'experience')||'—')},
+    {id:'maritalStatus',label:'Marital',td:c=>esc(rf(c,'maritalStatus')||'—')},
+    {id:'nationality',label:'Nationality',td:c=>esc(c.country||rf(c,'nationality')||'—')},
+    {id:'points',label:'Points',td:c=>c.points||'—'},
+    {id:'stage',label:'Stage',td:c=>stageBadge(stageLabel(c.stage))},
+    {id:'score',label:'Score',td:c=>`${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span>`},
+    {id:'status',label:'Lead Status',td:c=>esc(c.eligibilityStatus||'—')},
+    {id:'source',label:'Source',td:c=>`<span class="muted">${esc(c.source||'—')}</span>`},
+    {id:'updated',label:'Updated',td:c=>`<span class="muted">${esc(c.latestDate||'')}</span>`},
+  ];
+  const DEFAULT_COLS=['name','type','contact','occupation','points','stage','score','source','updated'];
+  function visibleCols(){ try{ const s=JSON.parse(localStorage.getItem('imig_crm_cols')||'null'); if(Array.isArray(s)&&s.length) return s; }catch(e){} return DEFAULT_COLS.slice(); }
+  function setCol(id,on){ let v=visibleCols(); if(on){ if(!v.includes(id)) v.push(id); } else { v=v.filter(x=>x!==id); } if(!v.includes('name'))v.unshift('name'); localStorage.setItem('imig_crm_cols',JSON.stringify(v)); renderLeads(); setTimeout(()=>{const m=$('colMenu');if(m)m.style.display='block';},0); }
+  function toggleColMenu(){ const m=$('colMenu'); if(m) m.style.display=(m.style.display==='block'?'none':'block'); }
+  function leadRows(){
+    const q=leadFilter.q.toLowerCase();
+    return CONTACTS.filter(c=>{
+      if(q && !(`${c.name} ${c.email} ${c.phone} ${c.occupation} ${rf(c,'nationality')} ${c.eligibilityStatus}`.toLowerCase().includes(q))) return false;
       if(leadFilter.stage && c.stage!==leadFilter.stage) return false;
       if(leadFilter.cat && c.cat!==leadFilter.cat) return false;
       if(leadFilter.type && c.sourceType!==leadFilter.type) return false;
       if(leadFilter.sort==='new'){ const wk=Date.now()-7*864e5; if(new Date(c.latestDate).getTime()<wk) return false; }
       return true;
     });
+  }
+  function renderLeads(){
+    if(SPLIT_VIEW) return renderSplitLeads();
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
+    const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
+    const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
+    const cols=LEAD_COLS.filter(col=>visibleCols().includes(col.id));
+    const colMenu=LEAD_COLS.map(col=>`<label><input type="checkbox" ${visibleCols().includes(col.id)?'checked':''} ${col.always?'disabled':''} onchange="setCol('${col.id}',this.checked)"> ${esc(col.label)}</label>`).join('');
+    let rows=leadRows();
+    const bulkBar=BULK_MODE&&SELECTED.size?`<div class="bulk-bar"><span class="bulk-count">${SELECTED.size} selected</span>
+      <select id="blkStage" style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px"><option value="">Change stage…</option>${STAGES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
+      <button class="btn btn-sm btn-primary" onclick="bulkChangeStage()">Apply</button>
+      <button class="btn btn-sm" onclick="bulkExport()" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">Export</button>
+      <button class="btn btn-sm" onclick="bulkDelete()" style="background:#e11d2a;border-color:#e11d2a;color:#fff">Delete</button>
+      <button class="btn btn-sm" onclick="BULK_MODE=false;SELECTED.clear();renderLeads()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff;margin-left:auto">✕ Cancel</button>
+    </div>`:'';
     $('content').innerHTML=`
       <div class="toolbar">
         <input type="search" id="lq" placeholder="Search name, email, phone, occupation…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderLeads();document.getElementById('lq').focus()">
@@ -340,21 +571,396 @@
         <select onchange="leadFilter.stage=this.value;renderLeads()">${stageOpts}</select>
         <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts}</select>
         <span class="muted">${rows.length} lead(s)</span>
-        <button class="btn btn-sm" style="margin-left:auto" onclick="exportCsv()">⬇ Export CSV</button>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm ${BULK_MODE?'btn-primary':''}" onclick="BULK_MODE=!BULK_MODE;SELECTED.clear();renderLeads()" title="Select leads for bulk actions">☑ Select</button>
+          <button class="btn btn-sm ${SPLIT_VIEW?'btn-primary':''}" onclick="toggleSplitView()" title="Split view: list + detail side-by-side">⊟ Split</button>
+          <div class="menu"><button class="btn btn-sm" onclick="toggleColMenu()">⚙ Columns</button><div class="menu-pop" id="colMenu" style="display:none">${colMenu}</div></div>
+          <button class="btn btn-sm" onclick="openBulkImport()">⬆ Import</button>
+          <button class="btn btn-sm" onclick="exportCsv()">⬇ Export</button>
+          <button class="btn btn-sm btn-primary" onclick="openCreateLead()">+ Create Lead</button>
+        </div>
       </div>
+      ${bulkBar}
       <div class="card" style="padding:0;overflow:auto">
-        <table><thead><tr><th>Name</th><th>Type</th><th>Contact</th><th>Occupation</th><th>Points</th><th>Stage</th><th>Score</th><th>Source</th><th>Updated</th></tr></thead>
-        <tbody>${rows.map((c)=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')">
-          <td><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}</td>
-          <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
-          <td>${esc(c.email||'—')}<div class="muted">${esc(c.phone)}</div></td>
-          <td>${esc(c.occupation||'—')}${c.anzsco?` <span class="muted">${esc(c.anzsco)}</span>`:''}</td>
-          <td>${c.points||'—'}</td>
-          <td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
-          <td>${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span></td>
-          <td class="muted">${esc(c.source||'—')}</td>
-          <td class="muted">${esc(c.latestDate)}</td></tr>`).join('')||'<tr><td colspan="9" class="muted" style="padding:20px">No leads match.</td></tr>'}</tbody></table>
+        <table><thead><tr>
+          ${BULK_MODE?`<th style="width:36px"><input type="checkbox" title="Select all" onchange="bulkAll(this.checked)"></th>`:''}
+          ${cols.map(col=>`<th>${esc(col.th||col.label)}</th>`).join('')}
+        </tr></thead>
+        <tbody>${rows.map((c)=>`<tr class="clk" onclick="${BULK_MODE?`bulkToggle('${esc(c.ckey)}',this)`:`openProfile('${esc(c.ckey)}')`}">
+          ${BULK_MODE?`<td onclick="event.stopPropagation()"><input type="checkbox" ${SELECTED.has(c.ckey)?'checked':''} onchange="bulkToggle('${esc(c.ckey)}',this.closest('tr'))"></td>`:''}
+          ${cols.map(col=>`<td>${col.td(c)}</td>`).join('')}
+        </tr>`).join('')||`<tr><td colspan="${cols.length+(BULK_MODE?1:0)}" class="muted" style="padding:20px">No leads match.</td></tr>`}</tbody></table>
       </div>`;
+    if(BULK_MODE){ const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); } }
+    else { const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); } }
+  }
+
+  /* ── Split-panel view ── */
+  function toggleSplitView(){
+    SPLIT_VIEW=!SPLIT_VIEW; PANEL_KEY=null; BULK_MODE=false; SELECTED.clear();
+    try{ localStorage.setItem('imig_split',SPLIT_VIEW?'1':'0'); }catch(e){}
+    renderLeads();
+  }
+
+  function renderSplitLeads(){
+    const rows=leadRows();
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
+    const listItems=rows.map(c=>{
+      const initials=(c.name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+      const sc=STAGE_COLORS[c.stage]||{bg:'#e2e8f0',color:'#475569'};
+      return `<div class="sp-row ${PANEL_KEY===c.ckey?'active':''}" onclick="openPanel('${esc(c.ckey)}')">
+        <div class="sp-avatar" style="background:${sc.bg};color:${sc.color}">${initials}</div>
+        <div class="sp-row-info">
+          <div class="sp-row-name">${esc(c.name)} ${c.hot?'🔥':''}</div>
+          <div class="sp-row-sub">${esc(c.occupation||c.email||'—')} · ${esc(c.stage)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    const detail=PANEL_KEY?renderPanelHtml(findByKey(PANEL_KEY)):`<div class="sp-empty"><span style="font-size:32px">👆</span><span>Select a lead to view details</span><span class="muted" style="font-size:12px">${rows.length} leads in this view</span></div>`;
+    $('content').innerHTML=`
+      <div class="toolbar" style="margin-bottom:8px">
+        <input type="search" id="lq" placeholder="Search…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderSplitLeads();document.getElementById('lq').focus()">
+        <select onchange="leadFilter.stage=this.value;renderSplitLeads()">${stageOpts}</select>
+        <span class="muted">${rows.length}</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm btn-primary" onclick="toggleSplitView()" title="Switch to table view">⊞ Table</button>
+          <button class="btn btn-sm" onclick="openBulkImport()">⬆ Import</button>
+          <button class="btn btn-sm btn-primary" onclick="openCreateLead()">+ Lead</button>
+        </div>
+      </div>
+      <div class="sp-wrap">
+        <div class="sp-list">
+          <div class="sp-list-head" style="font-size:12px;color:var(--muted);font-weight:600">${rows.length} LEADS</div>
+          ${listItems||'<div class="sp-empty" style="padding:24px;text-align:center"><span class="muted">No leads match</span></div>'}
+        </div>
+        <div class="sp-detail" id="spDetail">${detail}</div>
+      </div>`;
+    const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); }
+  }
+
+  function openPanel(ckey){
+    PANEL_KEY=ckey; PANEL_TAB='overview';
+    if(SPLIT_VIEW){
+      // Update active row
+      document.querySelectorAll('.sp-row').forEach(r=>r.classList.remove('active'));
+      const rows=document.querySelectorAll('.sp-row');
+      rows.forEach(r=>{ if(r.getAttribute('onclick')&&r.getAttribute('onclick').includes(CSS.escape(ckey))) r.classList.add('active'); });
+      const d=$('spDetail'); if(d){ d.innerHTML=renderPanelHtml(findByKey(ckey)); bindPanelEvents(); }
+    } else {
+      openProfile(ckey);
+    }
+  }
+
+  function setPanelTab(t){ PANEL_TAB=t; const d=$('spDetail'); if(d&&PANEL_KEY){ d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); bindPanelEvents(); } }
+
+  function renderPanelHtml(c){
+    if(!c) return '<div class="sp-empty"><span class="muted">Lead not found</span></div>';
+    const myTasks=TASKS.filter(t=>t.leadEmail&&c.email&&t.leadEmail.toLowerCase()===c.email);
+    const stSel=`<select style="font-size:12px;width:auto;padding:3px 6px" onchange="setPanelStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(s)}</option>`).join('')}</select>`;
+    const tabs=[['overview','Overview'],['notes','Notes'+(c.notes.length?` (${c.notes.length})`:'')],['activity','Activity'],['tasks','Tasks'+(myTasks.length?` (${myTasks.length})`:'')],['emails','Emails']];
+    let body='';
+    if(PANEL_TAB==='overview'){
+      const kv=(k,v)=>v?`<div class="kv"><span class="k">${k}</span><span>${esc(v)}</span></div>`:'';
+      body=`<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong style="font-size:13px">Contact info</strong>
+          <button class="btn btn-sm" onclick="go('leads');setTimeout(()=>openProfile('${esc(c.ckey)}'),50)" style="font-size:11px">Open full profile ↗</button>
+        </div>
+        ${kv('Email',c.email)}${kv('Phone',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}${kv('Source',c.source)}${kv('First seen',c.firstDate)}
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <strong style="font-size:13px;display:block;margin-bottom:8px">Lead details</strong>
+        ${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points',c.points||'')}${kv('Visas',c.visas)}${kv('Status',c.eligibilityStatus)}
+        <div style="margin-top:8px"><span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span> <span class="muted" style="font-size:12px">Score: ${c.score}</span></div>
+      </div>`;
+    } else if(PANEL_TAB==='notes'){
+      const notes=(c.notes||[]).slice().reverse();
+      body=`<div class="card">
+        <textarea id="pnNote" rows="3" placeholder="Add a note…" style="margin-bottom:6px"></textarea>
+        <button class="btn btn-sm btn-primary" onclick="panelAddNote('${esc(c.ckey)}')">Save note</button>
+        <div style="margin-top:12px">${notes.map(n=>`<div class="note">${esc(n.text)}<div class="t"><span>${esc(fmtDT(n.at))} · ${esc(n.author||'Consultant')}</span></div></div>`).join('')||'<p class="muted" style="font-size:13px">No notes yet.</p>'}</div>
+      </div>`;
+    } else if(PANEL_TAB==='activity'){
+      const acts=buildActivity(c);
+      const ICON={note:'📝',call:'📞',email:'📧',stage:'🔁',appt:'📅',task:'✅',report:'📄',doc:'📎'};
+      body=`<div class="card"><div class="tl">${acts.map(x=>`<div class="tl-item"><div style="font-weight:600">${ICON[x.type]||'•'} ${esc(x.title)}</div>${x.detail?`<div style="font-size:12px">${esc(x.detail)}</div>`:''}<div class="t">${esc(fmtDT(x.at))}${x.by?' · '+esc(x.by):''}</div></div>`).join('')||'<p class="muted">No activity yet.</p>'}</div></div>`;
+    } else if(PANEL_TAB==='tasks'){
+      body=`<div class="card">
+        <div class="toolbar" style="margin-bottom:8px">
+          <input id="ptTitleP" placeholder="Task title…" style="flex:1;min-width:100px">
+          <input id="ptDueP" type="date" style="width:130px">
+          <button class="btn btn-sm btn-primary" onclick="panelAddTask('${esc(c.ckey)}','${esc(c.email)}')">+ Task</button>
+        </div>
+        ${myTasks.length?`<table><thead><tr><th>Task</th><th>Due</th><th>Status</th></tr></thead><tbody>${myTasks.map(t=>`<tr><td>${esc(t.title)}</td><td class="muted">${esc(t.due||'—')}</td><td><select style="font-size:12px;width:auto" onchange="updTaskStatus('${t.id}',this.value)"><option ${t.status==='Open'?'selected':''}>Open</option><option ${t.status==='In Progress'?'selected':''}>In Progress</option><option ${t.status==='Done'?'selected':''}>Done</option></select></td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="font-size:13px">No tasks. Add one above.</p>'}
+      </div>`;
+    } else if(PANEL_TAB==='emails'){
+      body=`<div id="panelEmailArea"><p class="muted" style="font-size:13px">Loading…</p></div>`;
+      setTimeout(()=>panelLoadEmails(c),50);
+    }
+    return `
+      <div class="sp-panel-head">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:16px;font-weight:800">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''} <span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></div>
+            <div class="muted" style="font-size:12px;margin-top:2px">${esc(c.occupation||'—')} ${c.points?'· '+c.points+' pts':''}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+            ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}" title="Email">📧</a>`:''}
+            <button class="btn btn-sm" onclick="logCall('${esc(c.ckey)}')" title="Log call">📞</button>
+            <button class="btn btn-sm" onclick="scheduleAppt('${esc(c.ckey)}')" title="Schedule">📅</button>
+            <button class="btn btn-sm" onclick="aiAssist('${esc(c.ckey)}')" title="AI assist">✨</button>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
+          <span class="muted" style="font-size:12px">Stage:</span>${stSel}
+        </div>
+      </div>
+      <div class="sp-panel-tabs">${tabs.map(([id,lbl])=>`<div class="sp-panel-tab ${PANEL_TAB===id?'active':''}" onclick="setPanelTab('${id}')">${lbl}</div>`).join('')}</div>
+      <div class="sp-panel-body">${body}</div>`;
+  }
+
+  function bindPanelEvents(){
+    // Re-attach any deferred renders
+    const pea=$('panelEmailArea'); if(pea&&PANEL_KEY){ const c=findByKey(PANEL_KEY); if(c) panelLoadEmails(c); }
+  }
+
+  function openComposeForKey(ckey){
+    // Temporarily leave split view to open the full email compose panel
+    SPLIT_VIEW=false; PROFILE_KEY=ckey; PROFILE_TAB='emails'; VIEW='profile';
+    document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
+    render(); window.scrollTo(0,0);
+  }
+
+  async function panelLoadEmails(c){
+    const el=$('panelEmailArea'); if(!el) return;
+    if(!c.email){ el.innerHTML='<p class="muted" style="font-size:13px">No email on file.</p>'; return; }
+    const r=await api('/crm-email.php',{action:'by',key:c.ckey});
+    const emails=(r.emails||[]);
+    el.innerHTML=`<div class="card">
+      ${c.email?`<div style="margin-bottom:10px"><button class="btn btn-sm btn-primary" onclick="openComposeForKey('${esc(c.ckey)}')">+ Compose email</button></div>`:''}
+      ${emails.length?`<table><thead><tr><th>Subject</th><th>Status</th><th>Sent</th></tr></thead><tbody>${emails.slice(0,20).map(e=>`<tr><td>${esc(e.subject)}</td><td>${esc(e.status||'—')}</td><td class="muted">${esc(fmtDT(e.sentAt||e.createdAt))}</td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="font-size:13px">No emails sent yet.</p>'}
+    </div>`;
+  }
+
+  async function panelAddNote(ckey){
+    const el=$('pnNote'); if(!el) return;
+    const text=el.value.trim(); if(!text) return;
+    const c=findByKey(ckey);
+    const r=await api('/crm-meta.php',{action:'note-add',key:ckey,email:c?c.email:'',text});
+    if(r&&r.ok){ META[ckey]=r.meta||META[ckey]; buildContacts(); const nc=findByKey(ckey); if(nc){nc.notes=r.meta.notes||nc.notes;} PANEL_TAB='notes'; const d=$('spDetail'); if(d&&PANEL_KEY) d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); }
+    else alert(r.error||'Could not save note');
+  }
+
+  async function panelAddTask(ckey, email){
+    const t=$('ptTitleP'); const d=$('ptDueP');
+    const title=t?t.value.trim():''; if(!title) return;
+    const r=await api('/crm-tasks.php',{action:'add',title,type:'Follow-up',due:d?d.value:'',priority:'Normal',leadEmail:email,ckey,assignedTo:CRM_USER()});
+    if(r&&r.ok){ TASKS=r.tasks; PANEL_TAB='tasks'; const dEl=$('spDetail'); if(dEl&&PANEL_KEY) dEl.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); }
+    else alert(r.error||'Could not add task');
+  }
+
+  async function setPanelStage(ckey, stage){
+    const r=await api('/crm-meta.php',{action:'stage',key:ckey,stage});
+    if(r&&r.ok){ META[ckey]=r.meta; buildContacts(); const d=$('spDetail'); if(d&&PANEL_KEY){ d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); } renderSplitListItems(); }
+    else alert('Could not update stage');
+  }
+
+  function renderSplitListItems(){
+    const list=document.querySelector('.sp-list');
+    if(!list) return;
+    const rows=leadRows();
+    const items=rows.map(c=>{
+      const initials=(c.name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+      const sc=STAGE_COLORS[c.stage]||{bg:'#e2e8f0',color:'#475569'};
+      return `<div class="sp-row ${PANEL_KEY===c.ckey?'active':''}" onclick="openPanel('${esc(c.ckey)}')">
+        <div class="sp-avatar" style="background:${sc.bg};color:${sc.color}">${initials}</div>
+        <div class="sp-row-info">
+          <div class="sp-row-name">${esc(c.name)} ${c.hot?'🔥':''}</div>
+          <div class="sp-row-sub">${esc(c.occupation||c.email||'—')} · ${esc(c.stage)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    list.innerHTML=`<div class="sp-list-head" style="font-size:12px;color:var(--muted);font-weight:600">${rows.length} LEADS</div>${items}`;
+  }
+
+  /* ── Bulk select helpers ── */
+  function bulkToggle(ckey, row){
+    if(SELECTED.has(ckey)){ SELECTED.delete(ckey); if(row) row.classList.remove('checked'); }
+    else { SELECTED.add(ckey); if(row) row.classList.add('checked'); }
+    const bar=document.querySelector('.bulk-bar');
+    if(bar){ const cnt=bar.querySelector('.bulk-count'); if(cnt) cnt.textContent=SELECTED.size+' selected'; }
+    if(!SELECTED.size) renderLeads();
+  }
+  function bulkAll(on){
+    SELECTED.clear();
+    if(on) leadRows().forEach(c=>SELECTED.add(c.ckey));
+    renderLeads();
+  }
+  async function bulkChangeStage(){
+    const s=$('blkStage'); if(!s||!s.value){ alert('Choose a stage first.'); return; }
+    const stage=s.value;
+    if(!confirm(`Change stage to "${stage}" for ${SELECTED.size} lead(s)?`)) return;
+    for(const ckey of SELECTED){
+      await api('/crm-meta.php',{action:'stage',key:ckey,stage});
+    }
+    await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
+  }
+  function bulkExport(){
+    const leads=leadRows().filter(c=>SELECTED.has(c.ckey));
+    exportCsvRows(leads);
+    BULK_MODE=false; SELECTED.clear(); renderLeads();
+  }
+  async function bulkDelete(){
+    if(!confirm(`Permanently delete ${SELECTED.size} lead(s)? This cannot be undone.`)) return;
+    for(const ckey of SELECTED){
+      await api('/crm-meta.php',{action:'delete',key:ckey});
+    }
+    await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
+  }
+
+  /* ---------- modal helpers ---------- */
+  function openModal(html,wide){ $('modalRoot').innerHTML=`<div class="modal-ov" onclick="if(event.target===this)closeModal()"><div class="modal-box ${wide?'wide':''}">${html}</div></div>`; }
+  function closeModal(){ $('modalRoot').innerHTML=''; }
+
+  /* ---------- create lead ---------- */
+  function openCreateLead(){
+    const stageOpts=STAGES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Create Lead</h3><p class="muted" style="font-size:13px;margin:0">Add a lead manually. Saved straight into the CRM.</p>
+      <div class="fgrid">
+        <div><label class="fl">Full name *</label><input id="cl_fullName" placeholder="Jane Doe"></div>
+        <div><label class="fl">Email</label><input id="cl_email" type="email" placeholder="jane@email.com"></div>
+        <div><label class="fl">Phone</label><input id="cl_phone" placeholder="+60…"></div>
+        <div><label class="fl">WhatsApp</label><input id="cl_whatsapp" placeholder="+60…"></div>
+        <div><label class="fl">Occupation</label><input id="cl_occupation"></div>
+        <div><label class="fl">Age</label><input id="cl_age"></div>
+        <div><label class="fl">Nationality</label><input id="cl_nationality"></div>
+        <div><label class="fl">Education</label><input id="cl_education"></div>
+        <div><label class="fl">Stage</label><select id="cl_stage">${stageOpts}</select></div>
+        <div><label class="fl">Lead source</label><input id="cl_leadSource" value="Manual"></div>
+        <div class="full"><label class="fl">Note</label><textarea id="cl_note" rows="2" placeholder="Optional first note…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="createLeadSave()">Create lead</button><span id="cl_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function createLeadSave(){
+    const v=(id)=>($('cl_'+id)?$('cl_'+id).value.trim():'');
+    const name=v('fullName'); const msg=$('cl_msg');
+    if(!name){ if(msg){msg.textContent='Name is required';msg.className='err';} return; }
+    const fields={fullName:name,email:v('email'),phone:v('phone'),whatsapp:v('whatsapp'),occupation:v('occupation'),age:v('age'),nationality:v('nationality'),education:v('education'),leadSource:v('leadSource')||'Manual'};
+    Object.keys(fields).forEach(k=>{ if(!fields[k]) delete fields[k]; });
+    const rec={id:'manual-'+Date.now(),timestamp:new Date().toISOString(),formName:'Manual entry',fields,context:{source:'Manual'},_stage:v('stage')||'New Lead'};
+    const note=v('note'); if(note) rec._activity=[{event:'Note',detail:note,author:CRM_USER(),at:new Date().toISOString()}];
+    if(msg){msg.textContent='Saving…';msg.className='muted';}
+    const r=await api('/system-backup.php',{action:'import-leads',leads:[rec],reason:'manual-create'});
+    if(r&&r.ok){ closeModal(); await loadAll(); const c=CONTACTS.find(x=>(x.email||'')===(fields.email||'').toLowerCase())||CONTACTS.find(x=>x.name===name); if(c) openProfile(c.ckey); }
+    else if(msg){ msg.textContent=(r&&r.error)||'Could not create'; msg.className='err'; }
+  }
+
+  /* ---------- bulk import (CSV / NDJSON / JSON) ---------- */
+  function openBulkImport(){
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Bulk Import Leads</h3>
+      <p class="muted" style="font-size:13px;line-height:1.6">Upload a <strong>CSV</strong> (with a header row) or a CRM <strong>.ndjson/.json</strong> export. Common columns are auto-mapped: Name / First+Last, Email, Phone, Occupation, Age, Education, Nationality, Marital Status, Lead Status, Lifecycle Stage. Existing leads (same email) are skipped; a safety snapshot is taken first.</p>
+      <input type="file" id="bulkFile" accept=".csv,.ndjson,.json,text/csv,application/json" style="margin-top:8px">
+      <div id="bulkMsg" class="muted" style="font-size:13px;margin-top:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="bulkImportRun()">Import file</button></div>`);
+  }
+  function csvParse(text){
+    const rows=[]; let i=0,f='',row=[],q=false;
+    while(i<text.length){ const ch=text[i];
+      if(q){ if(ch==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=ch; }
+      else { if(ch==='"')q=true; else if(ch===','){row.push(f);f='';} else if(ch==='\r'){} else if(ch==='\n'){row.push(f);rows.push(row);row=[];f='';} else f+=ch; }
+      i++; }
+    if(f!==''||row.length){ row.push(f); rows.push(row); }
+    return rows.filter(r=>r.some(c=>(c||'').trim()!==''));
+  }
+  const CSV_MAP={fullname:'fullName',name:'fullName','full name':'fullName',email:'email','email address':'email',phone:'phone','phone number':'phone','mobile phone number':'phone',whatsapp:'whatsapp','whatsapp phone number':'whatsapp',occupation:'occupation','job title':'occupation',age:'age',education:'education',qualification:'education',nationality:'nationality',country:'country','country/region':'country','marital status':'maritalStatus',experience:'experience','work experience':'experience','total work experience':'experience','lead status':'eligibilityStatus',status:'eligibilityStatus','lifecycle stage':'_lifecycle',message:'message','linkedin url':'linkedinUrl'};
+  const LIFE_STAGE={'new':'New Lead','prospect lead':'Pending Call','sales qualified lead':'Under Assessment','in consideration':'Under Assessment','opportunity':'Pending Follow-up','signed up':'Signed Up','not qualified':'Does Not Qualify','not intrested':'Lost Lead','not interested':'Lost Lead','lost':'Lost Lead','customer':'Signed Up'};
+  async function bulkImportRun(){
+    const fileEl=$('bulkFile'); const msg=$('bulkMsg');
+    if(!fileEl||!fileEl.files[0]){ if(msg){msg.textContent='Choose a file first';msg.className='err';} return; }
+    const file=fileEl.files[0]; let text=''; try{ text=await file.text(); }catch(e){ msg.textContent='Could not read file'; return; }
+    let leads=[];
+    if(/\.csv$/i.test(file.name) || (text.indexOf('{')!==0 && text.indexOf('[')!==0)){
+      const rows=csvParse(text); if(rows.length<2){ msg.textContent='CSV has no data rows'; msg.className='err'; return; }
+      const hdr=rows[0].map(h=>(h||'').trim().toLowerCase().replace(/^"|"$/g,''));
+      for(let r=1;r<rows.length;r++){
+        const fields={}; let fn='',ln='',life='';
+        hdr.forEach((h,ci)=>{ const val=(rows[r][ci]||'').trim(); if(!val) return;
+          if(h==='first name'){fn=val;return;} if(h==='last name'){ln=val;return;}
+          const key=CSV_MAP[h]; if(!key) return;
+          if(key==='_lifecycle'){ life=val; return; } fields[key]=val; });
+        if(fn||ln) fields.fullName=((fn+' '+ln).trim())||fields.fullName;
+        if(!fields.fullName && !fields.email) continue;
+        const rec={id:'csv-'+Date.now()+'-'+r,timestamp:new Date().toISOString(),formName:'CSV import',fields,context:{source:'CSV import'}};
+        const st=LIFE_STAGE[(life||'').toLowerCase()]; if(st) rec._stage=st;
+        leads.push(rec);
+      }
+    } else {
+      const t=text.trim(); try{ leads = t[0]==='[' ? JSON.parse(t) : t.split(/\r?\n/).filter(Boolean).map(l=>JSON.parse(l)); }catch(e){ msg.textContent='Invalid JSON/NDJSON'; msg.className='err'; return; }
+    }
+    if(!leads.length){ msg.textContent='No leads found in file'; msg.className='err'; return; }
+    if(msg){msg.textContent='Importing '+leads.length+' leads…';msg.className='muted';}
+    let added=0,skipped=0,ok=true;
+    for(let i=0;i<leads.length;i+=300){ const r=await api('/system-backup.php',{action:'import-leads',leads:leads.slice(i,i+300),reason:'bulk:'+file.name}); if(r&&r.ok){added+=r.added||0;skipped+=r.skipped||0;} else {ok=false;break;} }
+    if(msg){ msg.textContent=ok?('✓ Imported '+added+' leads ('+skipped+' duplicates skipped)'):'Import failed'; msg.className=ok?'ok':'err'; }
+    if(ok){ await loadAll(); setTimeout(()=>{ if(VIEW==='leads')renderLeads(); },300); }
+  }
+
+  /* ---------- calendar (#9) ---------- */
+  let calRef=new Date();
+  function calMove(n){ calRef=new Date(calRef.getFullYear(),calRef.getMonth()+n,1); renderCalendar(); }
+  function findContactForTask(t){ return CONTACTS.find(c=>c.ckey===t.ckey)||CONTACTS.find(c=>c.email&&c.email===(t.leadEmail||'').toLowerCase())||null; }
+  function renderCalendar(){
+    const ref=new Date(calRef.getFullYear(),calRef.getMonth(),1);
+    const y=ref.getFullYear(), m=ref.getMonth();
+    const monthName=ref.toLocaleString([],{month:'long',year:'numeric'});
+    const first=new Date(y,m,1).getDay();
+    const days=new Date(y,m+1,0).getDate();
+    const prevDays=new Date(y,m,0).getDate();
+    const todayStr=new Date().toISOString().slice(0,10);
+    const evs={}; (TASKS||[]).forEach(t=>{ if(!t.due)return; const d=(t.due||'').slice(0,10); (evs[d]=evs[d]||[]).push(t); });
+    const dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+    let cells='';
+    for(let i=first-1;i>=0;i--){ cells+=`<div class="cal-cell dim"><div class="d">${prevDays-i}</div></div>`; }
+    for(let d=1;d<=days;d++){
+      const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const day=(evs[ds]||[]); const list=day.slice(0,4).map(t=>{ const c=findContactForTask(t); const done=['Done','Completed','Cancelled'].includes(t.status||''); return `<div class="cal-ev" style="${done?'opacity:.5;text-decoration:line-through':''}" title="${esc(t.title||'')}" onclick="event.stopPropagation();${c?`openProfile('${esc(c.ckey)}')`:''}">${esc((t.type||'Task')+': '+(t.title||''))}</div>`; }).join('');
+      const more=day.length>4?`<div class="muted" style="font-size:10px">+${day.length-4} more</div>`:'';
+      cells+=`<div class="cal-cell ${ds===todayStr?'today':''}" ondblclick="scheduleAppt('','${ds}')"><div class="d">${d}</div>${list}${more}</div>`;
+    }
+    $('content').innerHTML=`
+      <div class="toolbar">
+        <button class="btn btn-sm" onclick="calMove(-1)">←</button>
+        <strong style="min-width:170px;text-align:center;display:inline-block">${esc(monthName)}</strong>
+        <button class="btn btn-sm" onclick="calMove(1)">→</button>
+        <button class="btn btn-sm" onclick="calRef=new Date();renderCalendar()">Today</button>
+        <span class="muted">${(TASKS||[]).filter(t=>t.due).length} scheduled item(s)</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="scheduleAppt()">+ Schedule Appointment</button>
+      </div>
+      <div class="cal-grid" style="margin-bottom:6px">${dow}</div>
+      <div class="cal-grid">${cells}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Double-click any day to schedule on that date · click an event to open the lead · events are your Tasks &amp; Follow-Ups.</p>`;
+  }
+  function scheduleAppt(ckey,date){
+    const leadOpts=['<option value="">— Select lead (optional) —</option>',...CONTACTS.map(c=>`<option value="${esc(c.ckey)}" ${c.ckey===ckey?'selected':''}>${esc(c.name)}${c.email?' ('+esc(c.email)+')':''}</option>`)].join('');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Schedule Appointment</h3>
+      <div class="fgrid">
+        <div class="full"><label class="fl">Lead</label><select id="ap_lead">${leadOpts}</select></div>
+        <div><label class="fl">Date *</label><input id="ap_date" type="date" value="${esc(date||'')}"></div>
+        <div><label class="fl">Time</label><input id="ap_time" type="time"></div>
+        <div class="full"><label class="fl">Title</label><input id="ap_title" placeholder="Consultation call"></div>
+        <div><label class="fl">Type</label><select id="ap_type"><option>Appointment</option><option>Consultation</option><option>Call</option><option>Follow-up</option></select></div>
+        <div><label class="fl">Priority</label><select id="ap_prio"><option>Normal</option><option>High</option><option>Low</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="scheduleApptSave()">Schedule</button><span id="ap_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function scheduleApptSave(){
+    const ckey=$('ap_lead').value, date=$('ap_date').value, time=$('ap_time').value;
+    const title=($('ap_title').value.trim())||($('ap_type').value), type=$('ap_type').value, prio=$('ap_prio').value, msg=$('ap_msg');
+    if(!date){ if(msg){msg.textContent='Pick a date';msg.className='err';} return; }
+    const c=ckey?findByKey(ckey):null;
+    const r=await api('/crm-tasks.php',{action:'add',title:(time?(title+' @ '+time):title),type,due:date,priority:prio,leadEmail:c?c.email:'',ckey:ckey||'',assignedTo:CRM_USER()});
+    if(r&&r.ok){ TASKS=r.tasks; closeModal(); if(VIEW==='calendar')renderCalendar(); else if(VIEW==='profile')renderProfile(); else go('calendar'); }
+    else if(msg){ msg.textContent=(r&&r.error)||'Could not schedule'; msg.className='err'; }
   }
 
   /* ---------- parsing helpers ---------- */
@@ -381,7 +987,12 @@
 
   /* ---------- full-page profile ---------- */
   function findByKey(k){ return CONTACTS.find(c=>c.ckey===k) || CONTACTS.find(c=>c.email===k); }
-  function openProfile(k){ PROFILE_KEY=k; PROFILE_TAB='contact'; VIEW='profile'; document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active')); render(); window.scrollTo(0,0); }
+  function openProfile(k){
+    if(SPLIT_VIEW){ openPanel(k); return; }
+    PROFILE_KEY=k; PROFILE_TAB='contact'; VIEW='profile';
+    document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
+    render(); window.scrollTo(0,0);
+  }
   function setTab(t){ PROFILE_TAB=t; renderProfile(); }
 
   function renderProfile(){
@@ -393,9 +1004,10 @@
       ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
       ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
     ];
-    const stageSel=`<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}</option>`).join('')}</select>`;
+    const stageSel=(()=>{const allOpts=[...STAGES,...(STAGES.includes(c.stage)?[]:([c.stage]))];return `<select style="width:auto;display:inline-block" onchange="setStage('${esc(c.ckey)}',this.value)">${allOpts.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}${!STAGES.includes(s)?' (legacy)':''}</option>`).join('')}</select>`;})();
+    const switcher=`<select style="width:auto;max-width:280px" onchange="openProfile(this.value)" title="Jump to another lead">${leadRows().map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' · '+esc(x.email):''}</option>`).join('')}</select>`;
     $('content').innerHTML=`
-      <button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm" onclick="go('leads')">← Back to leads</button>${switcher}<span class="muted" style="font-size:12px">${leadRows().length} lead(s)</span></div>
       <div class="pf-head" style="margin-top:12px">
         <div>
           <div class="pf-name">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span> ${c.hot?'<span class="badge hot">HOT</span>':''}</div>
@@ -404,14 +1016,91 @@
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <span class="muted" style="font-size:12px">Stage:</span> ${stageSel}
           ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}">📧 Email</a>`:''}
-          ${c.phone?`<a class="btn btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>`:''}
+          <button class="btn btn-sm" onclick="logCall('${esc(c.ckey)}')">📞 Log Call</button>
           ${c.whatsapp?`<a class="btn btn-sm" target="_blank" href="https://wa.me/${esc((c.whatsapp||'').replace(/[^0-9]/g,''))}">💬 WhatsApp</a>`:''}
-          <button class="btn btn-sm" onclick="scheduleConsult('${esc(c.ckey)}')">📅 Consultation</button>
+          <button class="btn btn-sm" onclick="scheduleAppt('${esc(c.ckey)}')">📅 Schedule</button>
+          <button class="btn btn-sm" onclick="aiAssist('${esc(c.ckey)}')">✨ AI</button>
         </div>
       </div>
-      <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
-      <div id="tabBody"></div>`;
+      <div class="lead-split">
+        <div>
+          <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
+          <div id="tabBody"></div>
+        </div>
+        <aside class="act-panel">
+          <h3>Activity <button class="btn btn-sm" style="padding:2px 8px" onclick="renderActPanel(findByKey('${esc(c.ckey)}'))" title="Refresh">↻</button></h3>
+          <div class="act-filter" id="actFilter"></div>
+          <div class="act-body" id="actBody"></div>
+        </aside>
+      </div>`;
     renderProfileTab(c, myTasks);
+    renderActPanel(c);
+  }
+
+  /* ---------- right-side activity panel (#7) ---------- */
+  let ACT_FILTER='all';
+  function buildActivity(c){
+    const items=[];
+    (c.activity||[]).forEach(a=>{ const ev=(a.event||'').toLowerCase(); const type=/call/.test(ev)?'call':/email/.test(ev)?'email':/stage/.test(ev)?'stage':'note'; items.push({type,at:a.at||'',title:a.event||'Note',detail:a.detail||'',by:a.author||''}); });
+    (c.notes||[]).forEach(n=>{ items.push({type:'note',at:n.at||n.timestamp||'',title:'Note',detail:(typeof n==='string')?n:(n.text||n.detail||''),by:n.author||''}); });
+    (TASKS||[]).filter(t=>(t.ckey===c.ckey)||(c.email&&(t.leadEmail||'').toLowerCase()===c.email)).forEach(t=>{ const isAppt=/appoint|consult|call/i.test(t.type||''); items.push({type:isAppt?'appt':'task',at:t.due||t.createdAt||'',title:(t.type||'Task')+': '+(t.title||''),detail:(t.status||'')+(t.assignedTo?(' · '+t.assignedTo):''),by:''}); });
+    (c.storedReports||[]).forEach(r=>{ items.push({type:'report',at:r.at||r.timestamp||'',title:'Report generated',detail:r.label||'',by:''}); });
+    (c.cvFiles||[]).forEach(d=>{ items.push({type:'doc',at:d.at||'',title:'Document',detail:d.name||d.file||'',by:''}); });
+    items.sort((a,b)=>(String(b.at)).localeCompare(String(a.at)));
+    return items;
+  }
+  function renderActPanel(c){
+    if(!c) return; const fb=$('actFilter'), bd=$('actBody'); if(!bd) return;
+    const all=buildActivity(c);
+    const types=[['all','All'],['note','Notes'],['call','Calls'],['email','Emails'],['appt','Appts'],['task','Tasks'],['report','Reports'],['doc','Docs']];
+    if(fb) fb.innerHTML=types.map(([id,l])=>`<span class="act-chip ${ACT_FILTER===id?'on':''}" onclick="ACT_FILTER='${id}';renderActPanel(findByKey('${esc(c.ckey)}'))">${l}</span>`).join('');
+    const ICON={note:'📝',call:'📞',email:'📧',stage:'🔁',appt:'📅',task:'✅',report:'📄',doc:'📎'};
+    const rows=all.filter(x=>ACT_FILTER==='all'||x.type===ACT_FILTER);
+    bd.innerHTML=rows.length?rows.map(x=>`<div class="tl-item" style="padding-left:8px"><div style="font-weight:600">${ICON[x.type]||'•'} ${esc(x.title)}</div>${x.detail?`<div style="font-size:12px">${esc(x.detail)}</div>`:''}<div class="t">${esc((x.at||'').toString().slice(0,16).replace('T',' '))}${x.by?' · '+esc(x.by):''}</div></div>`).join(''):'<p class="muted" style="font-size:13px">No activity yet.</p>';
+  }
+  /* ---------- log call (#10) ---------- */
+  function logCall(ckey){
+    const c=findByKey(ckey); if(!c) return;
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>📞 Log Call — ${esc(c.name)}</h3>
+      <div class="fgrid">
+        <div><label class="fl">Outcome</label><select id="lc_outcome"><option>Connected</option><option>No answer</option><option>Voicemail left</option><option>Busy / call back</option><option>Wrong number</option><option>Not interested</option></select></div>
+        <div><label class="fl">Duration (min)</label><input id="lc_dur" type="number" min="0" placeholder="e.g. 8"></div>
+        <div class="full"><label class="fl">Call notes</label><textarea id="lc_notes" rows="4" placeholder="What was discussed, next steps…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="logCallSave('${esc(ckey)}')">Save call</button><span id="lc_msg" class="muted" style="align-self:center;font-size:12px"></span></div>`);
+  }
+  async function logCallSave(ckey){
+    const c=findByKey(ckey); const outcome=$('lc_outcome').value, dur=$('lc_dur').value, notes=$('lc_notes').value.trim();
+    const detail='['+outcome+(dur?(' · '+dur+'m'):'')+']'+(notes?(' '+notes):''); const msg=$('lc_msg');
+    if(msg){msg.textContent='Saving…';msg.className='muted';}
+    const r=await api('/crm-meta.php',{action:'log',key:ckey,event:'Call',detail});
+    if(r&&r.ok){ META[ckey]=r.meta||META[ckey]; if(c)c.activity=(r.meta&&r.meta.activity)||c.activity; closeModal(); if(VIEW==='profile')renderProfile(); }
+    else if(msg){ msg.textContent='Could not save'; msg.className='err'; }
+  }
+  /* ---------- AI assist (#8) ---------- */
+  async function aiAssist(ckey){
+    const c=findByKey(ckey); if(!c) return;
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>✨ AI Assistant — ${esc(c.name)}</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 10px">Uses your Claude AI integration to suggest next actions and draft outreach based on this lead's profile &amp; history.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-primary" onclick="aiRun('${esc(ckey)}','next')">🎯 Next-action recommendation</button><button class="btn btn-sm" onclick="aiRun('${esc(ckey)}','email')">✉️ Draft follow-up email</button><button class="btn btn-sm" onclick="aiRun('${esc(ckey)}','summary')">📋 Summarise lead</button></div>
+      <div id="aiOut" style="margin-top:12px;white-space:pre-wrap;font-size:13px;line-height:1.6;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg);min-height:60px"><span class="muted">Pick an action above…</span></div>`,true);
+  }
+  function aiContext(c){
+    const f=c.rawFields||{};
+    return `Lead: ${c.name}\nEmail: ${c.email||'—'} · Phone: ${c.phone||'—'}\nOccupation: ${c.occupation||'—'} · Age: ${f.age||'—'} · Education: ${f.education||'—'}\nNationality: ${c.country||f.nationality||'—'} · Points: ${c.points||'—'}\nVisa interest: ${c.visas||'—'} · Stage: ${c.stage} · Status: ${c.eligibilityStatus||'—'}\nLead score: ${c.score} (${c.cat}) · Source: ${c.source||'—'}\nRecent notes: ${(c.activity||[]).slice(-3).map(a=>a.detail||a.event).join(' | ')||'none'}`;
+  }
+  async function aiRun(ckey,mode){
+    const c=findByKey(ckey); const out=$('aiOut'); if(!out) return;
+    out.innerHTML='<span class="muted">Thinking…</span>';
+    const ctx=aiContext(c);
+    const prompts={
+      next:`You are a senior immigration consultant at iMigrate. Based on this lead, give 3 concise, specific next actions (bullet points) to move them forward.\n\n${ctx}`,
+      email:`Write a warm, professional follow-up email (120-160 words) to this immigration lead. Reference their occupation/visa interest. Sign off as iMigrate Migration Solutions. Output subject line then body.\n\n${ctx}`,
+      summary:`Summarise this immigration lead in 3-4 sentences for a consultant picking up the file: their profile, likely best visa pathway, and key risk/opportunity.\n\n${ctx}`
+    };
+    const r=await api('/ai.php',{action:'generate',type:'generic',brief:prompts[mode]});
+    if(r&&r.ok&&(r.text||r.content)){ out.textContent=r.text||r.content; }
+    else { out.innerHTML='<span class="err">AI not available — '+esc((r&&r.error)||'connect Claude AI in the Portal → Integrations and add your Anthropic API key.')+'</span>'; }
   }
 
   function renderProfileTab(c, myTasks){
@@ -532,10 +1221,17 @@
   function renderInputsTab(c){
     const model=leadFieldModel(c);
     $('tabBody').innerHTML=`<div class="card"><div class="sect">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h3>User inputs</h3><button class="btn btn-sm btn-primary" onclick="editInputs('${esc(c.ckey)}')">✎ Edit all fields</button></div>
-      ${model.length?`<div style="margin-top:8px">${model.map(m=>`<div class="kv"><span class="k">${esc(m.label)}</span><span>${m.value!==''?esc(m.value):'<span class="muted">—</span>'}${m.pts?` <span class="pts">${esc(m.pts)} pts</span>`:''}</span></div>`).join('')}</div>`:'<p class="muted">No information on file for this lead.</p>'}
-      <p class="muted" style="font-size:12px;margin-top:10px">Every field is editable. Edits are saved as CRM overrides (the original submission is preserved) and recorded in the Activity timeline — who changed what, and when.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Lead profile</h3><span class="muted" style="font-size:12px">Edit any field — saved automatically</span></div>
+      ${model.length?`<div class="ui-grid" style="margin-top:10px">${model.map((m,i)=>`<div><label class="muted" style="font-size:11px;display:block;margin-bottom:3px">${esc(m.label)}${m.pts?` <span class="pts">${esc(m.pts)} pts</span>`:''}</label><input id="uin_${i}" data-k="${esc(m.key)}" value="${esc(m.value)}" placeholder="—" onchange="autoField('${esc(c.ckey)}',this)"></div>`).join('')}</div>`:'<p class="muted">No information on file for this lead.</p>'}
+      <p class="muted" style="font-size:12px;margin-top:12px">Every field is editable and saves on change as a CRM override — the original submission is preserved, and each edit is recorded in the Activity timeline (who changed what, and when).</p>
     </div></div>`;
+  }
+  async function autoField(ckey,el){
+    const key=el.getAttribute('data-k'); const c=findByKey(ckey);
+    el.style.borderColor='var(--accent,#c8a24a)';
+    const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields:{[key]:el.value},detail:'Edited '+(FIELD_LABELS[key]||key)});
+    if(r&&r.ok){ META[ckey]=r.meta; buildContacts(); el.style.borderColor='#1a7f37'; setTimeout(()=>{el.style.borderColor='';},1100); }
+    else { el.style.borderColor='#b91c1c'; }
   }
   function editInputs(ckey){
     const c=findByKey(ckey); INPUT_MODEL=leadFieldModel(c);
@@ -588,7 +1284,10 @@
   async function setStage(ckey,stage){
     const c=findByKey(ckey); if(c)c.stage=stage;
     const r=await api('/crm-meta.php',{action:'set-stage',key:ckey,email:c?c.email:'',stage});
-    if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;} if(VIEW==='pipeline')renderPipeline(); }
+    if(r.ok){ META[ckey]=r.meta; if(c){c.activity=r.meta.activity||c.activity;c.stage=stage;} if(VIEW==='pipeline')renderPipeline(); triggerAutomation(ckey,stage,c); }
+  }
+  async function triggerAutomation(ckey,stage,c){
+    try{ api('/crm-automation.php',{action:'run',trigger:'Status Changed',key:ckey,email:c?c.email:'',name:c?c.name:'',stage,cat:c?c.cat:'',source:c?c.sourceType:'',points:c?c.points:0,occupation:c?c.occupation:''}); }catch(e){}
   }
   async function addNote(ckey){
     const t=$('noteIn'); const note=t?t.value.trim():''; if(!note)return;
@@ -633,7 +1332,7 @@
     const end=new Date(start.getTime()+30*60000);
     // Create a follow-up task + move stage regardless of M365.
     await api('/crm-tasks.php',{action:'add',title:'Consultation with '+c.name,type:'Consultation',due:start.toISOString().slice(0,10),priority:'High',leadEmail:c.email,ckey,assignedTo:CRM_USER()});
-    await setStage(ckey,'Consultation Booked');
+    await setStage(ckey,'Appointment Scheduled');
     // Try to add it to the Microsoft 365 calendar.
     const r=await api('/m365.php',{action:'event',subject:'iMigrate consultation — '+c.name,start:start.toISOString(),end:end.toISOString(),attendee:c.email||'',body:'Immigration consultation for '+esc(c.name)});
     await api('/crm-meta.php',{action:'log',key:ckey,email:c.email,event:'Consultation scheduled',detail:when});
@@ -642,9 +1341,13 @@
   }
 
   /* ---------- emails (compose, templates, send, tracking) ---------- */
+  let CUSTOM_TEMPLATES={};
   async function renderEmailsTab(c){
     const b=$('tabBody'); if(!b) return;
-    const tplOpts=['',...Object.keys(EMAIL_TEMPLATES)].map(t=>`<option value="${esc(t)}">${t||'Blank / no template'}</option>`).join('');
+    try{ const tr=await api('/crm-email.php',{action:'templates-list'}); if(tr&&tr.ok&&tr.templates) CUSTOM_TEMPLATES=tr.templates; }catch(e){}
+    const MERGED=Object.assign({},EMAIL_TEMPLATES,CUSTOM_TEMPLATES); window._MERGED_TPL=MERGED;
+    const custNames=Object.keys(CUSTOM_TEMPLATES);
+    const tplOpts=['',...Object.keys(MERGED)].map(t=>`<option value="${esc(t)}">${t?(esc(t)+(CUSTOM_TEMPLATES[t]?' (custom)':'')):'Blank / no template'}</option>`).join('');
     b.innerHTML=`<div class="card"><div class="sect"><h3>Send email</h3>
       ${c.email?'':'<p class="err" style="font-size:13px">This lead has no email address. Add one in the Contact tab to send email.</p>'}
       <div style="display:grid;gap:8px;max-width:680px">
@@ -660,14 +1363,22 @@
       </div>
       <p class="muted" style="font-size:12px;margin-top:8px">Opens &amp; link clicks are tracked. Delivery uses Microsoft 365 when connected, otherwise the server mailer. Scheduled emails require the cron job (see Settings).</p>
       </div></div>
+      ${custNames.length?`<div class="card" style="margin-top:14px"><div class="sect"><h3>Custom templates <span class="muted" style="font-size:12px">(from AI Content Studio)</span></h3>
+        ${custNames.map(n=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span>✉️ ${esc(n)}<div class="t">${esc((CUSTOM_TEMPLATES[n].subject||'').slice(0,80))}</div></span><button class="btn btn-sm" onclick="deleteTemplate('${esc(n).replace(/'/g,"\\'")}','${esc(c.ckey)}')">Delete</button></div>`).join('')}
+        <p class="muted" style="font-size:12px;margin-top:8px">Create more in Portal → Marketing Hub → AI Content Studio (Email writer → “Send to CRM templates”).</p></div></div>`:''}
       <div class="card" style="margin-top:14px"><div class="sect"><h3>Email history</h3><div id="emHist"><p class="muted">Loading…</p></div></div></div>`;
     loadEmails(c);
   }
   function applyTemplate(ckey){
     const c=findByKey(ckey); const name=$('emTpl').value; if(!name){return;}
-    const t=EMAIL_TEMPLATES[name]; if(!t)return;
+    const t=(window._MERGED_TPL||EMAIL_TEMPLATES)[name]; if(!t)return;
     $('emSubject').value=fillTemplate(t.subject,c);
     $('emBody').value=fillTemplate(t.body,c);
+  }
+  async function deleteTemplate(name,ckey){
+    if(!confirm('Delete the custom template "'+name+'"? (Built-in templates are unaffected.)'))return;
+    const r=await api('/crm-email.php',{action:'template-delete',name});
+    if(r&&r.ok){ delete CUSTOM_TEMPLATES[name]; const c=findByKey(ckey); renderEmailsTab(c); } else alert('Could not delete template.');
   }
   function emPreview(){ const html=$('emBody').value; openHtmlWindow('<!doctype html><meta charset="utf-8"><body style="font-family:Arial,sans-serif;max-width:640px;margin:20px auto;padding:0 16px">'+html+'</body>'); }
   async function sendEmail(ckey){
@@ -813,7 +1524,7 @@
         <td class="clk" onclick="openProfile('${esc(c.ckey)}')"><strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}<div class="muted">${esc(c.email||'')}</div></td>
         <td><span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></td>
         <td>${esc(c.occupation||'—')}</td><td>${c.points||'—'}</td><td class="muted">${esc(c.visas||'—')}</td>
-        <td>${c.storedReports.length||'—'}</td><td><span class="pill">${esc(stageLabel(c.stage))}</span></td>
+        <td>${c.storedReports.length||'—'}</td><td>${stageBadge(stageLabel(c.stage))}</td>
         <td class="right"><button class="btn btn-sm" onclick="viewReport('${esc(c.ckey)}','')">View</button>
         <button class="btn btn-sm" onclick="downloadPdf('${esc(c.ckey)}','')">PDF</button>
         <button class="btn btn-sm" onclick="emailReport('${esc(c.ckey)}','')">Email</button>
@@ -822,20 +1533,50 @@
 
   /* ---------- pipeline (kanban) ---------- */
   let dragKey=null;
+  let pipeFilter={q:'',type:'',cat:'',hideEmpty:false};
+  let pipeScroll=0;
+  const CAT_COLORS={'Sales Ready':{bg:'#dcfce7',color:'#166534'},'Hot':{bg:'#fee2e2',color:'#b91c1c'},'Warm':{bg:'#fef3c7',color:'#92400e'},'Cold':{bg:'#f1f5f9',color:'#475569'}};
+  /* Earliest open task for a contact — surfaces the follow-up date + assigned consultant on the card. */
+  function nextTaskFor(c){
+    const open=(TASKS||[]).filter(t=>(((t.ckey&&t.ckey===c.ckey)||(c.email&&(t.leadEmail||'').toLowerCase()===c.email)) && !['Done','Completed','Cancelled'].includes(t.status||'')));
+    open.sort((a,b)=>((a.due||'9999-99-99').localeCompare(b.due||'9999-99-99')));
+    return open[0]||null;
+  }
   function renderPipeline(){
+    const kmPrev=document.querySelector('.kanban'); if(kmPrev)pipeScroll=kmPrev.scrollLeft;
+    const q=pipeFilter.q.toLowerCase();
+    const match=(c)=>{
+      if(pipeFilter.type && c.sourceType!==pipeFilter.type)return false;
+      if(pipeFilter.cat && c.cat!==pipeFilter.cat)return false;
+      if(q && !(((c.name||'')+' '+(c.email||'')+' '+(c.occupation||'')+' '+(c.phone||'')).toLowerCase().includes(q)))return false;
+      return true;
+    };
+    let shown=0;
     const cols=STAGES.map(stage=>{
-      const cards=CONTACTS.filter(c=>c.stage===stage);
+      const cards=CONTACTS.filter(c=>c.stage===stage && match(c)); shown+=cards.length;
+      if(pipeFilter.hideEmpty && !cards.length)return '';
+      const sc=STAGE_COLORS[stage]||{bg:'#e2e8f0',color:'#475569'};
       return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropCard(event,'${esc(stage)}')">
-        <h4><span>${esc(stageLabel(stage))}</span><span class="pill">${cards.length}</span></h4>
-        <div class="kbody">${cards.map(c=>`<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
+        <h4 style="border-left:3px solid ${sc.color};padding-left:9px"><span style="color:${sc.color};font-weight:700">${esc(stageLabel(stage))}</span><span class="pill" style="background:${sc.bg};color:${sc.color}">${cards.length}</span></h4>
+        <div class="kbody">${cards.map(c=>{const nt=nextTaskFor(c);const cc=CAT_COLORS[c.cat]||CAT_COLORS.Cold;return `<div class="kcard" draggable="true" ondragstart="dragKey='${esc(c.ckey)}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="openProfile('${esc(c.ckey)}')">
           <div class="nm">${esc(c.name)} <span class="badge ${c.isAI?'ai':'std'}" style="font-size:9px">${c.sourceType}</span></div>
           <div class="meta">${esc(c.occupation||'')} ${c.points?'· '+c.points+'pts':''}</div>
-        </div>`).join('')}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;gap:6px"><span class="pill" style="font-size:9px;background:${cc.bg};color:${cc.color}">${esc(c.cat)}</span>${nt?`<span class="muted" style="font-size:10px;white-space:nowrap" title="Next task: ${esc(nt.title||'')}">📅 ${esc(nt.due||'no date')}${nt.assignedTo?' · '+esc(nt.assignedTo):''}</span>`:''}</div>
+        </div>`;}).join('')||'<p class="muted" style="font-size:11px;padding:8px 10px">No leads</p>'}</div>
       </div>`;
     }).join('');
-    $('content').innerHTML=`<p class="muted" style="margin-top:0">Drag cards between stages. ${CONTACTS.length} contacts.</p><div class="kanban">${cols}</div>`;
+    const typeOpts=[['','All sources'],['AI','AI leads'],['Standard','Standard']].map(([v,l])=>`<option value="${v}" ${v===pipeFilter.type?'selected':''}>${l}</option>`).join('');
+    const catOpts=['','Sales Ready','Hot','Warm','Cold'].map(s=>`<option value="${s}" ${s===pipeFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
+    $('content').innerHTML=`<div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <input type="search" id="pq" placeholder="Search name, email, phone, occupation…" value="${esc(pipeFilter.q)}" oninput="pipeFilter.q=this.value;renderPipeline();var e=document.getElementById('pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}" style="max-width:280px">
+      <select onchange="pipeFilter.type=this.value;renderPipeline()">${typeOpts}</select>
+      <select onchange="pipeFilter.cat=this.value;renderPipeline()">${catOpts}</select>
+      <label style="display:flex;gap:5px;align-items:center;font-size:12px;white-space:nowrap"><input type="checkbox" ${pipeFilter.hideEmpty?'checked':''} onchange="pipeFilter.hideEmpty=this.checked;renderPipeline()" style="width:auto"> Hide empty stages</label>
+      <span class="muted" style="font-size:12px;margin-left:auto">${shown} of ${CONTACTS.length} shown · drag cards between stages</span>
+    </div><div class="kanban">${cols}</div>`;
+    const km=document.querySelector('.kanban'); if(km)km.scrollLeft=pipeScroll;
   }
-  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){setStage(dragKey,stage).then(()=>renderPipeline());} dragKey=null; }
+  function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){const k=dragKey;dragKey=null;setStage(k,stage);} }
 
   /* ---------- tasks (global) ---------- */
   function renderTasks(){
@@ -867,6 +1608,322 @@
   async function delTask(id){ const r=await api('/crm-tasks.php',{action:'delete',id}); if(r.ok){TASKS=r.tasks;renderTasks();} }
 
   /* ---------- settings ---------- */
+  /* ---------- Invoices & Payments ---------- */
+  let INVOICES=[], INV_EDIT=null;
+  const INV_COLORS={'Draft':{bg:'#f1f5f9',color:'#475569'},'Sent':{bg:'#dbeafe',color:'#1d4ed8'},'Partially Paid':{bg:'#fef3c7',color:'#92400e'},'Paid':{bg:'#dcfce7',color:'#166534'},'Overdue':{bg:'#fecaca',color:'#991b1b'},'Cancelled':{bg:'#e2e8f0',color:'#64748b'}};
+  function money(cur,n){ return (cur||'RM')+' '+(Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})); }
+  async function renderInvoices(){
+    $('content').innerHTML='<div class="card"><h3>💳 Invoices &amp; Payments</h3><p class="muted">Loading…</p></div>';
+    const [r,cr]=await Promise.all([api('/crm-invoices.php',{action:'list'}),api('/crm-cases.php',{action:'list'})]);
+    INVOICES=(r&&r.invoices)||[]; CASES=(cr&&cr.cases)||CASES;
+    const inv=INVOICES.reduce((a,x)=>a+(x.total||0),0), paid=INVOICES.reduce((a,x)=>a+(x.amountPaid||0),0);
+    const overdue=INVOICES.filter(x=>x.derivedStatus==='Overdue').length;
+    const cur=(INVOICES[0]&&INVOICES[0].currency)||'RM';
+    const stat=(n,l)=>`<div class="card" style="display:inline-block;min-width:150px;margin-right:12px"><div style="font-size:20px;font-weight:800;color:var(--navy)">${esc(n)}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
+    const rows=INVOICES.map(x=>{const sc=INV_COLORS[x.derivedStatus]||INV_COLORS.Draft;return `<tr><td><strong>${esc(x.number||'')}</strong></td><td>${esc(x.clientName||'')}<div class="muted" style="font-size:11px">${esc(x.email||'')}</div></td><td>${esc(money(x.currency,x.total))}</td><td class="muted">${esc(money(x.currency,x.amountPaid))}</td><td><span class="pill" style="background:${sc.bg};color:${sc.color}">${esc(x.derivedStatus)}</span></td><td class="muted">${esc(x.dueDate||'')}</td><td class="right"><button class="btn btn-sm" onclick="invEdit('${esc(x.id)}')">Open</button> <button class="btn btn-sm" onclick="invDel('${esc(x.id)}')">Delete</button></td></tr>`;}).join('');
+    $('content').innerHTML=`<div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${stat(money(cur,inv),'Total invoiced')}${stat(money(cur,paid),'Total received')}${stat(money(cur,inv-paid),'Outstanding')}${stat(overdue,'Overdue')}</div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Invoices</h3><button class="btn btn-primary btn-sm" onclick="invNew()">+ New invoice</button></div>
+        <div style="overflow:auto"><table><thead><tr><th>#</th><th>Client</th><th>Total</th><th>Paid</th><th>Status</th><th>Due</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="muted" style="padding:14px">No invoices yet. Click “New invoice” to bill a client.</td></tr>'}</tbody></table></div></div>
+      <div id="invEditor"></div>`;
+    if(INV_EDIT)renderInvEditor();
+  }
+  function renderInvEditor(){
+    const v=INV_EDIT; if(!v){const e=$('invEditor');if(e)e.innerHTML='';return;}
+    const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===v.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}</option>`)].join('');
+    const caseOpts=['<option value="">— None —</option>',...(CASES||[]).filter(c=>!v.ckey||c.ckey===v.ckey).map(c=>`<option value="${esc(c.id)}" ${c.id===v.caseId?'selected':''}>${esc(c.visaType||c.id)}</option>`)].join('');
+    const statusOpts=['Draft','Sent','Cancelled'].map(s=>`<option ${s===v.status?'selected':''}>${s}</option>`).join('');
+    const itemRows=(v.items||[]).map((it,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><input placeholder="Description" value="${esc(it.desc||'')}" oninput="INV_EDIT.items[${i}].desc=this.value" style="flex:1"><input type="number" step="0.01" placeholder="Amount" value="${it.amount!=null&&it.amount!==''?it.amount:''}" oninput="INV_EDIT.items[${i}].amount=this.value;invRecalc()" style="width:120px"><button class="btn btn-sm" onclick="invRemoveItem(${i})">✕</button></div>`).join('');
+    const total=(v.items||[]).reduce((a,it)=>a+(parseFloat(it.amount)||0),0);
+    const payList=(v.payments||[]).map(pm=>`<div class="note" style="display:flex;justify-content:space-between;align-items:center"><span><strong>${esc(money(v.currency,pm.amount))}</strong> <span class="muted">· ${esc(pm.date||'')} · ${esc(pm.method||'')}${pm.ref?' · '+esc(pm.ref):''}</span></span><button class="btn btn-sm" onclick="payDel('${esc(v.id)}','${esc(pm.id)}')">✕</button></div>`).join('');
+    $('invEditor').innerHTML=`<div class="card"><h3>${v.id?('Invoice '+esc(v.number||'')):'New invoice'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Client</label><select id="iv_client" onchange="invClientPick(this.value)">${clientOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Linked case (optional)</label><select id="iv_case">${caseOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Currency</label><input id="iv_cur" value="${esc(v.currency||'RM')}" style="width:90px" oninput="invRecalc()"></div>
+        <div><label class="muted" style="font-size:12px">Status</label><select id="iv_status">${statusOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Issue date</label><input id="iv_issue" type="date" value="${esc(v.issueDate||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Due date</label><input id="iv_due" type="date" value="${esc(v.dueDate||'')}"></div>
+      </div>
+      <h4 style="margin:12px 0 6px">Line items</h4><div id="iv_items">${itemRows||''}</div>
+      <button class="btn btn-sm" onclick="invAddItem()">+ Add line</button>
+      <div style="text-align:right;font-weight:700;margin-top:8px">Total: <span id="iv_total">${esc(money(v.currency,total))}</span></div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="iv_notes" rows="2">${esc(v.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="invSave()">Save invoice</button><button class="btn btn-sm" onclick="INV_EDIT=null;renderInvoices()">Cancel</button><span id="iv_msg" class="muted" style="font-size:12px"></span></div>
+      ${v.id?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><h4 style="margin:0 0 6px">Payments — ${esc(money(v.currency,(v.amountPaid||0)))} of ${esc(money(v.currency,total))}</h4>${payList||'<p class="muted" style="font-size:12px">No payments recorded.</p>'}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><input id="pay_amt" type="number" step="0.01" placeholder="Amount" style="width:110px"><input id="pay_date" type="date" value="${esc(new Date().toISOString().slice(0,10))}" style="width:auto"><input id="pay_method" placeholder="Method" value="Bank Transfer" style="width:130px"><input id="pay_ref" placeholder="Ref (optional)" style="width:130px"><button class="btn btn-sm btn-primary" onclick="payAdd('${esc(v.id)}')">Record payment</button></div></div>`:'<p class="muted" style="font-size:11px;margin-top:8px">Save the invoice first to record payments.</p>'}
+    </div>`;
+    $('invEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.invRecalc=()=>{ if(!INV_EDIT)return; const t=(INV_EDIT.items||[]).reduce((a,it)=>a+(parseFloat(it.amount)||0),0); const el=$('iv_total'); if(el)el.textContent=money($('iv_cur')?$('iv_cur').value:INV_EDIT.currency,t); };
+  window.invClientPick=(ckey)=>{const x=CONTACTS.find(c=>c.ckey===ckey);if(x){INV_EDIT.ckey=x.ckey;INV_EDIT.clientName=x.name;INV_EDIT.email=x.email;}};
+  window.invAddItem=()=>{ INV_EDIT.items=INV_EDIT.items||[]; INV_EDIT.items.push({desc:'',amount:''}); renderInvEditor(); };
+  window.invRemoveItem=(i)=>{ INV_EDIT.items.splice(i,1); renderInvEditor(); };
+  window.invNew=()=>{INV_EDIT={id:'',ckey:'',clientName:'',email:'',caseId:'',currency:'RM',items:[{desc:'',amount:''}],status:'Draft',issueDate:new Date().toISOString().slice(0,10),dueDate:'',notes:'',payments:[],amountPaid:0};renderInvEditor();};
+  window.invEdit=(id)=>{const x=INVOICES.find(v=>v.id===id);if(!x)return;INV_EDIT=JSON.parse(JSON.stringify(x));renderInvEditor();};
+  window.invSave=async()=>{const v=INV_EDIT;const invoice={id:v.id||'',ckey:v.ckey||'',clientName:v.clientName||'',email:v.email||'',caseId:$('iv_case')?$('iv_case').value:'',currency:$('iv_cur').value,items:(v.items||[]).map(it=>({desc:it.desc,amount:it.amount})),status:$('iv_status').value,issueDate:$('iv_issue').value,dueDate:$('iv_due').value,notes:$('iv_notes').value};if(!invoice.clientName){$('iv_msg').textContent='Select a client first';$('iv_msg').className='err';return;}const r=await api('/crm-invoices.php',{action:'invoice-save',invoice});if(r&&r.ok){INV_EDIT=r.invoice;await renderInvoices();}else{$('iv_msg').textContent='Save failed';$('iv_msg').className='err';}};
+  window.invDel=async(id)=>{if(!confirm('Delete this invoice and its payment records?'))return;await api('/crm-invoices.php',{action:'invoice-delete',id});INV_EDIT=null;renderInvoices();};
+  window.payAdd=async(id)=>{const amount=$('pay_amt').value;if(!amount||parseFloat(amount)<=0){if($('iv_msg')){$('iv_msg').textContent='Enter a payment amount';$('iv_msg').className='err';}return;}const r=await api('/crm-invoices.php',{action:'payment-add',invoiceId:id,payment:{amount,date:$('pay_date').value,method:$('pay_method').value,ref:$('pay_ref').value}});if(r&&r.ok){INV_EDIT=r.invoice;if(r.nowPaid){const c=findByKey(INV_EDIT.ckey);try{api('/crm-automation.php',{action:'run',trigger:'Invoice Paid',key:INV_EDIT.ckey,email:INV_EDIT.email,name:INV_EDIT.clientName,cat:c?c.cat:'',source:c?c.sourceType:''});}catch(e){}}await renderInvoices();}};
+  window.payDel=async(iid,pid)=>{if(!confirm('Remove this payment?'))return;INV_EDIT=null;await api('/crm-invoices.php',{action:'payment-delete',invoiceId:iid,paymentId:pid});await renderInvoices();const x=INVOICES.find(v=>v.id===iid);if(x){INV_EDIT=JSON.parse(JSON.stringify(x));renderInvEditor();}};
+
+  /* ---------- Clients & Visa Cases ---------- */
+  let CASES=[], COMPANIES=[], CASE_EDIT=null, COMPANY_EDIT=null;
+  const CASE_STATUSES=['New Case','Document Collection','Skills Assessment','Awaiting State Nomination','Application Prep','Submitted','Awaiting Decision','Approved','Refused','On Hold'];
+  const ASSESSING_AUTHORITIES=['','VETASSESS','ACS (Australian Computer Society)','Engineers Australia','CPA Australia','CA ANZ','TRA (Trades Recognition Australia)','ANMAC','AHPRA','AITSL','CAANZ','Other (AU)','WES (Canada)','IQAS','ICAS','ICES','CES (Canada)','Other (Canada)'];
+  const STATE_NOMINATIONS=['','NSW','VIC','QLD','SA','WA','TAS','ACT','NT','Canada — Express Entry','Canada — PNP (Ontario)','Canada — PNP (BC)','Canada — PNP (Alberta)','Canada — Other PNP','Not applicable'];
+  const CASE_COLORS={'New Case':{bg:'#dbeafe',color:'#1d4ed8'},'Document Collection':{bg:'#fef9c3',color:'#854d0e'},'Application Prep':{bg:'#fde68a',color:'#b45309'},'Submitted':{bg:'#ede9fe',color:'#5b21b6'},'Awaiting Decision':{bg:'#e0f2fe',color:'#0369a1'},'Approved':{bg:'#dcfce7',color:'#166534'},'Refused':{bg:'#fecaca',color:'#991b1b'},'On Hold':{bg:'#f1f5f9',color:'#475569'}};
+  function coName(id){const c=COMPANIES.find(x=>x.id===id);return c?c.name:'';}
+  let CASE_PANEL_ID=null;
+  async function renderClients(){
+    $('content').innerHTML='<div class=”card”><h3>🧾 Clients &amp; Cases</h3><p class=”muted”>Loading…</p></div>';
+    const r=await api('/crm-cases.php',{action:'list'});
+    CASES=(r&&r.cases)||[]; COMPANIES=(r&&r.companies)||[];
+    const clients=CONTACTS.filter(c=>c.stage==='Signed Up');
+    const active=CASES.filter(c=>!['Approved','Refused'].includes(c.status)).length;
+    const approved=CASES.filter(c=>c.status==='Approved').length;
+    const stat=(n,l)=>`<div class=”card” style=”display:inline-block;min-width:140px;margin-right:12px”><div style=”font-size:24px;font-weight:800;color:var(--navy)”>${n}</div><div class=”muted” style=”font-size:12px”>${l}</div></div>`;
+    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class=”pill”>${esc(c.type||'')}</span></td><td class=”muted”>${esc(c.country||'')}</td><td class=”muted”>${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class=”right”><button class=”btn btn-sm” onclick=”companyEdit('${esc(c.id)}')”>Edit</button> <button class=”btn btn-sm” onclick=”companyDel('${esc(c.id)}')”>Delete</button></td></tr>`).join('');
+    const listItems=caseSplitListHtml();
+    if(!CASE_PANEL_ID && CASES.length) CASE_PANEL_ID=CASES[0].id;
+    $('content').innerHTML=`
+      <div style=”display:flex;flex-wrap:wrap;margin-bottom:8px”>${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
+      <div class=”sp-wrap” id=”casesSplit”>
+        <div class=”sp-list” id=”casesListPane”>
+          <div style=”padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center”>
+            <strong style=”font-size:13px”>Visa Cases</strong>
+            <button class=”btn btn-primary btn-sm” onclick=”caseNew()”>+ New</button>
+          </div>
+          <div id=”casesListItems”>${listItems}</div>
+        </div>
+        <div class=”sp-detail” id=”caseDetailPane”>
+          <div id=”caseDetailInner”>${CASE_PANEL_ID?caseDetailHtml(CASE_PANEL_ID):'<div style=”padding:40px;text-align:center;color:var(--muted)”>Select a case to view details</div>'}</div>
+        </div>
+      </div>
+      <div id=”caseEditor”></div>
+      <div class=”card” style=”margin-top:14px”><div style=”display:flex;justify-content:space-between;align-items:center”><h3 style=”margin:0”>Companies (employers / sponsors)</h3><button class=”btn btn-primary btn-sm” onclick=”companyNew()”>+ New company</button></div>
+        <div style=”overflow:auto”><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class=”right”></th></tr></thead><tbody>${compRows||'<tr><td colspan=”5” class=”muted” style=”padding:14px”>No companies yet.</td></tr>'}</tbody></table></div></div>
+      <div id=”companyEditor”></div>`;
+    if(CASE_EDIT)renderCaseEditor(); if(COMPANY_EDIT)renderCompanyEditor();
+  }
+  function caseSplitListHtml(){
+    if(!CASES.length) return '<div style=”padding:20px;text-align:center;color:var(--muted);font-size:13px”>No cases yet.</div>';
+    return CASES.map(c=>{
+      const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
+      const active=CASE_PANEL_ID===c.id;
+      return `<div class=”sp-row${active?' active':''}” onclick=”openCasePanel('${esc(c.id)}')”>
+        <div class=”sp-avatar” style=”background:${sc.bg};color:${sc.color};font-size:14px”>${(c.clientName||'?')[0]}</div>
+        <div style=”flex:1;min-width:0”>
+          <div style=”font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.clientName||'—')}</div>
+          <div class=”muted” style=”font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.visaType||'')}${c.country?' · '+esc(c.country):''}</div>
+        </div>
+        <div style=”text-align:right;flex-shrink:0”>
+          <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:10px”>${esc(c.status||'')}</span>
+          ${c.targetDate?`<div class=”muted” style=”font-size:10px;margin-top:2px”>${esc(c.targetDate)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function caseDetailHtml(id){
+    const c=CASES.find(x=>x.id===id); if(!c) return '<div style=”padding:32px;color:var(--muted)”>Case not found.</div>';
+    const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
+    const lead=CONTACTS.find(x=>x.ckey===c.ckey||x.email===c.email);
+    const remindDue=c.reminderDate&&c.reminderDate<=new Date().toISOString().slice(0,10);
+    const row=(l,v)=>v?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0;width:140px;white-space:nowrap”>${l}</td><td style=”font-size:13px;padding:4px 0”>${v}</td></tr>`:'';
+    return `<div style=”padding:16px”>
+      <div style=”display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px”>
+        <div>
+          <h3 style=”margin:0 0 4px”>${esc(c.clientName||'—')}</h3>
+          <div class=”muted” style=”font-size:12px”>${esc(c.email||'')}${lead?` · <a href=”#” onclick=”go('profile');PROFILE_KEY='${esc(c.ckey||'')}';renderProfile();return false” style=”color:var(--blue)”>View Lead →</a>`:''}</div>
+        </div>
+        <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:13px;padding:4px 12px”>${esc(c.status||'')}</span>
+      </div>
+      <table style=”width:100%;margin-bottom:12px”>
+        ${row('Visa / pathway',esc(c.visaType||''))}
+        ${row('Country',esc(c.country||''))}
+        ${row('File number',esc(c.fileNumber||''))}
+        ${row('Company',esc(coName(c.companyId)))}
+        ${row('Assessing auth.',esc(c.assessingAuthority||''))}
+        ${row('State / nomination',esc(c.stateNomination||''))}
+        ${row('Target date',esc(c.targetDate||''))}
+        ${row('Fee',esc(c.fee||''))}
+        ${c.reminderDate?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0”>State-opening reminder</td><td style=”font-size:13px;padding:4px 0”>${esc(c.reminderDate)} ${remindDue?'<span class=”badge hot”>DUE</span>':''}</td></tr>`:''}
+      </table>
+      ${c.notes?`<div class=”note” style=”font-size:13px;white-space:pre-wrap;margin-bottom:12px”>${esc(c.notes)}</div>`:''}
+      <div style=”display:flex;gap:8px;flex-wrap:wrap”>
+        <button class=”btn btn-sm btn-primary” onclick=”caseEdit('${esc(c.id)}')”>✏️ Edit</button>
+        <button class=”btn btn-sm” onclick=”generateCaseEmailForId('${esc(c.id)}')”>✉️ Email</button>
+        <button class=”btn btn-sm” onclick=”caseDel('${esc(c.id)}')”>Delete</button>
+      </div>
+    </div>`;
+  }
+  function openCasePanel(id){ CASE_PANEL_ID=id; const li=$('casesListItems'); if(li) li.innerHTML=caseSplitListHtml(); const di=$('caseDetailInner'); if(di) di.innerHTML=caseDetailHtml(id); }
+  function generateCaseEmailForId(id){ const c=CASES.find(x=>x.id===id); if(!c)return; CASE_EDIT=JSON.parse(JSON.stringify(c)); generateCaseEmail(); }
+  function renderCaseEditor(){
+    const c=CASE_EDIT; if(!c){const e=$('caseEditor');if(e)e.innerHTML='';return;}
+    const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}${x.stage==='Signed Up'?' ✓':''}</option>`)].join('');
+    const statusOpts=CASE_STATUSES.map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('');
+    const compOpts=['<option value="">— None —</option>',...COMPANIES.map(x=>`<option value="${esc(x.id)}" ${x.id===c.companyId?'selected':''}>${esc(x.name)}</option>`)].join('');
+    const authOpts=ASSESSING_AUTHORITIES.map(s=>`<option ${s===(c.assessingAuthority||'')?'selected':''}>${s||'— Assessing authority —'}</option>`).join('');
+    const stateOpts=STATE_NOMINATIONS.map(s=>`<option ${s===(c.stateNomination||'')?'selected':''}>${s||'— State nomination —'}</option>`).join('');
+    const remindDue=c.reminderDate && c.reminderDate<=new Date().toISOString().slice(0,10);
+    $('caseEditor').innerHTML=`<div class="card"><h3>${c.id?'Edit case':'New case'}</h3>
+      <label class="muted" style="font-size:12px">Client</label><select id="cs_client" onchange="caseClientPick(this.value)">${clientOpts}</select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
+        <div><label class="muted" style="font-size:12px">Visa type</label><input id="cs_visa" value="${esc(c.visaType||'')}" placeholder="e.g. Subclass 189 / Express Entry"></div>
+        <div><label class="muted" style="font-size:12px">Country</label><input id="cs_country" value="${esc(c.country||'')}" placeholder="Australia / Canada"></div>
+        <div><label class="muted" style="font-size:12px">Assessing authority</label><select id="cs_authority">${authOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">State / nomination</label><select id="cs_state">${stateOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">File number</label><input id="cs_fileno" value="${esc(c.fileNumber||'')}" placeholder="e.g. IMG-2026-0142"></div>
+        <div><label class="muted" style="font-size:12px">Company (employer/sponsor)</label><select id="cs_company">${compOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Status</label><select id="cs_status">${statusOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Target date</label><input id="cs_target" type="date" value="${esc(c.targetDate||'')}"></div>
+        <div><label class="muted" style="font-size:12px">State-opening reminder ${remindDue?'<span class="badge hot">DUE</span>':''}</label><input id="cs_reminder" type="date" value="${esc(c.reminderDate||'')}" title="Reminder for state nomination opening date"></div>
+        <div><label class="muted" style="font-size:12px">Fee</label><input id="cs_fee" value="${esc(c.fee||'')}" placeholder="e.g. RM 5,000"></div>
+      </div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="cs_notes" rows="3">${esc(c.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="caseSave()">Save case</button><button class="btn btn-sm" onclick="generateCaseEmail()">✉️ Generate Email</button><button class="btn btn-sm" onclick="CASE_EDIT=null;renderClients()">Cancel</button><span id="cs_msg" class="muted" style="font-size:12px"></span></div></div>`;
+    $('caseEditor').scrollIntoView({behavior:'smooth'});
+  }
+  function caseFormToObj(){
+    return {id:CASE_EDIT.id||'',ckey:CASE_EDIT.ckey||'',clientName:CASE_EDIT.clientName||'',email:CASE_EDIT.email||'',visaType:$('cs_visa').value,country:$('cs_country').value,companyId:$('cs_company').value,status:$('cs_status').value,targetDate:$('cs_target').value,fee:$('cs_fee').value,assessingAuthority:$('cs_authority')?$('cs_authority').value:'',stateNomination:$('cs_state')?$('cs_state').value:'',fileNumber:$('cs_fileno')?$('cs_fileno').value:'',reminderDate:$('cs_reminder')?$('cs_reminder').value:'',notes:$('cs_notes').value};
+  }
+  function generateCaseEmail(){
+    const cs=caseFormToObj(); const name=(cs.clientName||'there').split(' ')[0];
+    const subject='Update on your '+(cs.visaType||'visa')+' application'+(cs.fileNumber?(' — File '+cs.fileNumber):'');
+    const lines=['Dear '+name+',','','Thank you for choosing iMigrate Migration Solutions. Here is an update on your case:',''];
+    if(cs.visaType) lines.push('• Visa pathway: '+cs.visaType);
+    if(cs.country) lines.push('• Destination: '+cs.country);
+    if(cs.assessingAuthority) lines.push('• Skills assessing authority: '+cs.assessingAuthority);
+    if(cs.stateNomination) lines.push('• State / nomination: '+cs.stateNomination);
+    if(cs.fileNumber) lines.push('• Your file number: '+cs.fileNumber);
+    if(cs.status) lines.push('• Current status: '+cs.status);
+    if(cs.status==='Awaiting State Nomination') lines.push('','Your application is currently awaiting '+(cs.stateNomination||'state')+' nomination. We are monitoring the opening dates'+(cs.reminderDate?(' (next key date: '+cs.reminderDate+')'):'')+' and will notify you the moment the program opens.');
+    if(cs.targetDate) lines.push('','Target lodgement date: '+cs.targetDate+'.');
+    lines.push('','Please reply if you have any questions. We will keep you updated at every step.','','Warm regards,','iMigrate Migration Solutions');
+    const body=lines.join('\n');
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button><h3>Generated Email</h3><p class="muted" style="font-size:12px;margin:0">Auto-drafted from the case data. Edit, then copy or open in your mail app.</p>
+      <label class="fl">To</label><input id="ge_to" value="${esc(cs.email||'')}">
+      <label class="fl">Subject</label><input id="ge_subj" value="${esc(subject)}">
+      <label class="fl">Body</label><textarea id="ge_body" rows="12" style="font-family:inherit">${esc(body)}</textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('ge_body').value);this.textContent='Copied ✓'">Copy body</button><button class="btn btn-primary" onclick="caseEmailSend()">Open in mail app</button></div>`,true);
+  }
+  function caseEmailSend(){ const to=$('ge_to').value,s=$('ge_subj').value,b=$('ge_body').value; window.location.href='mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b); }
+  window.caseClientPick=(ckey)=>{const x=CONTACTS.find(c=>c.ckey===ckey);if(x){CASE_EDIT.ckey=x.ckey;CASE_EDIT.clientName=x.name;CASE_EDIT.email=x.email;const ct=$('cs_country');if(ct&&!ct.value&&x.destination)ct.value=x.destination;}};
+  window.caseNew=()=>{CASE_EDIT={id:'',ckey:'',clientName:'',email:'',visaType:'',country:'',companyId:'',status:'New Case',targetDate:'',fee:'',assessingAuthority:'',stateNomination:'',fileNumber:'',reminderDate:'',notes:''};renderCaseEditor();};
+  window.caseEdit=(id)=>{const c=CASES.find(x=>x.id===id);if(!c)return;CASE_EDIT=JSON.parse(JSON.stringify(c));renderCaseEditor();};
+  window.caseSave=async()=>{const cs=caseFormToObj();if(!cs.clientName){$('cs_msg').textContent='Select a client first';$('cs_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'case-save',case:cs});if(r&&r.ok){CASE_EDIT=null;renderClients();}else{$('cs_msg').textContent='Save failed';$('cs_msg').className='err';}};
+  window.caseDel=async(id)=>{if(!confirm('Delete this case? (The lead record is not affected.)'))return;await api('/crm-cases.php',{action:'case-delete',id});renderClients();};
+  function renderCompanyEditor(){
+    const c=COMPANY_EDIT; if(!c){const e=$('companyEditor');if(e)e.innerHTML='';return;}
+    const typeOpts=['Employer','Sponsor','Partner','Agent','Other'].map(t=>`<option ${t===c.type?'selected':''}>${t}</option>`).join('');
+    $('companyEditor').innerHTML=`<div class="card"><h3>${c.id?'Edit company':'New company'}</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Company name</label><input id="co_name" value="${esc(c.name||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Type</label><select id="co_type">${typeOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Country</label><input id="co_country" value="${esc(c.country||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Phone</label><input id="co_phone" value="${esc(c.phone||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Contact name</label><input id="co_cname" value="${esc(c.contactName||'')}"></div>
+        <div><label class="muted" style="font-size:12px">Contact email</label><input id="co_cemail" value="${esc(c.contactEmail||'')}"></div>
+      </div>
+      <label class="muted" style="font-size:12px;margin-top:6px;display:block">Notes</label><textarea id="co_notes" rows="2">${esc(c.notes||'')}</textarea>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="companySaveRec()">Save company</button><button class="btn btn-sm" onclick="COMPANY_EDIT=null;renderClients()">Cancel</button><span id="co_msg" class="muted" style="font-size:12px"></span></div></div>`;
+    $('companyEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.companyNew=()=>{COMPANY_EDIT={id:'',name:'',type:'Employer',country:'',phone:'',contactName:'',contactEmail:'',notes:''};renderCompanyEditor();};
+  window.companyEdit=(id)=>{const c=COMPANIES.find(x=>x.id===id);if(!c)return;COMPANY_EDIT=JSON.parse(JSON.stringify(c));renderCompanyEditor();};
+  window.companySaveRec=async()=>{const co={id:COMPANY_EDIT.id||'',name:$('co_name').value,type:$('co_type').value,country:$('co_country').value,phone:$('co_phone').value,contactName:$('co_cname').value,contactEmail:$('co_cemail').value,notes:$('co_notes').value};if(!co.name.trim()){$('co_msg').textContent='Name required';$('co_msg').className='err';return;}const r=await api('/crm-cases.php',{action:'company-save',company:co});if(r&&r.ok){COMPANY_EDIT=null;renderClients();}else{$('co_msg').textContent='Save failed';$('co_msg').className='err';}};
+  window.companyDel=async(id)=>{if(!confirm('Delete this company?'))return;await api('/crm-cases.php',{action:'company-delete',id});renderClients();};
+
+  /* ---------- Automation Center (Trigger → Condition → Action) ---------- */
+  let AUTO_RULES=[], AUTO_LOG=[], AUTO_EDIT=null;
+  async function renderAutomations(){
+    $('content').innerHTML='<div class="card"><h3>⚡ Automation Center</h3><p class="muted">Loading…</p></div>';
+    const [rr,lr]=await Promise.all([api('/crm-automation.php',{action:'rules-list'}),api('/crm-automation.php',{action:'log'})]);
+    AUTO_RULES=(rr&&rr.rules)||[]; AUTO_LOG=(lr&&lr.log)||[];
+    const rows=AUTO_RULES.map(r=>{
+      const cond=[r.stage?('Stage = '+r.stage):'',r.condCat?('Score = '+r.condCat):'',r.condSource?('Source = '+r.condSource):''].filter(Boolean).join(' · ')||'Any';
+      const acts=(r.actions||[]).map(a=>a.type).join(', ')||'—';
+      return `<tr><td><strong>${esc(r.name)}</strong></td><td>${esc(r.trigger)}</td><td class="muted">${esc(cond)}</td><td class="muted">${esc(acts)}</td><td><input type="checkbox" ${r.enabled?'checked':''} onchange="autoToggle('${esc(r.id)}',this.checked)" style="width:auto"></td><td class="right"><button class="btn btn-sm" onclick="autoEdit('${esc(r.id)}')">Edit</button> <button class="btn btn-sm" onclick="autoDel('${esc(r.id)}')">Delete</button></td></tr>`;
+    }).join('');
+    $('content').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ Automation Center</h3><button class="btn btn-primary btn-sm" onclick="autoNew()">+ New rule</button></div>
+      <p class="muted" style="font-size:13px;line-height:1.6">Build <strong>Trigger → Condition → Action</strong> workflows. The built-in per-status tasks always run; these rules add your own actions on top. (Email / WhatsApp / AI actions activate once those integrations are connected.)</p>
+      <div style="overflow:auto"><table><thead><tr><th>Rule</th><th>Trigger</th><th>Conditions</th><th>Actions</th><th>On</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted" style="padding:14px">No custom rules yet — the built-in per-status automations are active. Add a rule to fire notifications, webhooks or extra tasks.</td></tr>'}</tbody></table></div></div>
+      <div id="autoEditor"></div>
+      <div class="card"><h3>Automation activity log</h3><div style="overflow:auto"><table><thead><tr><th>When</th><th>Rule</th><th>Trigger</th><th>Lead</th><th>Action</th></tr></thead><tbody>${AUTO_LOG.map(e=>`<tr><td class="muted">${esc((e.at||'').slice(0,16).replace('T',' '))}</td><td>${esc(e.rule||'')}</td><td class="muted">${esc(e.trigger||'')}</td><td>${esc(e.lead||'')}</td><td class="muted">${esc(e.action||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="muted" style="padding:12px">No automation activity yet.</td></tr>'}</tbody></table></div></div>`;
+    if(AUTO_EDIT)renderAutoEditor();
+  }
+  function syncAuto(){ if(!AUTO_EDIT)return; const g=id=>{const e=$(id);return e?e.value:undefined;}; let v; if((v=g('ar_name'))!==undefined)AUTO_EDIT.name=v; if((v=g('ar_stage'))!==undefined)AUTO_EDIT.stage=v; if((v=g('ar_cat'))!==undefined)AUTO_EDIT.condCat=v; if((v=g('ar_src'))!==undefined)AUTO_EDIT.condSource=v; }
+  const AUTO_TRIGGERS=['Status Changed','Lead Created','Document Uploaded','Invoice Paid','Task Overdue','Days Since Activity'];
+  const AUTO_TEMPLATES=[
+    {name:'Welcome email on sign-up',trigger:'Status Changed',stage:'Signed Up',condCat:'',condSource:'',actions:[{type:'send-email',subject:'Welcome to iMigrate, {{name}}!',body:'<p>Hi {{name}},</p><p>Welcome to <strong>iMigrate Migration Solutions</strong>! We are thrilled to have you on board and look forward to helping you achieve your immigration goals.</p><p>Your dedicated consultant will be in touch shortly to kick off your onboarding. In the meantime, if you have any questions, just reply to this email.</p><p>Warm regards,<br>The iMigrate Team</p>'},{type:'task',title:'Onboarding call: {{name}}',taskType:'Call',priority:'High',dueDays:1}]},
+    {name:'Follow-up after no answer',trigger:'Status Changed',stage:'No Answer – Follow-up Sent',condCat:'',condSource:'',actions:[{type:'task',title:'Retry contact: {{name}}',taskType:'Call',priority:'Normal',dueDays:2},{type:'notification',message:'No answer 2nd attempt due: {{name}}'}]},
+    {name:'Notify on new hot lead',trigger:'Lead Created',stage:'',condCat:'Hot',condSource:'',actions:[{type:'notification',message:'🔥 New hot lead created: {{name}} ({{occupation}})'}]},
+    {name:'Re-engagement email on lost lead',trigger:'Status Changed',stage:'Lost Lead',condCat:'',condSource:'',actions:[{type:'send-email',subject:'We\'d love to help you again, {{name}}',body:'<p>Hi {{name}},</p><p>We noticed you\'ve decided not to proceed for now — and that\'s totally okay. Immigration journeys take time, and we\'ll be here whenever you\'re ready.</p><p>If your circumstances change or you have any questions about visa pathways in the future, please don\'t hesitate to reach out.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'}]},
+    {name:'Zapier webhook on approval',trigger:'Status Changed',stage:'Approved',condCat:'',condSource:'',actions:[{type:'webhook',url:'https://hooks.zapier.com/hooks/catch/YOUR_ID/YOUR_KEY/'}]},
+    {name:'Task overdue alert',trigger:'Task Overdue',stage:'',condCat:'',condSource:'',actions:[{type:'notification',message:'⚠️ Overdue task for {{name}} — please action now'}]},
+    {name:'Invoice paid — start case',trigger:'Invoice Paid',stage:'',condCat:'',condSource:'',actions:[{type:'task',title:'Open visa case for {{name}}',taskType:'Follow-up',priority:'High',dueDays:0},{type:'notification',message:'Invoice paid — open case for {{name}}'}]},
+  ];
+  function autoActionRow(a,i){
+    const types=[['task','Create task'],['notification','Notification'],['send-email','Send email'],['webhook','Webhook']];
+    const typeSel=`<select onchange="AUTO_EDIT.actions[${i}].type=this.value;renderAutoEditor()" style="width:auto">${types.map(([v,l])=>`<option value="${v}" ${v===a.type?'selected':''}>${l}</option>`).join('')}</select>`;
+    let fields='';
+    if(a.type==='task'){ fields=`<input placeholder="Task title (e.g. Call {{name}})" value="${esc(a.title||'')}" oninput="AUTO_EDIT.actions[${i}].title=this.value">
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><input placeholder="Task type" value="${esc(a.taskType||'Follow-up')}" oninput="AUTO_EDIT.actions[${i}].taskType=this.value" style="width:130px"><select onchange="AUTO_EDIT.actions[${i}].priority=this.value" style="width:auto">${['High','Normal','Low'].map(pr=>`<option ${pr===(a.priority||'Normal')?'selected':''}>${pr}</option>`).join('')}</select><input type="number" min="0" value="${a.dueDays!=null?a.dueDays:1}" oninput="AUTO_EDIT.actions[${i}].dueDays=this.value" style="width:90px" title="Due in N days"></div>`; }
+    else if(a.type==='notification'){ fields=`<input placeholder="Message (e.g. New hot lead: {{name}})" value="${esc(a.message||'')}" oninput="AUTO_EDIT.actions[${i}].message=this.value">`; }
+    else if(a.type==='send-email'){ fields=`<input placeholder="Subject" value="${esc(a.subject||'')}" oninput="AUTO_EDIT.actions[${i}].subject=this.value" style="margin-bottom:4px">
+      <textarea placeholder="Email body (HTML supported)" style="min-height:70px;font-family:monospace;font-size:12px" oninput="AUTO_EDIT.actions[${i}].body=this.value">${esc(a.body||'')}</textarea>
+      <div class="muted" style="font-size:11px">Sends to the lead's email. Use {{name}}, {{occupation}}, {{stage}} as placeholders. Requires M365 / SMTP connected.</div>`; }
+    else if(a.type==='webhook'){ fields=`<input placeholder="https://hooks.zapier.com/… (POST lead JSON)" value="${esc(a.url||'')}" oninput="AUTO_EDIT.actions[${i}].url=this.value">`; }
+    return `<div class="note" style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="flex:1">${typeSel}</div><button class="btn btn-sm" onclick="autoRemoveAction(${i})">✕</button></div><div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">${fields}</div></div>`;
+  }
+  function renderAutoEditor(){
+    const r=AUTO_EDIT; if(!r){const e=$('autoEditor');if(e)e.innerHTML='';return;}
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===r.stage?'selected':''}>${s?esc(s):'Any stage'}</option>`).join('');
+    const catOpts=['','Sales Ready','Hot','Warm','Cold'].map(s=>`<option value="${s}" ${s===r.condCat?'selected':''}>${s||'Any score'}</option>`).join('');
+    const srcOpts=['','AI','Standard'].map(s=>`<option value="${s}" ${s===r.condSource?'selected':''}>${s||'Any source'}</option>`).join('');
+    const actHtml=(r.actions||[]).map((a,i)=>autoActionRow(a,i)).join('');
+    const tmplOpts=AUTO_TEMPLATES.map((t,i)=>`<option value="${i}">${esc(t.name)}</option>`).join('');
+    $('autoEditor').innerHTML=`<div class="card"><h3 style="margin-top:0">${r._new?'New rule':'Edit rule'}</h3>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <label class="muted" style="font-size:12px;white-space:nowrap">Start from template:</label>
+        <select id="ar_tmpl" style="width:auto"><option value="">— Choose template —</option>${tmplOpts}</select>
+        <button class="btn btn-sm" onclick="autoApplyTemplate()">Apply</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Rule name</label><input id="ar_name" value="${esc(r.name||'')}" placeholder="e.g. Welcome email on sign-up"></div>
+        <div><label class="muted" style="font-size:12px">Trigger</label><select id="ar_trigger" onchange="syncAuto();AUTO_EDIT.trigger=this.value;renderAutoEditor()">${AUTO_TRIGGERS.map(t=>`<option ${t===r.trigger?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      ${r.trigger==='Status Changed'?`<label class="muted" style="font-size:12px;margin-top:8px;display:block">When stage becomes</label><select id="ar_stage" style="margin-top:2px">${stageOpts}</select>`:''}
+      ${r.trigger==='Days Since Activity'?`<label class="muted" style="font-size:12px;margin-top:8px;display:block">Trigger after N days of no activity</label><div style="display:flex;gap:8px;margin-top:4px"><input id="ar_days" type="number" min="1" max="365" value="${r.daysThreshold||7}" style="width:80px" oninput="AUTO_EDIT.daysThreshold=parseInt(this.value)"> <span class="muted" style="align-self:center;font-size:12px">days (runs once per lead at this threshold)</span></div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div><label class="muted" style="font-size:12px">Condition · lead score</label><select id="ar_cat">${catOpts}</select></div>
+        <div><label class="muted" style="font-size:12px">Condition · source</label><select id="ar_src">${srcOpts}</select></div>
+      </div>
+      <h4 style="margin:14px 0 6px">Actions</h4>
+      <div id="ar_actions">${actHtml||'<p class="muted" style="font-size:12px">No actions yet — add one below.</p>'}</div>
+      <button class="btn btn-sm" onclick="autoAddAction()">+ Add action</button>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="autoSave()">Save rule</button>
+        <button class="btn btn-sm" onclick="AUTO_EDIT=null;renderAutomations()">Cancel</button>
+        <span id="ar_msg" class="muted" style="font-size:12px"></span>
+      </div>
+      <p class="muted" style="font-size:11px;margin-top:8px">Placeholders in any field: <code>{{name}}</code>, <code>{{occupation}}</code>, <code>{{stage}}</code>. Webhook POSTs lead JSON to your URL (Zapier / Make compatible). Send-email requires M365 or SMTP configured.</p></div>`;
+    $('autoEditor').scrollIntoView({behavior:'smooth'});
+  }
+  window.autoApplyTemplate=()=>{
+    const sel=$('ar_tmpl'); if(!sel||sel.value==='')return;
+    const t=AUTO_TEMPLATES[parseInt(sel.value)]; if(!t)return;
+    syncAuto();
+    AUTO_EDIT.name=AUTO_EDIT.name||t.name; AUTO_EDIT.trigger=t.trigger; AUTO_EDIT.stage=t.stage||''; AUTO_EDIT.condCat=t.condCat||''; AUTO_EDIT.condSource=t.condSource||''; AUTO_EDIT.actions=JSON.parse(JSON.stringify(t.actions));
+    renderAutoEditor();
+  };
+  window.autoNew=()=>{AUTO_EDIT={_new:true,name:'',enabled:true,trigger:'Status Changed',stage:'',condCat:'',condSource:'',actions:[{type:'task',priority:'Normal',dueDays:1}]};renderAutoEditor();};
+  window.autoEdit=(id)=>{const r=AUTO_RULES.find(x=>x.id===id);if(!r)return;AUTO_EDIT=JSON.parse(JSON.stringify(r));renderAutoEditor();};
+  window.autoAddAction=()=>{syncAuto();AUTO_EDIT.actions=AUTO_EDIT.actions||[];AUTO_EDIT.actions.push({type:'task',priority:'Normal',dueDays:1});renderAutoEditor();};
+  window.autoRemoveAction=(i)=>{syncAuto();AUTO_EDIT.actions.splice(i,1);renderAutoEditor();};
+  window.autoSave=async()=>{syncAuto();const r=AUTO_EDIT;if(!r.name||!r.name.trim()){$('ar_msg').textContent='Name required';$('ar_msg').className='err';return;}const rule={id:r._new?'':r.id,name:r.name,enabled:r.enabled!==false,trigger:r.trigger,stage:r.trigger==='Status Changed'?(r.stage||''):'',condCat:r.condCat||'',condSource:r.condSource||'',actions:r.actions||[]};const rr=await api('/crm-automation.php',{action:'rule-save',rule});if(rr&&rr.ok){AUTO_EDIT=null;renderAutomations();}else{$('ar_msg').textContent='Save failed';$('ar_msg').className='err';}};
+  window.autoDel=async(id)=>{if(!confirm('Delete this automation rule?'))return;await api('/crm-automation.php',{action:'rule-delete',id});renderAutomations();};
+  window.autoToggle=async(id,on)=>{const r=AUTO_RULES.find(x=>x.id===id);if(!r)return;r.enabled=on;await api('/crm-automation.php',{action:'rule-save',rule:r});};
+
   function renderSettings(){
     $('content').innerHTML=`
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Your profile</h3>
@@ -878,8 +1935,30 @@
         <button class="btn" onclick="exportCsv()">⬇ Export all leads (CSV)</button>
         <a class="btn" href="/cms.html" target="_blank">🌐 Open Website CMS</a></div>
       </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">📊 Lead Scoring</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px">Auto-calculate lead engagement scores based on email opens, clicks, calls, and meetings. Scores determine if a lead is <strong>Cold</strong> (&lt;5), <strong>Sales Ready</strong> (5–19), <strong>Warm</strong> (20–49), or <strong>Hot</strong> (50+).</p>
+        <table style="font-size:12px;width:100%;margin-bottom:10px">
+          <tr><td style="padding:4px;color:var(--muted)">Email open</td><td style="padding:4px"><strong>+5</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Email click</td><td style="padding:4px"><strong>+10</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Email reply</td><td style="padding:4px"><strong>+20</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Call completed</td><td style="padding:4px"><strong>+10</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Meeting</td><td style="padding:4px"><strong>+30</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Note added (past 7d)</td><td style="padding:4px"><strong>+2</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">No activity (per week)</td><td style="padding:4px"><strong>−15</strong> points</td></tr>
+        </table>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="recalculateAllScores()">🔄 Recalculate all scores</button><button class="btn btn-sm" onclick="viewScoringReport()">📈 Scoring report</button><span id="scoringMsg" class="muted" style="font-size:12px;align-self:center"></span></div>
+        <div id="scoringReport" style="margin-top:10px"></div>
+      </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">HubSpot integration</h3>
-        <div id="hubspotPanel"><p class="muted">Loading…</p></div>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px">Sync contacts + email activity from HubSpot. Matched by email address: new contacts become leads, existing leads get updated with phone/company/engagement data.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-primary btn-sm" onclick="hsSync('sync-all')">🔄 Sync contacts + emails</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-contacts')">Contacts only</button>
+          <button class="btn btn-sm" onclick="hsSync('sync-emails')">Emails only</button>
+          <span id="hsSyncMsg" class="muted" style="font-size:12px;align-self:center"></span>
+        </div>
+        <div id="hsSyncProgress" style="margin-top:8px"></div>
+        <div id="hsSyncReport" style="margin-top:10px"></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Microsoft 365 integration</h3>
         <div id="m365Status"><p class="muted">Checking connection…</p></div>
@@ -894,11 +1973,207 @@
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="cvReconcileScan()">🔍 Scan for orphaned CVs</button><span id="cvReconMsg" class="muted" style="font-size:13px"></span></div>
         <div id="cvReconResult" style="margin-top:10px"></div>
       </div>
+      <div class="card" style="margin-bottom:14px;border:1px solid #1a7f37"><h3 style="margin:0 0 8px">🛡️ System Backup, Rollback &amp; Audit</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Protects <strong>everything</strong> — CRM data, portal users, integration &amp; API credentials, Microsoft 365 / HubSpot config, AI settings and CMS edits. Backups run <strong>automatically in real time</strong> after any change, to <strong>two independent destinations at once</strong>: this Hostinger server <em>and</em> OneDrive. A populated backup is never overwritten with an empty one, and every restore snapshots the current state first — so rollback is always reversible. Deploys never touch any of this data.</p>
+        <div id="sysStatus" class="muted" style="font-size:13px;margin:8px 0"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="backupEverythingNow()">💾 Back up everything now (both)</button><button class="btn" onclick="loadSystemBackups()">🔄 Refresh</button><button class="btn" onclick="loadSysOnedrive()">☁️ OneDrive restore points</button><button class="btn" onclick="pickImportLeads()">⬆ Recover / Import leads</button><button class="btn" onclick="loadAudit()">📋 Audit log</button><span id="sysMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="sysProgress"></div>
+        <div id="sysList" style="margin-top:10px"></div>
+        <div id="sysOdList" style="margin-top:10px"></div>
+        <div id="sysAudit" style="margin-top:10px"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Backup &amp; Restore <span class="muted" style="font-weight:400;font-size:12px">(CRM leads only — legacy)</span></h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Point-in-time snapshots of the entire CRM record store (leads, notes, tasks, reports, pipeline, overrides). A snapshot is taken automatically before every website deploy. If your leads ever look wrong or missing, restore the most recent snapshot that shows the right number of leads — your current state is snapshotted first, so a restore is always reversible.</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" onclick="loadBackups()">🔄 Refresh list</button><button class="btn" onclick="snapshotNow()">📸 Snapshot now</button><button class="btn" onclick="onedriveBackupNow()">☁️ Back up to OneDrive</button><button class="btn" onclick="loadOnedriveBackups()">☁️ Restore from OneDrive</button><button class="btn" onclick="diagLoading()">🔧 Diagnose loading</button><span id="bkMsg" class="muted" style="font-size:13px"></span></div>
+        <div id="bkOnedrive" class="muted" style="font-size:13px;margin-top:8px">☁️ Last OneDrive backup: <strong>checking…</strong></div>
+        <div id="bkProgress"></div>
+        <div id="bkOdList" style="margin-top:10px"></div>
+        <div id="bkDiag"></div>
+        <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Pipeline Stage Migration</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6">Migrate legacy stage names (old 14-stage pipeline) to the new 15 standardised immigration CRM statuses. A full backup is taken automatically <strong>before</strong> any changes are made. Signed Up clients and Lost Leads are never touched. Use <em>Preview</em> first to see exactly what will change.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+          <button class="btn" onclick="previewMigration()">🔍 Preview changes</button>
+          <button class="btn btn-primary btn-sm" onclick="runMigration()">⬆ Migrate stage names</button>
+          <span id="migMsg" class="muted" style="font-size:13px"></span>
+        </div>
+        <div id="migResult" style="margin-top:10px"></div>
+      </div>
       <div class="card"><h3 style="margin:0 0 8px">CRM data &amp; deployment</h3>
-        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use “Export CSV” for a manual backup any time.</p>
+        <p class="muted" style="font-size:13px;line-height:1.6">This CRM runs as a separate application layer. All CRM data — leads, pipeline stages, notes, activity, tasks, emails, documents and stored reports — lives in the server's protected <code>leads/</code> store and is <strong>excluded from website deploys</strong>, so publishing website content never overwrites CRM records. Use "Export CSV" for a manual backup any time.</p>
       </div>`;
     m365LoadStatus();
     hubspotLoad();
+    loadSystemBackups();
+    loadBackups();
+  }
+  /* ---------- System backup, rollback & audit (full platform) ---------- */
+  const SYS_TYPE={'change':'Auto (change)','manual':'Manual','pre-deploy':'Pre-deploy','pre-restore':'Pre-restore','daily':'Daily'};
+  async function loadSystemBackups(){
+    const st=$('sysStatus'), box=$('sysList');
+    const r=await api('/system-backup.php',{action:'list'});
+    if(!r||!r.ok){ if(st)st.innerHTML='<span class="err">System backup service unavailable'+((r&&r.error)?(' — '+esc(r.error)):'')+'.</span>'; if(box)box.innerHTML=''; return; }
+    const cur=(r.current&&r.current.leads)||0;
+    if(st)st.innerHTML='Current: <strong>'+cur+'</strong> lead(s) · Server restore points: <strong>'+((r.backups||[]).length)+'</strong> · '
+      +'Last server backup: <strong>'+esc(r.lastServer?backupAgo(new Date(r.lastServer*1000).toISOString()):'never')+'</strong> · '
+      +'Last OneDrive: <strong>'+esc(r.lastOnedrive?backupAgo(new Date(r.lastOnedrive*1000).toISOString()):'never')+'</strong>';
+    const rows=(r.backups||[]).map(b=>{
+      const ok=b.valid===false?'<span class="err" title="integrity check">⚠</span>':'<span class="ok">✓</span>';
+      return `<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><span class="badge tag">${esc(SYS_TYPE[b.type]||b.type||'')}</span></td><td><strong>${b.leads||0}</strong></td><td>${ok}</td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreSystem('${esc(b.ts)}',${b.leads||0})">Rollback</button> <button class="btn btn-sm" onclick="downloadSystem('${esc(b.ts)}')">⬇</button></td></tr>`;
+    }).join('');
+    if(box)box.innerHTML='<div style="overflow:auto"><table><thead><tr><th>Server restore point</th><th>Type</th><th>Leads</th><th>OK</th><th>Size</th><th class="right"></th></tr></thead><tbody>'+(rows||'<tr><td colspan="6" class="muted" style="padding:10px">No restore points yet — they’re created automatically as you work.</td></tr>')+'</tbody></table></div>';
+  }
+  async function backupEverythingNow(){
+    const p=progressBar($('sysProgress'),'Backing up everything to server + OneDrive…');
+    const r=await api('/system-backup.php',{action:'backup-now'});
+    const sOk=r&&r.server, oOk=r&&r.onedrive&&r.onedrive.ok;
+    p.done(!!(r&&r.ok), (r&&r.ok)?('Server ✓'+(oOk?' · OneDrive ✓':' · OneDrive: '+esc((r.onedrive&&r.onedrive.error)||'not connected'))):('Backup failed'+(r&&r.noData?' — no data to back up':'')));
+    loadSystemBackups();
+  }
+  async function restoreSystem(ts,leads){
+    if(!confirm('Roll back the ENTIRE platform (CRM + portal + integrations + config) to the restore point from '+ts+' ('+leads+' leads)?\n\nThe current state is snapshotted first, so this is reversible.'))return;
+    const p=progressBar($('sysProgress'),'Rolling back to '+ts+'…');
+    const r=await api('/system-backup.php',{action:'restore',ts});
+    p.done(!!(r&&r.ok), r&&r.ok?('Rolled back '+r.restored+' files ✓ (safety point '+r.safetySnapshot+')'):('Rollback failed — '+((r&&r.error)||'')));
+    if(r&&r.ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
+  }
+  async function loadSysOnedrive(){
+    const box=$('sysOdList'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading OneDrive restore points…</p>';
+    const r=await api('/system-backup.php',{action:'onedrive-list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not list OneDrive backups — '+esc((r&&r.error)||'Microsoft 365 not connected')+'.</p>'; return; }
+    const files=r.files||[];
+    if(!files.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No system backups in OneDrive ▸ iMigrate System Backups yet.</p>'; return; }
+    const rows=files.map(f=>`<tr><td class="muted">${esc(backupAgo(f.modified)||f.name)}</td><td class="muted">${((f.size||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreSysOnedrive('${esc(f.name)}')">Rollback</button></td></tr>`).join('');
+    if(box)box.innerHTML='<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">☁️ OneDrive restore points <span class="muted" style="font-weight:400">(iMigrate System Backups)</span></h3><div style="overflow:auto"><table><thead><tr><th>Backup</th><th>Size</th><th class="right"></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+  async function restoreSysOnedrive(file){
+    if(!confirm('Roll back the ENTIRE platform from OneDrive backup:\n'+file+'\n\nThe current state is snapshotted first, so this is reversible.'))return;
+    const p=progressBar($('sysProgress'),'Rolling back from OneDrive…');
+    const r=await api('/system-backup.php',{action:'onedrive-restore',file});
+    p.done(!!(r&&r.ok), r&&r.ok?('Rolled back '+r.restored+' files ✓'):('Rollback failed — '+((r&&r.error)||'')));
+    if(r&&r.ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
+  }
+  async function downloadSystem(ts){
+    const m=$('sysMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
+    try{ const r=await fetch('/system-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
+      if(!r.ok){ if(m){m.textContent='Download failed';m.className='err';} return; }
+      const b=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-system-'+ts+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      if(m){m.textContent='Downloaded ✓';m.className='ok';}
+    }catch(e){ if(m){m.textContent='Download failed';m.className='err';} }
+  }
+  /* Recover/import leads from an exported .ndjson/.json file (e.g. HubSpot recovery). */
+  function pickImportLeads(){ const i=document.createElement('input'); i.type='file'; i.accept='.ndjson,.json,application/json,text/plain'; i.onchange=()=>{ if(i.files&&i.files[0]) importLeadsFile(i.files[0]); }; i.click(); }
+  async function importLeadsFile(file){
+    const m=$('sysMsg'); if(m){m.textContent='Reading '+file.name+'…';m.className='muted';}
+    let text=''; try{ text=await file.text(); }catch(e){ if(m){m.textContent='Could not read file';m.className='err';} return; }
+    const t=text.trim(); let leads=[];
+    try{ if(t[0]==='['){ leads=JSON.parse(t); } else { leads=t.split(/\r?\n/).filter(Boolean).map(l=>{ try{return JSON.parse(l);}catch(e){return null;} }).filter(Boolean); } }catch(e){ if(m){m.textContent='Invalid file format';m.className='err';} return; }
+    if(!leads.length){ if(m){m.textContent='No leads found in file';m.className='err';} return; }
+    if(!confirm('Import '+leads.length+' lead(s) into the CRM?\n\nExisting leads are kept; duplicates (same email or HubSpot ID) are skipped. A safety snapshot is taken first.'))return;
+    const p=progressBar($('sysProgress'),'Importing '+leads.length+' leads…');
+    // chunk to keep each POST well under limits
+    let added=0,skipped=0,ok=true;
+    for(let i=0;i<leads.length;i+=300){
+      const chunk=leads.slice(i,i+300);
+      const r=await api('/system-backup.php',{action:'import-leads',leads:chunk,reason:'file:'+file.name});
+      if(r&&r.ok){ added+=r.added||0; skipped+=r.skipped||0; } else { ok=false; break; }
+    }
+    p.done(ok, ok?('Imported '+added+' leads ✓ ('+skipped+' duplicates skipped)'):'Import failed');
+    if(ok){ setTimeout(()=>loadAll(),700); setTimeout(()=>{ if(VIEW==='settings')loadSystemBackups(); },1100); }
+  }
+  async function loadAudit(){
+    const box=$('sysAudit'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading audit log…</p>';
+    const r=await api('/system-backup.php',{action:'audit',limit:60});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not load audit log.</p>'; return; }
+    const ev=r.events||[];
+    if(!ev.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No audit events yet.</p>'; return; }
+    const rows=ev.map(e=>`<tr><td class="muted">${esc((e.at||'').slice(0,19).replace('T',' '))}</td><td><span class="badge tag">${esc(e.event||'')}</span></td><td class="muted" style="font-size:12px">${esc([e.type,e.ts,e.file,e.phase,e.reason,e.from,(e.restored!=null?('restored '+e.restored):''),(e.leads!=null?(e.leads+' leads'):'')].filter(Boolean).join(' · '))}</td></tr>`).join('');
+    if(box)box.innerHTML='<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">📋 Audit log <span class="muted" style="font-weight:400">(newest first)</span></h3><div style="overflow:auto;max-height:320px"><table><thead><tr><th>When</th><th>Event</th><th>Detail</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+  /* Human-friendly "time ago" + absolute date for a backup timestamp. */
+  function backupAgo(iso){
+    if(!iso) return '';
+    const t=new Date(iso).getTime(); if(isNaN(t)) return '';
+    const mins=Math.max(0,Math.round((Date.now()-t)/60000));
+    let ago; if(mins<1)ago='just now'; else if(mins<60)ago=mins+' min ago'; else if(mins<1440)ago=Math.round(mins/60)+' hr ago'; else ago=Math.round(mins/1440)+' day(s) ago';
+    return new Date(iso).toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+' ('+ago+')';
+  }
+  function renderOnedriveLast(el,od){
+    if(!el) return;
+    if(od&&od.at){ el.innerHTML='☁️ Last OneDrive backup: <strong>'+esc(backupAgo(od.at))+'</strong>'+(od.count?(' <span class="muted">· '+od.count+' files</span>'):''); el.className='ok'; el.style.fontSize='13px'; }
+    else { el.innerHTML='☁️ Last OneDrive backup: <strong>never</strong> <span class="muted">— run a backup or connect Microsoft 365</span>'; el.className='muted'; el.style.fontSize='13px'; }
+  }
+  async function refreshOnedriveLast(){
+    const a=$('bkOnedrive'), b=$('m365OnedriveLast'); if(!a&&!b) return;
+    const r=await api('/crm-backup.php',{action:'onedrive-status'});
+    const od=(r&&r.onedrive)||null; renderOnedriveLast(a,od); renderOnedriveLast(b,od);
+  }
+  async function loadBackups(){
+    const box=$('bkList'); if(box)box.innerHTML='<p class="muted">Loading…</p>';
+    const r=await api('/crm-backup.php',{action:'list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not load backups ('+esc((r&&r.error)||'')+').</p>'; return; }
+    renderOnedriveLast($('bkOnedrive'), r.onedrive);
+    const cur=(r.current&&r.current.leads)||0;
+    const TYPE_LABEL={'daily':'Daily','manual':'Manual','pre-restore':'Pre-restore','pre-deploy':'Pre-deploy'};
+    const rows=(r.backups||[]).map(b=>{
+      const integrity=b.valid===false?'<span class="err" title="Some records failed validation">⚠ check</span>':'<span class="ok">✓</span>';
+      return `<tr><td>${esc(((b.at||b.ts)+'').slice(0,16).replace('T',' '))}</td><td><span class="badge tag">${esc(TYPE_LABEL[b.type]||b.type||'manual')}</span></td><td><strong>${b.leads||0}</strong></td><td>${integrity}</td><td class="muted">${b.files||0} files · ${((b.bytes||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm" onclick="restoreBackup('${esc(b.ts)}',${b.leads||0})" ${b.leads?'':'disabled'}>Restore</button> <button class="btn btn-sm" onclick="downloadBackup('${esc(b.ts)}')">⬇</button></td></tr>`;
+    }).join('');
+    if(box)box.innerHTML=`<p style="font-size:13px;margin:0 0 6px">Current live store: <strong>${cur}</strong> lead(s).${cur===0?' <span class="err">Empty — restore a snapshot below.</span>':''} <span class="muted">Auto-backups: daily, kept as 14 daily · 12 weekly · 12 monthly.</span></p>
+      <div style="overflow:auto"><table><thead><tr><th>Snapshot (taken)</th><th>Type</th><th>Leads</th><th>OK</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted" style="padding:12px">No snapshots found.</td></tr>'}</tbody></table></div>`;
+  }
+  async function restoreBackup(ts,leads){
+    if(!confirm('Restore the snapshot from '+ts+' ('+leads+' leads)?\n\nThis replaces the current CRM records with that snapshot. Your current state is snapshotted first, so you can undo.'))return;
+    const m=$('bkMsg'); if(m){m.textContent='Restoring…';m.className='muted';}
+    const r=await api('/crm-backup.php',{action:'restore',ts});
+    if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),500); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },900);} else { if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';} }
+  }
+  async function snapshotNow(){ const m=$('bkMsg'); if(m){m.textContent='Creating snapshot…';m.className='muted';} const r=await api('/crm-backup.php',{action:'snapshot'}); if(m){m.textContent=r&&r.ok?('Snapshot created.'):'Snapshot failed';m.className=r&&r.ok?'ok':'err';} loadBackups(); }
+  /* Reusable progress bar for unknown-duration ops (animates toward 90%, completes on done). */
+  function progressBar(container,label){
+    if(!container) return {done:()=>{}};
+    container.innerHTML=`<div style="margin-top:8px"><div class="muted" style="font-size:12px;margin-bottom:4px" data-pglbl>${esc(label||'Working…')}</div><div style="height:9px;background:#e2e8f0;border-radius:6px;overflow:hidden"><div data-pgfill style="height:100%;width:6%;background:var(--navy,#0b1f44);transition:width .35s ease;border-radius:6px"></div></div></div>`;
+    const fill=container.querySelector('[data-pgfill]'); const lbl=container.querySelector('[data-pglbl]'); let pct=6;
+    const timer=setInterval(()=>{ pct=Math.min(90,pct+Math.random()*11+3); if(fill)fill.style.width=pct+'%'; },380);
+    return { done:(ok,msg)=>{ clearInterval(timer); if(fill){fill.style.width='100%';fill.style.background=ok?'#1a7f37':'#b91c1c';} if(lbl)lbl.textContent=msg||(ok?'Done ✓':'Failed'); setTimeout(()=>{ if(container&&ok)container.innerHTML=''; },4000); } };
+  }
+  async function onedriveBackupNow(){ const p=progressBar($('bkProgress'),'Backing up all CRM data to OneDrive…'); const r=await api('/crm-backup.php',{action:'onedrive-backup'}); p.done(!!(r&&r.ok), r&&r.ok?('Backed up to OneDrive ✓ ('+(r.count||'')+' files)'):('OneDrive backup failed — '+((r&&r.error)||'Microsoft 365 not connected'))); if(r&&r.ok)refreshOnedriveLast(); }
+  async function loadOnedriveBackups(){
+    const box=$('bkOdList'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Loading OneDrive backups…</p>';
+    const r=await api('/crm-backup.php',{action:'onedrive-list'});
+    if(!r||!r.ok){ if(box)box.innerHTML='<p class="err" style="font-size:13px">Could not list OneDrive backups — '+esc((r&&r.error)||'Microsoft 365 not connected')+'.</p>'; return; }
+    const files=r.files||[];
+    if(!files.length){ if(box)box.innerHTML='<p class="muted" style="font-size:13px">No backups found in OneDrive ▸ iMigrate CRM Backups.</p>'; return; }
+    const rows=files.map(f=>`<tr><td class="muted">${esc(backupAgo(f.modified)||f.name)}</td><td class="muted">${((f.size||0)/1024|0)} KB</td><td class="right"><button class="btn btn-sm btn-primary" onclick="restoreFromOnedrive('${esc(f.name)}')">Restore</button></td></tr>`).join('');
+    if(box)box.innerHTML=`<div class="card" style="background:var(--bg);box-shadow:none"><h3 style="margin:0 0 6px;font-size:13px">☁️ OneDrive backups <span class="muted" style="font-weight:400">(iMigrate CRM Backups)</span></h3><p class="muted" style="font-size:12px;margin:0 0 8px">Restoring pulls the bundle from OneDrive and replaces the current CRM records. Your current state is snapshotted first, so it's reversible.</p><div style="overflow:auto"><table><thead><tr><th>Backup</th><th>Size</th><th class="right"></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  async function restoreFromOnedrive(file){
+    if(!confirm('Restore CRM data from OneDrive backup:\n'+file+'\n\nThis replaces the current CRM records with that backup. Your current state is snapshotted first, so you can undo.'))return;
+    const m=$('bkMsg'); if(m){m.textContent='Restoring from OneDrive…';m.className='muted';}
+    const p=progressBar($('bkProgress'),'Restoring CRM data from OneDrive…');
+    const r=await api('/crm-backup.php',{action:'onedrive-restore',file});
+    p.done(!!(r&&r.ok), r&&r.ok?('Restored '+r.restored+' files from OneDrive ✓'):('Restore failed — '+((r&&r.error)||'unknown error')));
+    if(r&&r.ok){ if(m){m.textContent='Restored '+r.restored+' files ✓ — reloading leads.';m.className='ok';} setTimeout(()=>loadAll(),600); setTimeout(()=>{ if(VIEW==='settings')loadBackups(); },1000); }
+    else if(m){m.textContent=(r&&r.error)||'Restore failed';m.className='err';}
+  }
+  async function downloadBackup(ts){
+    const m=$('bkMsg'); if(m){m.textContent='Preparing download…';m.className='muted';}
+    try{ const r=await fetch('/crm-backup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),action:'download',ts})});
+      if(!r.ok){ if(m){m.textContent='Download failed';m.className='err';} return; }
+      const b=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='imigrate-crm-backup-'+ts+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      if(m){m.textContent='Downloaded ✓';m.className='ok';}
+    }catch(e){ if(m){m.textContent='Download failed';m.className='err';} }
+  }
+  async function diagOne(url,body){
+    try{ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW(),author:CRM_USER(),...body})}); const txt=await r.text(); let p=null,cnt='—',ok='?'; try{ p=JSON.parse(txt); ok=String(!!p.ok); const a=p.leads||p.reports||p.tasks||(p.meta?Object.keys(p.meta):null); cnt=Array.isArray(a)?a.length:(a&&typeof a==='object'?Object.keys(a).length:'(none)'); }catch(e){ ok='UNPARSEABLE'; } return {status:r.status,ok,cnt,sample:txt.slice(0,160)}; }catch(e){ return {status:'ERR',ok:e.message,cnt:'—',sample:''}; }
+  }
+  async function diagLoading(){
+    const box=$('bkDiag'); if(box)box.innerHTML='<p class="muted" style="font-size:13px">Running diagnostic…</p>';
+    const tests=[['leads-read.php','/leads-read.php',{action:'list'}],['crm-reports.php','/crm-reports.php',{action:'list'}],['crm-meta.php','/crm-meta.php',{action:'list'}],['crm-tasks.php','/crm-tasks.php',{action:'list'}]];
+    const rows=[];
+    for(const [name,url,body] of tests){ const d=await diagOne(url,body); rows.push(`<tr><td><code>${name}</code></td><td>${d.status}</td><td>${esc(String(d.ok))}</td><td><strong>${esc(String(d.cnt))}</strong></td><td class="muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.sample)}</td></tr>`); }
+    if(box)box.innerHTML=`<div class="card" style="background:#fbfcfe;margin-top:10px"><strong style="font-size:13px">Data-loading diagnostic</strong><div style="overflow:auto"><table style="font-size:12px"><thead><tr><th>Endpoint</th><th>HTTP</th><th>ok</th><th>records</th><th>response starts with</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><p class="muted" style="font-size:11px;margin-top:6px">Share these rows with support if leads still don't appear. HTTP 200 + ok=true + records&gt;0 means data is loading; records=0 with a count above in “Current live store” means a format issue (now auto-healed on next load).</p></div>`;
   }
 
   /* ---------- HubSpot integration (moved from the legacy admin) ---------- */
@@ -955,9 +2230,14 @@
       box.innerHTML=`<span class="badge ready">Connected</span> <strong>${esc(s.displayName||'')}</strong> <span class="muted">${esc(s.account||'')}</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
           <button class="btn btn-sm" onclick="m365Inbox()">📥 Sync inbox</button>
-          <button class="btn btn-sm" onclick="m365Backup()">☁️ Backup leads to OneDrive</button>
+          <button class="btn btn-sm btn-primary" onclick="m365FullBackup()">☁️ Back up ALL CRM data to OneDrive</button>
+          <button class="btn btn-sm" onclick="m365Backup()">Leads CSV → OneDrive</button>
           <button class="btn btn-sm" onclick="m365Disconnect()">Disconnect</button>
-        </div>`;
+        </div>
+        <p class="muted" style="font-size:12px;margin-top:6px">Full backup includes leads, cases, invoices, tasks, notes, automations &amp; reports → OneDrive ▸ <strong>iMigrate CRM Backups</strong>. It also runs <strong>automatically with the daily backup</strong>.</p>
+        <div id="m365OnedriveLast" class="muted" style="font-size:13px;margin-top:4px">☁️ Last OneDrive backup: <strong>checking…</strong></div>
+        <div id="m365Progress"></div>`;
+      refreshOnedriveLast();
     } else {
       box.innerHTML=`<span class="badge warm">Configured · not connected</span>
         <div style="margin-top:10px"><a class="btn btn-sm btn-primary" href="/m365.php?action=connect" target="_blank" onclick="setTimeout(m365LoadStatus,6000)">🔗 Connect Microsoft 365</a></div>`;
@@ -976,6 +2256,13 @@
     const name='imigrate-crm-leads-'+new Date().toISOString().slice(0,10)+'.csv';
     const r=await api('/m365.php',{action:'onedrive',name,content,folder:'iMigrate CRM'});
     alert(r&&r.ok?('Backed up '+CONTACTS.length+' leads to OneDrive › iMigrate CRM › '+name):'Backup failed (check Microsoft 365 connection).');
+  }
+  async function m365FullBackup(){
+    if(!confirm('Back up ALL CRM data (leads, cases, invoices, tasks, notes, automations, reports) to OneDrive now?'))return;
+    const p=progressBar($('m365Progress'),'Backing up all CRM data to OneDrive…');
+    const r=await api('/crm-backup.php',{action:'onedrive-backup'});
+    p.done(!!(r&&r.ok), r&&r.ok?('✅ Backed up '+(r.count||'all')+' files → OneDrive ▸ iMigrate CRM Backups ▸ '+(r.file||'')):('Backup failed — '+((r&&r.error)||'check the Microsoft 365 connection')));
+    if(r&&r.ok)refreshOnedriveLast();
   }
   async function m365Disconnect(){ if(!confirm('Disconnect Microsoft 365?'))return; await api('/m365.php',{action:'disconnect'}); m365LoadStatus(); $('m365Inbox').innerHTML=''; }
 
@@ -998,14 +2285,38 @@
     else alert('Apply failed.');
   }
 
+  /* ---------- pipeline stage migration ---------- */
+  async function previewMigration(){
+    const msg=$('migMsg'),box=$('migResult');
+    if(msg)msg.textContent='Scanning…'; if(box)box.innerHTML='';
+    const r=await api('/crm-meta.php',{action:'migrate-stages',dryRun:true});
+    if(!r||!r.ok){if(msg)msg.textContent=r&&r.error?r.error:'Scan failed.';return;}
+    if(msg)msg.textContent=r.total+' leads scanned · '+r.changes.length+' to update.';
+    if(!r.changes.length){if(box)box.innerHTML='<p class="muted" style="font-size:13px">All leads already use the new status system — no changes needed.</p>';return;}
+    const rows=r.changes.map(c=>`<tr><td>${esc(c.name||c.key)}</td><td>${stageBadge(c.from)}</td><td style="color:var(--muted)">→</td><td>${stageBadge(c.to)}</td></tr>`).join('');
+    if(box)box.innerHTML=`<div style="overflow:auto;margin-top:8px"><table><thead><tr><th>Lead</th><th>Current (legacy)</th><th></th><th>New status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  async function runMigration(){
+    const legacyCount=Object.keys(STAGE_MIGRATION_MAP).length;
+    if(!confirm('Migrate '+legacyCount+' legacy stage types to the new 15-status system?\n\nA full backup is created first. Signed Up and Lost Lead records are protected.\n\nContinue?'))return;
+    const msg=$('migMsg'),box=$('migResult');
+    if(msg){msg.textContent='Backing up and migrating…';msg.className='muted';}
+    const r=await api('/crm-meta.php',{action:'migrate-stages',dryRun:false});
+    if(!r||!r.ok){if(msg){msg.textContent=(r&&r.error)||'Migration failed.';msg.className='err';}return;}
+    if(msg){msg.textContent='✓ Migrated '+r.migrated+' lead(s). Backup: '+esc(r.backupTs);msg.className='ok';}
+    if(box)box.innerHTML=`<p class="ok" style="font-size:13px">Migration complete. ${r.migrated} stage(s) updated. Safety backup: <code>${esc(r.backupTs)}</code>.</p>`;
+    await loadAll();
+  }
+
   /* ---------- export / theme ---------- */
-  function exportCsv(){
+  function exportCsvRows(contacts){
     const cols=['name','sourceType','email','phone','whatsapp','country','occupation','anzsco','points','visas','score','cat','stage','source','firstDate','latestDate'];
     const rows=[cols.join(',')];
-    CONTACTS.forEach(c=>rows.push(cols.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
+    contacts.forEach(c=>rows.push(cols.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
     const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='imigrate-crm-leads.csv';a.click();
   }
+  function exportCsv(){ exportCsvRows(CONTACTS); }
   function setTheme(t){document.body.dataset.theme=t;localStorage.setItem('imig_crm_theme',t);$('themeBtn').textContent=t==='dark'?'☀️ Light':'🌙 Dark';}
   function toggleTheme(){setTheme(document.body.dataset.theme==='dark'?'light':'dark');}
 

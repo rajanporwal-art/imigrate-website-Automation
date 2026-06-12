@@ -15,9 +15,13 @@ function m365_config() {
     static $cfg = null;
     if ($cfg !== null) return $cfg;
     $cfg = [];
-    if (is_file(__DIR__ . '/m365-config.php')) {
-        include __DIR__ . '/m365-config.php';
-        if (isset($M365) && is_array($M365)) $cfg = $M365;
+    // Prefer the deploy-proof location (auth/ persists across deploys); fall back
+    // to the legacy root file for backward compatibility.
+    foreach ([__DIR__ . '/auth/m365-config.php', __DIR__ . '/m365-config.php'] as $f) {
+        if (is_file($f)) {
+            include $f;
+            if (isset($M365) && is_array($M365)) { $cfg = $M365; break; }
+        }
     }
     return $cfg;
 }
@@ -162,6 +166,24 @@ function m365_onedrive_upload($name, $content, $folder = 'iMigrate CRM') {
     $headers = ['Authorization: Bearer ' . $tok, 'Content-Type: application/octet-stream'];
     $r = m365_http('https://graph.microsoft.com/v1.0' . $path, $content, $headers, 'PUT');
     return $r['code'] >= 200 && $r['code'] < 300 ? $r['json'] : null;
+}
+/* List files in a OneDrive folder (newest first). Returns [] if not connected/empty. */
+function m365_onedrive_list($folder = 'iMigrate CRM Backups') {
+    $tok = m365_access_token();
+    if (!$tok) return [];
+    $path = '/me/drive/root:/' . rawurlencode($folder) . ':/children?$select=name,size,lastModifiedDateTime&$orderby=lastModifiedDateTime desc&$top=200';
+    $r = m365_graph($path);
+    if ($r['code'] !== 200 || empty($r['json']['value'])) return [];
+    return $r['json']['value'];
+}
+/* Download a file's raw bytes from a OneDrive folder. Returns string|null. */
+function m365_onedrive_download($name, $folder = 'iMigrate CRM Backups') {
+    $tok = m365_access_token();
+    if (!$tok) return null;
+    $path = '/me/drive/root:/' . rawurlencode($folder) . '/' . rawurlencode($name) . ':/content';
+    $headers = ['Authorization: Bearer ' . $tok, 'Accept: application/octet-stream'];
+    $r = m365_http('https://graph.microsoft.com/v1.0' . $path, null, $headers, 'GET');
+    return ($r['code'] >= 200 && $r['code'] < 300) ? (string) $r['body'] : null;
 }
 function m365_me() {
     $r = m365_graph('/me?$select=displayName,mail,userPrincipalName');

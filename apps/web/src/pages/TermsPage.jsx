@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import LegalDisclaimer from '@/components/LegalDisclaimer.jsx';
+import { useSiteContent } from '@/lib/siteContent.jsx';
+import { mdToHtml } from '@/lib/markdown';
 
 const EFFECTIVE_DATE = '1 June 2026';
 const COMPANY = 'iMigrate Migration Solutions';
@@ -40,12 +42,35 @@ const TOC = [
 ];
 
 export default function TermsPage() {
+  const { terms = {} } = useSiteContent();
+  const heroTitle = terms.heroTitle || 'Terms of Service';
+  const effDate = terms.effectiveDate || EFFECTIVE_DATE;
+
+  if (terms.bodyMarkdown && terms.bodyMarkdown.trim()) {
+    return (
+      <>
+        <Helmet>
+          <title>Terms of Service — iMigrate Migration Solutions</title>
+          <meta name="robots" content="noindex, follow" />
+        </Helmet>
+        <Header />
+        <main className="bg-background">
+          <section className="bg-primary text-primary-foreground py-16">
+            <div className="container-custom"><div className="gold-rule mb-5" /><h1 className="heading-display mb-4">{heroTitle}</h1><p className="text-lg opacity-80">Effective date: <strong>{effDate}</strong></p></div>
+          </section>
+          <div className="container-custom py-16 max-w-3xl cms-prose" dangerouslySetInnerHTML={{ __html: mdToHtml(terms.bodyMarkdown) }} />
+        </main>
+        <Footer />
+      </>
+    );
+  }
   return (
     <>
       <Helmet>
         <title>Terms of Service — iMigrate Migration Solutions</title>
         <meta name="description" content="iMigrate Migration Solutions Terms of Service — the terms and conditions governing use of our immigration consultancy services and website." />
         <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://www.imigratesolution.com/terms" />
       </Helmet>
 
       <Header />
@@ -68,9 +93,9 @@ export default function TermsPage() {
               transition={{ duration: 0.5 }}
             >
               <div className="gold-rule mb-5" />
-              <h1 className="heading-display mb-4">Terms of Service</h1>
+              <h1 className="heading-display mb-4">{heroTitle}</h1>
               <p className="text-lg opacity-80">
-                Effective date: <strong>{EFFECTIVE_DATE}</strong>
+                Effective date: <strong>{effDate}</strong>
               </p>
             </motion.div>
           </div>

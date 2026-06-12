@@ -58,6 +58,7 @@ iMigrate_Website.zip
 
 # PHP upload storage (server-side data, not in repo)
 apps/web/public/leads/
+apps/web/public/auth/
 
 # Vite
 apps/web/.vite/

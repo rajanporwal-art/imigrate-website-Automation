@@ -42,6 +42,13 @@ if (!empty($payload['website'])) {
 
 $fields  = isset($payload['fields']) && is_array($payload['fields']) ? $payload['fields'] : [];
 $context = isset($payload['context']) && is_array($payload['context']) ? $payload['context'] : [];
+
+// Defensive: if a form sends CV info at the top level (instead of inside
+// "fields"), fold it in so the CV is never dropped before reaching the CRM.
+foreach (['cvFile', 'cvOriginalName', 'cvFilename'] as $cvk) {
+    if (empty($fields[$cvk]) && !empty($payload[$cvk])) { $fields[$cvk] = (string) $payload[$cvk]; }
+}
+if (!empty($fields['cvFile']) && empty($fields['cvFilename'])) { $fields['cvFilename'] = $fields['cvFile']; }
 $formName = isset($payload['formName']) ? substr((string) $payload['formName'], 0, 80) : 'Website form';
 
 // ---- 1. Persist the lead to a web-protected directory ---------------------

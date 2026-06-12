@@ -62,7 +62,7 @@ function data_files($dir) {
     return $out;
 }
 
-function make_snapshot($dir, $backupRoot) {
+function make_snapshot($dir, $backupRoot, $type = 'manual') {
     $ts = date('Ymd-His');
     $dest = $backupRoot . '/' . $ts;
     if (!is_dir($dest)) @mkdir($dest, 0755, true);
@@ -71,24 +71,59 @@ function make_snapshot($dir, $backupRoot) {
         $name = basename($f);
         if (@copy($f, $dest . '/' . $name)) { $files++; $bytes += (int) @filesize($f); }
     }
-    @file_put_contents($dest . '/_manifest.json', json_encode(['ts' => $ts, 'at' => date('c'), 'files' => $files, 'bytes' => $bytes]));
-    return ['ts' => $ts, 'files' => $files, 'bytes' => $bytes];
+    @file_put_contents($dest . '/_manifest.json', json_encode(['ts' => $ts, 'at' => date('c'), 'files' => $files, 'bytes' => $bytes, 'type' => $type]));
+    return ['ts' => $ts, 'files' => $files, 'bytes' => $bytes, 'type' => $type];
 }
 
+function snap_leadcount($d) {
+    $f = $d . '/leads.ndjson';
+    if (!is_file($f)) return 0;
+    $n = 0;
+    foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) { if (trim($line) !== '') $n++; }
+    return $n;
+}
+/* Integrity: every non-empty leads.ndjson line must be valid JSON. Empty store is valid. */
+function snap_integrity($d) {
+    $f = $d . '/leads.ndjson';
+    if (!is_file($f)) return true;
+    foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+        if (trim($line) === '') continue;
+        if (json_decode($line, true) === null) return false;
+    }
+    return true;
+}
+function snap_time($ts) { $dt = DateTime::createFromFormat('Ymd-His', substr($ts, 0, 15)); return $dt ? $dt->getTimestamp() : @strtotime(substr($ts, 0, 8)); }
 function list_snapshots($backupRoot) {
     $out = [];
     foreach (glob($backupRoot . '/*', GLOB_ONLYDIR) ?: [] as $d) {
         $m = @json_decode((string) @file_get_contents($d . '/_manifest.json'), true);
-        $out[] = ['ts' => basename($d), 'files' => $m['files'] ?? count(glob($d . '/*') ?: []), 'bytes' => $m['bytes'] ?? 0, 'at' => $m['at'] ?? ''];
+        $out[] = ['ts' => basename($d), 'files' => $m['files'] ?? count(glob($d . '/*') ?: []), 'bytes' => $m['bytes'] ?? 0, 'at' => $m['at'] ?? '', 'type' => $m['type'] ?? 'manual', 'leads' => snap_leadcount($d), 'valid' => snap_integrity($d)];
     }
     usort($out, fn($a, $b) => strcmp($b['ts'], $a['ts']));
     return $out;
 }
 
-function prune_snapshots($backupRoot, $keep) {
+/* Take a daily snapshot only if the newest one is older than ~24h (zero-config auto-backup). */
+function maybe_auto_snapshot($dir, $backupRoot) {
     $snaps = list_snapshots($backupRoot);
-    $removed = 0;
-    foreach (array_slice($snaps, $keep) as $s) {
+    $newest = $snaps[0] ?? null;
+    if ($newest && (time() - snap_time($newest['ts'])) < 86400) return null; // fresh enough
+    return make_snapshot($dir, $backupRoot, 'daily');
+}
+
+/* Tiered retention: keep ALL from the last 14 days, one per week for ~12 weeks,
+   one per month for ~12 months; drop the rest. Newest in each bucket is kept. */
+function prune_tiered($backupRoot) {
+    $snaps = list_snapshots($backupRoot); // newest first
+    $now = time(); $keep = []; $seenWeek = []; $seenMonth = []; $removed = 0;
+    foreach ($snaps as $s) {
+        $t = snap_time($s['ts']); $ageDays = ($now - $t) / 86400;
+        if ($ageDays <= 14) { $keep[$s['ts']] = 1; continue; }
+        if ($ageDays <= 90) { $wk = date('oW', $t); if (empty($seenWeek[$wk])) { $seenWeek[$wk] = 1; $keep[$s['ts']] = 1; } continue; }
+        if ($ageDays <= 366) { $mo = date('Ym', $t); if (empty($seenMonth[$mo])) { $seenMonth[$mo] = 1; $keep[$s['ts']] = 1; } continue; }
+    }
+    foreach ($snaps as $s) {
+        if (!empty($keep[$s['ts']])) continue;
         $d = $backupRoot . '/' . $s['ts'];
         foreach (glob($d . '/*') ?: [] as $f) @unlink($f);
         if (@rmdir($d)) $removed++;
@@ -96,23 +131,128 @@ function prune_snapshots($backupRoot, $keep) {
     return $removed;
 }
 
+/* Last successful OneDrive backup marker (persists so the UI can show "last backed up"). */
+function onedrive_marker_file($dir) { return $dir . '/.onedrive-last.json'; }
+function last_onedrive($dir) {
+    $f = onedrive_marker_file($dir);
+    if (!is_file($f)) return null;
+    $m = json_decode((string) @file_get_contents($f), true);
+    return is_array($m) ? $m : null;
+}
+
+/* Push the entire CRM data store to OneDrive as one JSON bundle (when M365 is connected). */
+function crm_onedrive_push($dir) {
+    if (!is_file(__DIR__ . '/m365-lib.php')) return ['ok' => false, 'error' => 'Microsoft 365 not configured'];
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) return ['ok' => false, 'error' => 'Microsoft 365 not connected'];
+    $bundle = ['source' => 'iMigrate CRM', 'exportedAt' => date('c'), 'files' => []];
+    foreach (data_files($dir) as $f) { $bundle['files'][basename($f)] = (string) @file_get_contents($f); }
+    $name = 'imigrate-crm-backup-' . date('Ymd-His') . '.json';
+    $res = m365_onedrive_upload($name, json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'iMigrate CRM Backups');
+    if (!$res) return ['ok' => false, 'error' => 'OneDrive upload failed'];
+    $at = date('c');
+    @file_put_contents(onedrive_marker_file($dir), json_encode(['at' => $at, 'file' => $name, 'count' => count($bundle['files'])]));
+    return ['ok' => true, 'file' => $name, 'count' => count($bundle['files']), 'at' => $at];
+}
+
 if ($action === 'snapshot') {
-    $snap = make_snapshot($dir, $backupRoot);
-    prune_snapshots($backupRoot, $KEEP);
+    $snap = make_snapshot($dir, $backupRoot, $authCron ? 'pre-deploy' : 'manual');
+    prune_tiered($backupRoot);
     echo json_encode(['ok' => true, 'snapshot' => $snap]);
+    exit;
+}
+
+/* Last successful OneDrive backup (lightweight — for status display). */
+if ($action === 'onedrive-status') {
+    echo json_encode(['ok' => true, 'onedrive' => last_onedrive($dir)]);
+    exit;
+}
+
+/* List CRM backup bundles stored in OneDrive (for restore). Admin only. */
+if ($action === 'onedrive-list') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    if (!is_file(__DIR__ . '/m365-lib.php')) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not configured']); exit; }
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not connected']); exit; }
+    $files = m365_onedrive_list('iMigrate CRM Backups');
+    $out = [];
+    foreach ($files as $f) {
+        if (substr((string) ($f['name'] ?? ''), -5) !== '.json') continue;
+        $out[] = ['name' => $f['name'], 'size' => (int) ($f['size'] ?? 0), 'modified' => $f['lastModifiedDateTime'] ?? ''];
+    }
+    echo json_encode(['ok' => true, 'files' => $out]);
+    exit;
+}
+
+/* Restore the CRM record store from a OneDrive backup bundle. Admin only.
+   Snapshots the current state first (pre-restore) so it is always reversible. */
+if ($action === 'onedrive-restore') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    $name = basename((string) ($p['file'] ?? ''));
+    if ($name === '' || substr($name, -5) !== '.json') { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Invalid backup file']); exit; }
+    if (!is_file(__DIR__ . '/m365-lib.php')) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not configured']); exit; }
+    require_once __DIR__ . '/m365-lib.php';
+    if (!function_exists('m365_is_connected') || !m365_is_connected()) { echo json_encode(['ok' => false, 'error' => 'Microsoft 365 not connected']); exit; }
+    $raw = m365_onedrive_download($name, 'iMigrate CRM Backups');
+    if ($raw === null) { http_response_code(502); echo json_encode(['ok' => false, 'error' => 'Could not download backup from OneDrive']); exit; }
+    $bundle = json_decode($raw, true);
+    if (!is_array($bundle) || empty($bundle['files']) || !is_array($bundle['files'])) { http_response_code(422); echo json_encode(['ok' => false, 'error' => 'Backup file is not a valid CRM bundle']); exit; }
+    // Safety: snapshot current state before overwriting.
+    $pre = make_snapshot($dir, $backupRoot, 'pre-restore');
+    $restored = 0; $skipped = 0;
+    foreach ($bundle['files'] as $fname => $content) {
+        $fname = basename((string) $fname);
+        $ext = strtolower((string) pathinfo($fname, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['ndjson', 'json'], true)) { $skipped++; continue; }
+        if ($fname === '' || $fname[0] === '.') { $skipped++; continue; }
+        if (@file_put_contents($dir . '/' . $fname, (string) $content, LOCK_EX) !== false) $restored++; else $skipped++;
+    }
+    echo json_encode(['ok' => true, 'restored' => $restored, 'skipped' => $skipped, 'from' => $name, 'safetySnapshot' => $pre['ts'], 'exportedAt' => $bundle['exportedAt'] ?? '']);
+    exit;
+}
+
+/* Manual: back up ALL CRM data to OneDrive now. */
+if ($action === 'onedrive-backup') {
+    $res = crm_onedrive_push($dir);
+    if (empty($res['ok'])) http_response_code(400);
+    echo json_encode($res);
+    exit;
+}
+
+/* Zero-config automatic daily backup — called on CRM load; cheap + idempotent. */
+if ($action === 'auto') {
+    $snap = maybe_auto_snapshot($dir, $backupRoot);
+    if ($snap) { prune_tiered($backupRoot); @crm_onedrive_push($dir); /* mirror the daily backup to OneDrive when connected */ }
+    echo json_encode(['ok' => true, 'snapshot' => $snap, 'created' => (bool) $snap]);
+    exit;
+}
+
+/* Download a snapshot as a single JSON bundle (off-server copy). Admin only. */
+if ($action === 'download') {
+    if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
+    $ts = preg_replace('/[^0-9\-]/', '', (string) ($p['ts'] ?? ''));
+    $src = $backupRoot . '/' . $ts;
+    if ($ts === '' || !is_dir($src)) { http_response_code(404); echo json_encode(['ok' => false, 'error' => 'Snapshot not found']); exit; }
+    $bundle = ['ts' => $ts, 'exportedAt' => date('c'), 'files' => []];
+    foreach (glob($src . '/*') ?: [] as $f) {
+        $name = basename($f);
+        if ($name === '_manifest.json') continue;
+        $bundle['files'][$name] = (string) @file_get_contents($f);
+    }
+    header('Content-Disposition: attachment; filename="imigrate-crm-backup-' . $ts . '.json"');
+    echo json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 if ($action === 'list') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
-    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot)]);
+    echo json_encode(['ok' => true, 'backups' => list_snapshots($backupRoot), 'current' => ['leads' => snap_leadcount($dir)], 'onedrive' => last_onedrive($dir)]);
     exit;
 }
 
 if ($action === 'prune') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
-    $keep = max(1, (int) ($p['keep'] ?? $KEEP));
-    echo json_encode(['ok' => true, 'removed' => prune_snapshots($backupRoot, $keep)]);
+    echo json_encode(['ok' => true, 'removed' => prune_tiered($backupRoot)]);
     exit;
 }
 
@@ -122,7 +262,7 @@ if ($action === 'restore') {
     $src = $backupRoot . '/' . $ts;
     if ($ts === '' || !is_dir($src)) { http_response_code(404); echo json_encode(['ok' => false, 'error' => 'Snapshot not found']); exit; }
     // Safety: snapshot current state before overwriting.
-    $pre = make_snapshot($dir, $backupRoot);
+    $pre = make_snapshot($dir, $backupRoot, 'pre-restore');
     $restored = 0;
     foreach (glob($src . '/*.ndjson') ?: [] as $f) { if (@copy($f, $dir . '/' . basename($f))) $restored++; }
     foreach (glob($src . '/*.json') ?: [] as $f) { if (basename($f) === '_manifest.json') continue; if (@copy($f, $dir . '/' . basename($f))) $restored++; }

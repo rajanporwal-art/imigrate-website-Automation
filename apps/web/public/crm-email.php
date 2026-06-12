@@ -36,6 +36,10 @@ if (!is_array($p) || !hash_equals($EDIT_PASSWORD, (string) ($p['password'] ?? ''
 $dir = __DIR__ . '/leads';
 if (!is_dir($dir)) { @mkdir($dir, 0755, true); @file_put_contents($dir . '/.htaccess', "Require all denied\nDeny from all\n"); }
 $file = $dir . '/emails.ndjson';
+$tplFile = $dir . '/email-templates.json';
+
+function tpl_load($f) { if (is_file($f)) { $d = json_decode((string) file_get_contents($f), true); return is_array($d) ? $d : []; } return []; }
+function tpl_save($f, $d) { return @file_put_contents($f, json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false; }
 
 function em_load($file) {
     $rows = [];
@@ -151,6 +155,33 @@ if ($action === 'run-scheduled') {
     unset($r);
     em_save($file, $rows);
     echo json_encode(['ok' => true, 'sent' => $sent]);
+    exit;
+}
+
+/* ---- custom email templates (saved by the AI Studio, used in CRM compose) ---- */
+if ($action === 'templates-list') {
+    echo json_encode(['ok' => true, 'templates' => tpl_load($tplFile)]);
+    exit;
+}
+if ($action === 'template-save') {
+    $name = trim((string) ($p['name'] ?? ''));
+    $subject = trim((string) ($p['subject'] ?? ''));
+    $body = (string) ($p['body'] ?? '');
+    if ($name === '' || $subject === '' || $body === '') {
+        http_response_code(400); echo json_encode(['ok' => false, 'error' => 'Template name, subject and body are required']); exit;
+    }
+    $t = tpl_load($tplFile);
+    $t[substr($name, 0, 80)] = ['subject' => substr($subject, 0, 240), 'body' => substr($body, 0, 300000), 'source' => substr((string) ($p['source'] ?? 'ai'), 0, 20), 'author' => substr((string) ($p['author'] ?? ''), 0, 60), 'updatedAt' => date('c')];
+    tpl_save($tplFile, $t);
+    echo json_encode(['ok' => true, 'name' => $name]);
+    exit;
+}
+if ($action === 'template-delete') {
+    $name = (string) ($p['name'] ?? '');
+    $t = tpl_load($tplFile);
+    unset($t[$name]);
+    tpl_save($tplFile, $t);
+    echo json_encode(['ok' => true]);
     exit;
 }
 

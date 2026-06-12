@@ -85,6 +85,72 @@ if ($action === 'list') {
     exit;
 }
 
+if ($action === 'migrate-stages') {
+    // Safe in-place migration: legacy stage names → new 15 standardised statuses.
+    // Protected: 'Signed Up' and 'Lost Lead' are never overwritten.
+    // A full backup is taken before any mutations.
+    $map = [
+        'Contact Attempted'       => 'Pending Call',
+        'CV Requested'            => 'Pending CV / Resume',
+        'CV Received'             => 'Pending Appointment',
+        'Assessment Completed'    => 'Under Assessment',
+        'Lead Assessed'           => 'Under Assessment',
+        'Consultation Booked'     => 'Appointment Scheduled',
+        'Consultation Completed'  => 'Pending Follow-up',
+        'Qualified'               => 'Under Assessment',
+        'Agreement Sent'          => 'Signed Up',
+        'Payment Received'        => 'Signed Up',
+        'Application Preparation' => 'Signed Up',
+        'Application Submitted'   => 'Signed Up',
+        'Visa Approved'           => 'Signed Up',
+        'Lost Opportunity'        => 'Lost Lead',
+    ];
+    // These statuses must never be changed by migration.
+    $protected = ['Signed Up', 'Lost Lead'];
+    $dry = !empty($p['dryRun']);
+    $changes = [];
+    foreach ($meta as $k => &$rec) {
+        $stage = $rec['stage'] ?? 'New Lead';
+        if (isset($map[$stage]) && !in_array($stage, $protected, true)) {
+            $newStage = $map[$stage];
+            $changes[] = [
+                'key'  => $k,
+                'name' => ($rec['overrides']['fullName'] ?? ($rec['overrides']['name'] ?? '')),
+                'from' => $stage,
+                'to'   => $newStage,
+            ];
+            if (!$dry) {
+                $rec['stage']          = $newStage;
+                $rec['stageAt']        = date('c');
+                $rec['stageChangedBy'] = 'System (Migration)';
+                log_activity($rec, 'Stage migrated', $stage . ' → ' . $newStage, 'System (Migration)');
+            }
+        }
+    }
+    unset($rec);
+    if ($dry) {
+        echo json_encode(['ok' => true, 'total' => count($meta), 'changes' => $changes]);
+        exit;
+    }
+    // Safety backup before any writes.
+    $backupDir = $dir . '/backups';
+    if (!is_dir($backupDir)) @mkdir($backupDir, 0755, true);
+    $ts = date('Ymd-His');
+    $bkDest = $backupDir . '/' . $ts;
+    @mkdir($bkDest, 0755, true);
+    foreach (glob($dir . '/*.ndjson') ?: [] as $f) @copy($f, $bkDest . '/' . basename($f));
+    foreach (glob($dir . '/*.json')   ?: [] as $f) @copy($f, $bkDest . '/' . basename($f));
+    @file_put_contents($bkDest . '/_manifest.json', json_encode([
+        'ts'      => $ts,
+        'at'      => date('c'),
+        'reason'  => 'pre-stage-migration',
+        'changes' => count($changes),
+    ]));
+    save_meta($file, $meta);
+    echo json_encode(['ok' => true, 'migrated' => count($changes), 'changes' => $changes, 'backupTs' => $ts]);
+    exit;
+}
+
 // Resolve the stable contact key (prefer explicit "key", fall back to email).
 $key = trim((string) ($p['key'] ?? ''));
 if ($key === '') $key = strtolower(trim((string) ($p['email'] ?? '')));
@@ -114,8 +180,9 @@ if ($author === '') $author = 'Consultant';
 if ($action === 'set-stage') {
     $prev = $meta[$key]['stage'] ?? 'New Lead';
     $stage = substr((string) ($p['stage'] ?? 'New Lead'), 0, 60);
-    $meta[$key]['stage'] = $stage;
-    $meta[$key]['stageAt'] = date('c');
+    $meta[$key]['stage']          = $stage;
+    $meta[$key]['stageAt']        = date('c');
+    $meta[$key]['stageChangedBy'] = $author;
     if ($prev !== $stage) log_activity($meta[$key], 'Stage changed', $prev . ' → ' . $stage, $author);
 
 } elseif ($action === 'save-fields') {

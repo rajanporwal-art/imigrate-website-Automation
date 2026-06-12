@@ -45,8 +45,8 @@ $COMPF = $dir . '/company.json';
 $MODULES = [
   'cms.pages','cms.blogs','cms.faqs','cms.media','cms.menus','cms.forms','cms.seo','cms.settings',
   'crm.leads','crm.aileads','crm.reports','crm.pipeline','crm.tasks','crm.documents','crm.notes','crm.activities',
-  'mkt.social','mkt.gbp','mkt.email','mkt.emailauto','mkt.whatsapp','mkt.ads','mkt.calendar','mkt.analytics',
-  'int.m365','int.google','int.hubspot','int.mailchimp','int.activecampaign','int.whatsappapi',
+  'mkt.aistudio','mkt.social','mkt.gbp','mkt.email','mkt.emailauto','mkt.whatsapp','mkt.ads','mkt.calendar','mkt.analytics',
+  'int.anthropic','int.m365','int.google','int.hubspot','int.mailchimp','int.activecampaign','int.whatsappapi',
   'settings.company','settings.users','settings.roles','settings.apikeys','settings.backup','settings.security',
 ];
 $ACTIONS = ['view','create','edit','delete','publish','export','import','approve'];
@@ -56,7 +56,7 @@ function default_roles($MODULES) {
   $view = function ($mods) { $o = []; foreach ($mods as $m) $o[$m] = ['view']; return $o; };
   $cmsMods = ['cms.pages','cms.blogs','cms.faqs','cms.media','cms.menus','cms.forms','cms.seo','cms.settings'];
   $crmMods = ['crm.leads','crm.aileads','crm.reports','crm.pipeline','crm.tasks','crm.documents','crm.notes','crm.activities'];
-  $mktMods = ['mkt.social','mkt.gbp','mkt.email','mkt.emailauto','mkt.whatsapp','mkt.ads','mkt.calendar','mkt.analytics'];
+  $mktMods = ['mkt.aistudio','mkt.social','mkt.gbp','mkt.email','mkt.emailauto','mkt.whatsapp','mkt.ads','mkt.calendar','mkt.analytics'];
   return [
     'Super Admin'      => ['system' => true, 'all' => true, 'desc' => 'Full access to every module and system setting.', 'perms' => []],
     'Website Admin'    => ['system' => true, 'desc' => 'CMS, Blogs, SEO, Forms, Media. No CRM or financials.', 'perms' => $all(['cms.pages','cms.blogs','cms.faqs','cms.media','cms.menus','cms.forms','cms.seo','cms.settings'], ['view','create','edit','delete','publish','export'])],

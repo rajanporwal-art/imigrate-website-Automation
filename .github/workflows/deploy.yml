@@ -30,21 +30,73 @@ jobs:
       - name: Build (Vite → dist/apps/web)
         run: npm run build
 
+      - name: Copy PHP + server-side files to dist (before FTP deploy)
+        run: |
+          echo "Copying PHP files from source to dist…"
+          # Copy all PHP files from apps/web/public to dist/apps/web
+          find apps/web/public -maxdepth 1 -name "*.php" -exec cp {} dist/apps/web/ \;
+          # Copy system-backup.php (critical for data safety)
+          cp apps/web/public/system-backup.php dist/apps/web/ 2>/dev/null || true
+          # Copy integration files (hubspot.json, etc.) if they exist in source
+          cp apps/web/public/hubspot.json dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/hubspot-lib.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365-lib.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365.php dist/apps/web/ 2>/dev/null || true
+          cp apps/web/public/m365-config.example.php dist/apps/web/ 2>/dev/null || true
+          echo "PHP files copied to dist."
+
       # Take a point-in-time snapshot of the live CRM record store BEFORE
       # deploying, so lead data can be restored if anything goes wrong.
       # Best-effort: requires the CRM_BACKUP_KEY secret (matches $CRON_SECRET in
       # admin-config.php). CRM data (leads/**) is excluded from deploys anyway.
-      - name: Snapshot CRM data before deploy (best-effort)
+      # ALL curls use --max-time so a slow/hung server-side snapshot can NEVER
+      # hang the job and hold the concurrency lock (which would block the next
+      # deploy). timeout-minutes is a hard ceiling on the whole step.
+      - name: Snapshot all data before deploy (best-effort)
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "Requesting pre-deploy full-system snapshot…"
+            curl -fsS --max-time 120 "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "system-backup snapshot failed/timed out (non-blocking)"
+            curl -fsS --max-time 30 "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=pre&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged pre-deploy" || true
+            # legacy leads-only snapshot too (harmless redundancy)
+            curl -fsS --max-time 60 "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null || true
+          else
+            echo "CRM_BACKUP_KEY not set — skipping pre-deploy snapshot (all data is excluded from deploys regardless)."
+          fi
+
+      # NON-DESTRUCTIVE verification only. We do NOT auto-restore: the FTP
+      # exclude list below (leads/**, auth/**, etc.) is what actually protects
+      # this data — with dangerous-clean-slate:false the mirror never touches
+      # excluded dirs, so they persist across every deploy. An auto-restore that
+      # misfires could overwrite live data with a stale snapshot, so it is
+      # intentionally removed. This step only reports state for the deploy log.
+      - name: Pre-FTP verification (report only, never restores)
+        if: always()
         continue-on-error: true
         run: |
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
-            echo "Requesting pre-deploy CRM snapshot…"
-            curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "Snapshot request failed (non-blocking)"
-          else
-            echo "CRM_BACKUP_KEY not set — skipping pre-deploy CRM snapshot (CRM data is excluded from deploys regardless)."
+            AUTH_CHECK=$(curl -fsS "https://www.imigratesolution.com/system-backup.php?action=verify-auth&key=${{ secrets.CRM_BACKUP_KEY }}" 2>/dev/null || echo '{"ok":false}')
+            if echo "$AUTH_CHECK" | grep -q '"ok":true'; then
+              echo "✓ auth/secrets.php present on server"
+            else
+              echo "ℹ️  auth/secrets.php check did not confirm (key mismatch or file absent). FTP excludes auth/** so it is not modified by this deploy regardless."
+            fi
           fi
 
-      - name: Deploy dist/apps/web to Hostinger via FTP
+      # Hostinger's FTPS control socket intermittently drops (ETIMEDOUT on :21).
+      # A single failed attempt leaves the web root partial → whole-site 404.
+      # FIX: up to 3 sequential attempts. A dropped control socket fails fast, so
+      # a retry reconnects and completes the publish. Attempts 1–2 are
+      # continue-on-error; only a 3rd consecutive failure fails the job.
+      #
+      # ⚠️ exclude list MUST keep leads/** auth/** hubspot.json m365-config.php
+      # ai-data/** system-backups/** — these are never in the repo; the mirror
+      # would DELETE them otherwise, disconnecting integrations + wiping CRM data.
+      - name: Deploy to Hostinger via FTP (attempt 1)
+        id: ftp1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -52,24 +104,15 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/apps/web/
-          # The FTP account is rooted AT the website's web root
-          # (/home/u982334410/domains/imigratesolution.com/public_html), so deploy to
-          # the FTP root directly. Any path prefix here just nests files in an unserved
-          # subfolder. Do NOT add "public_html/" or "domains/.../public_html/".
           server-dir: ./
           dangerous-clean-slate: false
-          # IMPORTANT: this FTP action MIRRORS state — excluding a file that was
-          # previously uploaded DELETES it from the server. So repo-shipped content
-          # (content.json, blog.json, faqs.json) must NOT be excluded, or it gets
-          # wiped. The CMS keeps edits durable instead by writing SERVER-ONLY
-          # override files that are never in the repo (so the mirror never touches
-          # them) — see cms-content.php. Only never-in-repo dirs are excluded here.
-          exclude: |
+          timeout: 600000
+          exclude: &ftp_exclude |
             **/.git*
             **/.git*/**
             .htpasswd
-            admin-config.php
             leads/**
+            auth/**
             **/*.backup
             forms.json
             hubspot.json
@@ -77,4 +120,54 @@ jobs:
             media/**
             cms-versions/**
             cms-overrides/**
-            auth/**
+            ai-data/**
+            system-backups/**
+
+      - name: Deploy to Hostinger via FTP (attempt 2)
+        id: ftp2
+        if: steps.ftp1.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/apps/web/
+          server-dir: ./
+          dangerous-clean-slate: false
+          timeout: 600000
+          exclude: *ftp_exclude
+
+      - name: Deploy to Hostinger via FTP (attempt 3 - final)
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/apps/web/
+          server-dir: ./
+          dangerous-clean-slate: false
+          timeout: 600000
+          exclude: *ftp_exclude
+
+      # After deploy: verify the live site responds, log the event, and take a
+      # post-deploy snapshot. This step NEVER restores/overwrites data — it only
+      # reports and snapshots. Data protection is handled by the FTP exclude list.
+      - name: Post-deploy health check + snapshot (report only)
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          echo "=== POST-DEPLOY HEALTH CHECK ==="
+          for url in "/" "/crm.html" "/portal.html"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "https://www.imigratesolution.com${url}" || echo "000")
+            echo "  ${url} -> HTTP ${code}"
+          done
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            curl -fsS --max-time 30 "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  deploy logged" || true
+            curl -fsS --max-time 120 "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  post-deploy snapshot saved" || echo "  post-deploy snapshot skipped/timed out (non-blocking)"
+          fi
+          echo "=== HEALTH CHECK COMPLETE ==="

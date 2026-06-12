@@ -9,8 +9,8 @@ import StickyConsultationButton from '@/components/StickyConsultationButton.jsx'
 import { useSiteContent } from '@/lib/siteContent.jsx';
 
 function SuccessStoriesPage() {
-  const { stats } = useSiteContent();
-  const successStories = [
+  const { stats, successStoriesPage = {} } = useSiteContent();
+  const DEF_STORIES = [
     {
       name: 'Arjun Mehta',
       country: 'India → Canada',
@@ -68,6 +68,7 @@ function SuccessStoriesPage() {
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
     },
   ];
+  const successStories = Array.isArray(successStoriesPage.stories) && successStoriesPage.stories.length ? successStoriesPage.stories : DEF_STORIES;
 
   return (
     <>
@@ -81,6 +82,18 @@ function SuccessStoriesPage() {
         <meta property="og:url" content="https://www.imigratesolution.com/success-stories" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Immigration Success Stories | 98.6% Success Rate | iMigrate Migration Solutions" />
+        <meta name="twitter:description" content="Real success stories from professionals and entrepreneurs from Malaysia, Singapore, India and Vietnam who migrated to Australia and Canada with iMigrate Migration Solutions." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.imigratesolution.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Success Stories", "item": "https://www.imigratesolution.com/success-stories" }
+          ]
+        })}</script>
       </Helmet>
 
       <Header />

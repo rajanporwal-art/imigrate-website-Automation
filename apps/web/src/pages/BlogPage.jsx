@@ -213,6 +213,10 @@ function BlogPage() {
         <meta property="og:url" content="https://www.imigratesolution.com/blog" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Immigration Blog &amp; Insights — iMigrate Migration Solutions" />
+        <meta name="twitter:description" content="Expert immigration guides, visa news and success stories for Australia and Canada — from Malaysia, Singapore, India and Vietnam to your new home." />
+        <meta name="twitter:image" content="https://www.imigratesolution.com/images/imigrate-logo.jpg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",

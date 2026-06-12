@@ -39,9 +39,11 @@ function LeadForm({ source = 'Website', onSuccess }) {
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/png',
     ];
     if (!allowed.includes(file.type)) {
-      setCvError('Only PDF, DOC, or DOCX files are accepted.');
+      setCvError('Only PDF, DOC, DOCX, JPG or PNG files are accepted.');
       setCvFile(null); return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -266,7 +268,7 @@ function LeadForm({ source = 'Website', onSuccess }) {
             <Upload className="h-4 w-4" />
             {cvFile ? cvFile.name : 'Choose file…'}
           </label>
-          <input id="lf-cv" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvChange} />
+          <input id="lf-cv" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleCvChange} />
           {cvFile && (
             <button type="button" onClick={() => setCvFile(null)}
               className="text-xs text-muted-foreground hover:text-destructive transition-colors">

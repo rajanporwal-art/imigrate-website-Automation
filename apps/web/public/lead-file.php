@@ -49,6 +49,9 @@ $types = [
     'pdf'  => 'application/pdf',
     'doc'  => 'application/msword',
     'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'jpg'  => 'image/jpeg',
+    'jpeg' => 'image/jpeg',
+    'png'  => 'image/png',
 ];
 header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
 header('Content-Disposition: ' . ($forceDownload ? 'attachment' : 'inline') . '; filename="' . $name . '"');
