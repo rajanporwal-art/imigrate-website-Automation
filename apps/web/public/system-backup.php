@@ -480,3 +480,4 @@ if ($action === 'deploy-log') {
 
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Unknown action']);
+// [Safety verification — git auto-deploy disabled, leads should survive this push — 2026-06-12]
