@@ -7,14 +7,15 @@
 <title>iMigrate CRM</title>
 <style>
   :root{
-    /* HubSpot-inspired light surface system. Variable NAMES are unchanged so every
-       existing component inherits the refreshed palette automatically. */
+    /* Modern enhanced palette with gradients & improved depth */
     --bg:#f5f8fa; --panel:#ffffff; --text:#33475b; --muted:#7c98b6; --border:#dfe3eb;
     --navy:#0b1f44; --accent:#c8a24a; --cta:#e11d2a; --ok:#00a38c; --warn:#b45309;
     --hot:#e11d2a; --hover:#f5f8fa; --primary:#0b1f44; --primary-soft:rgba(11,31,68,.06);
     --radius:8px; --radius-sm:6px;
-    --shadow:0 1px 2px rgba(33,71,91,.08); --shadow-md:0 4px 12px rgba(33,71,91,.10);
-    --shadow-lg:0 12px 32px rgba(33,71,91,.16);
+    --shadow:0 1px 3px rgba(33,71,91,.12); --shadow-md:0 6px 20px rgba(33,71,91,.15);
+    --shadow-lg:0 20px 48px rgba(33,71,91,.22);
+    --trans-fast:0.08s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --trans-std:0.15s ease-out;
   }
   [data-theme="dark"]{
     --bg:#0b1220; --panel:#111a2e; --text:#e6edf6; --muted:#94a3b8; --border:#22304b;
@@ -26,13 +27,13 @@
   a{color:inherit}
   .hidden{display:none!important}
   button{font-family:inherit;cursor:pointer}
-  .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:var(--radius-sm);padding:7px 13px;font-size:13px;font-weight:600;transition:background .12s,border-color .12s,box-shadow .12s,transform .04s;display:inline-flex;align-items:center;gap:6px;justify-content:center}
-  .btn:hover{border-color:#c5cfdd;background:var(--hover)}
-  .btn:active{transform:translateY(.5px)}
-  .btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
-  .btn-primary:hover{background:#13305f;border-color:#13305f}
-  .btn-cta{background:var(--cta);color:#fff;border-color:var(--cta)}
-  .btn-cta:hover{background:#c4121f;border-color:#c4121f}
+  .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:var(--radius-sm);padding:7px 13px;font-size:13px;font-weight:600;transition:all var(--trans-std);display:inline-flex;align-items:center;gap:6px;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .btn:hover{border-color:var(--accent);background:linear-gradient(135deg,#fafbfd,#f0f1f3);box-shadow:0 4px 12px rgba(200,162,74,.15)}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(135deg,var(--navy),#142c52);color:#fff;border-color:var(--navy);box-shadow:0 4px 12px rgba(11,31,68,.2)}
+  .btn-primary:hover{background:linear-gradient(135deg,#142c52,#1a3860);border-color:#1a3860;box-shadow:0 6px 16px rgba(11,31,68,.25)}
+  .btn-cta{background:linear-gradient(135deg,var(--cta),#c4121f);color:#fff;border-color:var(--cta);box-shadow:0 4px 12px rgba(225,29,42,.2)}
+  .btn-cta:hover{background:linear-gradient(135deg,#c4121f,#a80818);border-color:#a80818;box-shadow:0 6px 16px rgba(225,29,42,.25)}
   .btn-accent{background:var(--accent);color:#3d2f08;border-color:var(--accent)}
   .btn-accent:hover{filter:brightness(1.05)}
   .btn-ghost{background:transparent;border-color:transparent}
@@ -46,7 +47,7 @@
   /* App shell */
   #app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;transition:grid-template-columns .22s ease}
   #app.nav-collapsed{grid-template-columns:62px 1fr}
-  .sidebar{background:var(--navy);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;overflow-x:hidden;transition:padding .22s ease}
+  .sidebar{background:linear-gradient(180deg,var(--navy) 0%,#0a1830 100%);color:#cdd7ea;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;overflow-x:hidden;transition:padding .22s ease;box-shadow:2px 0 8px rgba(0,0,0,.1)}
   #app.nav-collapsed .sidebar{padding:16px 8px}
   .sidebar .brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:18px;padding:6px 8px 16px;white-space:nowrap;overflow:hidden}
   .sidebar .brand .logo{display:none;font-size:16px;color:var(--accent)}
@@ -54,10 +55,10 @@
   .nav-sect{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#6b80a6;font-weight:700;padding:14px 12px 5px;white-space:nowrap;overflow:hidden}
   #app.nav-collapsed .nav-sect{text-align:center;padding:12px 0 5px;font-size:0}
   #app.nav-collapsed .nav-sect::after{content:"·";font-size:14px;color:#6b80a6}
-  .navitem{display:flex;align-items:center;gap:11px;padding:8px 12px;border-radius:var(--radius-sm);color:#cdd7ea;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:background .12s,color .12s}
-  .navitem:hover{background:rgba(255,255,255,.08);color:#fff}
-  .navitem.active{background:rgba(200,162,74,.16);color:#fff}
-  .navitem.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+  .navitem{display:flex;align-items:center;gap:11px;padding:8px 12px;border-radius:var(--radius-sm);color:#cdd7ea;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all var(--trans-std)}
+  .navitem:hover{background:linear-gradient(90deg,rgba(200,162,74,.12),rgba(255,255,255,.06));color:#fff;transform:translateX(2px)}
+  .navitem.active{background:linear-gradient(90deg,rgba(200,162,74,.2),rgba(200,162,74,.08));color:#fff;box-shadow:inset 0 0 8px rgba(200,162,74,.15)}
+  .navitem.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--accent),rgba(200,162,74,.6));box-shadow:0 0 8px rgba(200,162,74,.4)}
   #app.nav-collapsed .navitem.active::before{display:none}
   .navitem .ic{width:18px;text-align:center;flex:0 0 18px;font-size:15px}
   .navitem .lbl,.brand .lbl{transition:opacity .15s ease;flex:1}
@@ -78,9 +79,10 @@
   /* Cards / stats */
   .grid{display:grid;gap:14px}
   .stats{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
-  .stat{text-align:left;cursor:pointer;transition:transform .08s,border-color .12s;width:100%;border:1px solid var(--border)}
-  .stat:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);transition:transform var(--trans-std),box-shadow var(--trans-std),border-color var(--trans-std)}
+  .card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .stat{text-align:left;cursor:pointer;transition:transform var(--trans-fast),border-color var(--trans-std),box-shadow var(--trans-std);width:100%;border:1px solid var(--border);background:linear-gradient(135deg,rgba(200,162,74,.03),rgba(11,31,68,.01));border-radius:12px;padding:16px}
+  .stat:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 8px 24px rgba(200,162,74,.12)}
   .stat .n{font-size:28px;font-weight:800;color:var(--navy)} [data-theme="dark"] .stat .n{color:#fff}
   .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
   .stat .hint{font-size:11px;color:var(--accent);margin-top:6px;font-weight:600}
@@ -408,6 +410,27 @@
 <div id="modalRoot"></div>
 
 <script>
+  /* ═════ MODERN SVG ICON SYSTEM ═════ */
+  const SVG_ICONS={
+    dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    leads:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    cases:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+    lifecycle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><circle cx="6" cy="18" r="3"/><path d="M9 6h6M18 9v6M15 18H9M6 15V9"/></svg>',
+    pipeline:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h6m6 0h6M8 8v8M16 8v8"/></svg>',
+    calls:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    tasks:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>',
+    reports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5H17"/><path d="M7 12h10M7 16h10"/></svg>',
+    files:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+    documents:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="13" x2="12" y2="17"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+    messages:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    activities:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/></svg>',
+    invoices:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><line x1="16" y1="11" x2="16" y2="17"/><line x1="8" y1="11" x2="8" y2="17"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/></svg>',
+    automations:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+  };
+  function svgIcon(name){return SVG_ICONS[name]||'◆';}
+
   const $ = (id) => document.getElementById(id);
   const PW = () => sessionStorage.getItem('imig_crm_pw') || '';
   const CRM_USER = () => localStorage.getItem('imig_crm_user') || 'Consultant';
@@ -2000,6 +2023,29 @@
 
   /* ════════════ DYNAMIC REPORTS BUILDER (filters, grouping, charts, export) ════════════ */
   let RB_FILTER={stage:'',country:'',occupation:'',source:'',hasReport:''},RB_GROUPBY='stage',RB_CHART='table';
+  /* ════════════ ENHANCEMENT #4: Reports → Email ════════════ */
+  function emailReport(ckey, reportId){
+    const c=findByKey(ckey);
+    if(!c||!c.email){toast('No email on file');return;}
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button>
+      <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:10px">Email report</div>
+      <div style="margin-bottom:12px"><label style="font-size:12px;color:var(--muted)">To</label><input id="er_to" value="${esc(c.email)}" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;margin-bottom:8px"></div>
+      <div style="margin-bottom:12px"><label style="font-size:12px;color:var(--muted)">Subject</label><input id="er_subj" value="Your Immigration Assessment Report" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;margin-bottom:8px"></div>
+      <div style="margin-bottom:12px"><label style="font-size:12px;color:var(--muted)">Message</label><textarea id="er_msg" placeholder="Add a personal message…" style="width:100%;height:80px;padding:8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;margin-bottom:8px"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-primary" onclick="emailReportSend()">Send report</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>`,false);
+    window.REPORT_EMAIL_CKEY=ckey; window.REPORT_EMAIL_ID=reportId;
+  }
+  function emailReportSend(){
+    const to=$('er_to').value, subj=$('er_subj').value, msg=$('er_msg').value;
+    if(!to.trim()){toast('Email address required');return;}
+    api('/send-report.php',{to,subject:subj,message:msg,reportId:REPORT_EMAIL_ID,ckey:REPORT_EMAIL_CKEY}).then(r=>{
+      if(r.ok){closeModal();toast('Report email sent');} else toast('Error: '+(r.error||'send failed'));
+    }).catch(e=>{toast('Error sending email');});
+  }
+
   function renderReports(){
     const allLeads=leadRows().filter(c=>!empty(c._deleted));
     const stages=[...new Set(allLeads.map(c=>c.stage||'—'))].sort();
@@ -2114,7 +2160,18 @@
   }
   function callSaveNew(){ const lead=$('cn_lead').value, email=$('cn_email').value, date=$('cn_date').value, time=$('cn_time').value, dur=$('cn_duration').value, outcome=$('cn_outcome').value, cons=$('cn_consultant').value, notes=$('cn_notes').value;
     if(!email.trim()){ toast('Email is required'); return; }
-    api('/crm-calls.php',{action:'add',email,leadName:lead,date,time,duration:dur,outcome,consultant:cons,notes}).then(r=>{ if(r.ok){ closeModal(); renderCalls(); toast('Call saved'); } else toast('Error: '+(r.error||'unknown')); });
+    api('/crm-calls.php',{action:'add',email,leadName:lead,date,time,duration:dur,outcome,consultant:cons,notes}).then(r=>{
+      if(r.ok){
+        closeModal();
+        // ENHANCEMENT #1: Auto-create task when call is scheduled
+        if(outcome==='scheduled') {
+          const c=findByKey((CONTACTS||[]).find(x=>x.email===email)?.ckey||'');
+          if(c) api('/crm-tasks.php',{action:'add',email,leadName:c.name,title:'Follow-up: '+lead,description:'Scheduled call follow-up - '+notes,due:date,status:'pending',type:'call'}).catch(e=>{}); // silent fail OK
+        }
+        renderCalls();
+        toast(outcome==='scheduled'?'Call & task created':'Call saved');
+      } else toast('Error: '+(r.error||'unknown'));
+    });
   }
   function callEdit(id){ const c=CALLS.find(x=>x.id===id); if(!c) return;
     const tpl=`<button class="modal-x" onclick="closeModal()">×</button>
@@ -2221,6 +2278,10 @@
   }
   function renderPipeline(){
     const kmPrev=document.querySelector('.kanban'); if(kmPrev)pipeScroll=kmPrev.scrollLeft;
+    // ENHANCEMENT #2: Stage distribution stats (linked to Lead Life Cycle)
+    const stageCount={}; (leadRows()||[]).forEach(c=>{ const s=(c.stage||'New Lead'); stageCount[s]=(stageCount[s]||0)+1; });
+    const topStages=Object.entries(stageCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const statsBar=topStages.map(([s,n])=>`<div style="display:inline-flex;align-items:center;gap:4px;margin-right:16px;padding:4px 8px;background:rgba(200,162,74,.08);border-radius:6px;font-size:11px"><strong style="color:var(--navy)">${n}</strong><span class="muted">${esc(s)}</span></div>`).join('');
     const q=pipeFilter.q.toLowerCase();
     const match=(c)=>{
       if(pipeFilter.type && c.sourceType!==pipeFilter.type)return false;
@@ -2250,7 +2311,9 @@
       <select onchange="pipeFilter.cat=this.value;renderPipeline()">${catOpts}</select>
       <label style="display:flex;gap:5px;align-items:center;font-size:12px;white-space:nowrap"><input type="checkbox" ${pipeFilter.hideEmpty?'checked':''} onchange="pipeFilter.hideEmpty=this.checked;renderPipeline()" style="width:auto"> Hide empty stages</label>
       <span class="muted" style="font-size:12px;margin-left:auto">${shown} of ${CONTACTS.length} shown · drag cards between stages</span>
-    </div><div class="kanban">${cols}</div>`;
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:8px 12px;background:rgba(200,162,74,.06);border-radius:8px;align-items:center">${statsBar}<a href="#" onclick="event.preventDefault();go('lifecycle');return false" style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:600;text-decoration:none;padding:4px 8px;background:rgba(200,162,74,.15);border-radius:4px">View Lead Life Cycle →</a></div>
+    <div class="kanban">${cols}</div>`;
     const km=document.querySelector('.kanban'); if(km)km.scrollLeft=pipeScroll;
   }
   function dropCard(e,stage){ e.preventDefault(); document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('over')); if(dragKey){const k=dragKey;dragKey=null;setStage(k,stage);} }
