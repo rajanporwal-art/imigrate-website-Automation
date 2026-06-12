@@ -51,3 +51,4 @@ $r3 = $res3 !== false ? json_decode($res3, true) : ['ok' => false, 'error' => 'c
 $r4 = $res4 !== false ? json_decode($res4, true) : ['ok' => false, 'error' => 'system-backup.php unreachable'];
 
 echo json_encode(['ok' => ($r1['ok'] ?? false) || ($r2['ok'] ?? false) || ($r3['ok'] ?? false) || ($r4['ok'] ?? false), 'scheduled_emails' => $r1, 'campaign_sends' => $r2, 'inactivity_checks' => $r3, 'scheduled_backup' => $r4]);
+// Re-deploy check — Sat Jun 13 00:41:49 +08 2026
