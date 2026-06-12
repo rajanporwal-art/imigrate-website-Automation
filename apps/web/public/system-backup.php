@@ -356,6 +356,52 @@ if ($action === 'onedrive-restore') {
     exit;
 }
 
+/* CRITICAL: Verify auth/secrets.php exists (deploy health check) */
+if ($action === 'verify-auth') {
+    $key = (string) ($p['key'] ?? '');
+    if (!isset($CRON_SECRET) || $CRON_SECRET === '' || !hash_equals($CRON_SECRET, $key)) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Invalid key']);
+        exit;
+    }
+    $authFile = $ROOT . '/auth/secrets.php';
+    $exists = is_file($authFile) && filesize($authFile) > 0;
+    echo json_encode(['ok' => $exists, 'file' => 'auth/secrets.php', 'exists' => $exists, 'message' => $exists ? 'Auth credentials intact' : 'Auth file missing or empty']);
+    exit;
+}
+
+/* CRITICAL: Restore auth/secrets.php from latest backup if missing */
+if ($action === 'restore-auth') {
+    $key = (string) ($p['key'] ?? '');
+    if (!isset($CRON_SECRET) || $CRON_SECRET === '' || !hash_equals($CRON_SECRET, $key)) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Invalid key']);
+        exit;
+    }
+    // Find latest snapshot
+    $snaps = array_filter(glob($BK . '/*', GLOB_ONLYDIR), fn($d) => is_dir($d));
+    if (empty($snaps)) {
+        echo json_encode(['ok' => false, 'error' => 'No backups available for auth restore']);
+        exit;
+    }
+    rsort($snaps);
+    $latestAuthFile = $snaps[0] . '/auth/secrets.php';
+    if (!is_file($latestAuthFile)) {
+        echo json_encode(['ok' => false, 'error' => 'auth/secrets.php not found in latest backup']);
+        exit;
+    }
+    // Restore
+    @mkdir($ROOT . '/auth', 0755, true);
+    $content = (string) @file_get_contents($latestAuthFile);
+    if ($content === '' || !@file_put_contents($ROOT . '/auth/secrets.php', $content, LOCK_EX)) {
+        echo json_encode(['ok' => false, 'error' => 'Could not write auth/secrets.php']);
+        exit;
+    }
+    audit_log($AUDIT, 'restore.auth', ['from' => basename($snaps[0])]);
+    echo json_encode(['ok' => true, 'file' => 'auth/secrets.php', 'restoredFrom' => basename($snaps[0])]);
+    exit;
+}
+
 /* PRE-DEPLOY RESTORE: restore critical dirs from latest backup before FTP deploy */
 if ($action === 'pre-deploy-restore' || $action === 'restore-latest') {
     // No auth check — called from CI/cron. Rate-limit by checking the key instead.

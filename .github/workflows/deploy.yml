@@ -73,6 +73,18 @@ jobs:
             echo "CRM_BACKUP_KEY not set — skipping pre-deploy restore."
           fi
 
+      - name: CRITICAL - Verify auth/secrets.php exists on server BEFORE FTP deploy
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "Verifying auth/secrets.php exists on server (CRITICAL for integrations)…"
+          AUTH_CHECK=$(curl -fsS "https://www.imigratesolution.com/system-backup.php?action=verify-auth&key=${{ secrets.CRM_BACKUP_KEY }}" 2>/dev/null || echo '{"ok":false}')
+          if echo "$AUTH_CHECK" | grep -q '"ok":true'; then
+            echo "✓ PASS: auth/secrets.php verified on server"
+          else
+            echo "⚠️  WARNING: auth/secrets.php not found on server — will restore after FTP deploy"
+          fi
+
       - name: Deploy dist/apps/web to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -109,8 +121,9 @@ jobs:
           #                              incl. the refresh token that keeps M365
           #                              connected) + all CRM data
           #   hubspot.json             → HubSpot Portal ID + Form GUID
-          #   auth/**                  → auth/integrations.json (Google, Mailchimp,
-          #                              ActiveCampaign, WhatsApp, Email) + portal users
+          #   auth/**                  → auth/secrets.php (HubSpot API key, CRON secret,
+          #                              M365 credentials) + integrations.json + portal users
+          #                              ⚠️ CRITICAL: NEVER DELETE auth/secrets.php
           #   ai-data/**               → Claude AI API key + drafts
           #   system-backups/**        → full-system backups (CRM+portal+config+
           #                              integrations) + audit log + live mirror
@@ -120,6 +133,7 @@ jobs:
             **/.git*/**
             .htpasswd
             leads/**
+            auth/**
             **/*.backup
             forms.json
             hubspot.json
@@ -127,7 +141,6 @@ jobs:
             media/**
             cms-versions/**
             cms-overrides/**
-            auth/**
             ai-data/**
             system-backups/**
 
@@ -137,19 +150,36 @@ jobs:
         continue-on-error: true
         run: |
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
-            echo "Verifying critical CRM data directories exist post-deploy…"
-            # Check if leads/ directory is accessible (exists on server)
+            echo "=== POST-DEPLOY VERIFICATION (CRITICAL) ==="
+
+            # 1. Check auth/secrets.php (HIGHEST PRIORITY)
+            echo "1. Verifying auth/secrets.php exists…"
+            AUTH_CHECK=$(curl -fsS "https://www.imigratesolution.com/system-backup.php?action=verify-auth&key=${{ secrets.CRM_BACKUP_KEY }}" 2>/dev/null || echo '{"ok":false}')
+            if echo "$AUTH_CHECK" | grep -q '"ok":true'; then
+              echo "   ✓ PASS: auth/secrets.php intact — integrations protected"
+            else
+              echo "   ✗ FAIL: auth/secrets.php MISSING — restoring from backup NOW"
+              curl -fsS "https://www.imigratesolution.com/system-backup.php?action=restore-auth&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "   ✓ Auth restored" || echo "   ⚠️  Manual restore may be needed"
+            fi
+
+            # 2. Check leads/ directory
+            echo "2. Verifying leads/ directory exists…"
             LEADS_CHECK=$(curl -fsS "https://www.imigratesolution.com/leads-read.php?action=check&key=${{ secrets.CRM_BACKUP_KEY }}" 2>/dev/null || echo '{"ok":false}')
             if echo "$LEADS_CHECK" | grep -q '"ok":true'; then
-              echo "✓ Leads directory verified — data is intact"
+              echo "   ✓ PASS: Leads directory intact"
             else
-              echo "⚠️  Leads directory check failed — attempting restore from latest backup"
-              curl -fsS "https://www.imigratesolution.com/system-backup.php?action=restore-latest&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "Restore initiated" || echo "Restore request sent (check manually if needed)"
+              echo "   ✗ FAIL: Leads directory missing — restoring from latest backup"
+              curl -fsS "https://www.imigratesolution.com/system-backup.php?action=restore-latest&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "   ✓ Leads restored" || echo "   ⚠️  Restore pending"
             fi
-            # Log post-deploy
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged post-deploy" || true
-            # Take post-deploy snapshot
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "post-deploy snapshot taken" || true
+
+            # 3. Log and snapshot
+            echo "3. Logging deploy event…"
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "   ✓ Logged" || true
+
+            echo "4. Taking post-deploy snapshot…"
+            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "   ✓ Snapshot saved" || true
+
+            echo "=== POST-DEPLOY VERIFICATION COMPLETE ==="
           else
             echo "CRM_BACKUP_KEY not set — skipping post-deploy verification."
           fi
