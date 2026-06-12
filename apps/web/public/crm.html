@@ -590,7 +590,7 @@
         hasCV, cvFiles:c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile,at:s.timestamp})),
         reports, storedReports, submissions:c.submissions, score, cat, hot, isAI,
         sourceType: isAI?'AI':'Standard',
-        stage: meta.stage || (reports.length?'Under Assessment':'New Lead'),
+        stage: getStageFromEligibility(g('eligibilityStatus')), // Lead Stage is derived from Eligibility Status
         notes: meta.notes || [], activity: meta.activity || [], overrides: ov,
         _deleted: meta.deleted===true,
       };
@@ -842,6 +842,16 @@
   function sortLeads(col){ if(LEAD_SORT.col===col){ LEAD_SORT.dir*=-1; } else { LEAD_SORT.col=col; LEAD_SORT.dir=1; } try{ localStorage.setItem('imig_crm_leadsort',JSON.stringify(LEAD_SORT)); }catch(e){} SPLIT_VIEW?renderSplitLeads():renderLeads(); }
   function applyLeadSort(rows){ if(!LEAD_SORT.col) return rows; const col=LEAD_SORT.col,dir=LEAD_SORT.dir; return rows.slice().sort((a,b)=>{ const x=sortValue(a,col),y=sortValue(b,col); if(x<y)return -1*dir; if(x>y)return 1*dir; return 0; }); }
   const rf=(c,k)=>((c.rawFields||{})[k]||'');
+
+  // ════════════ ELIGIBILITY STATUS → STAGE MAPPING ════════════
+  // Single source of truth: Eligibility Status defines the Lead Stage.
+  // This centralized config ensures consistency across the entire CRM.
+  const ELIGIBILITY_STATUSES=['Eligible','Marginal','Ineligible','Pending Assessment','Not Assessed'];
+  function getStageFromEligibility(eligibilityStatus){
+    // Stage = Eligibility Status (preserves original value as-is)
+    return eligibilityStatus || 'Not Assessed';
+  }
+
   // Customizable columns (saved per user in localStorage).
   const LEAD_COLS=[
     {id:'name',label:'Name',always:true,th:'Name',td:c=>`<strong>${esc(c.name)}</strong> ${c.hot?'<span class="badge hot">HOT</span>':''}`},
@@ -892,6 +902,7 @@
     const colMenu=LEAD_COLS.map(col=>`<label><input type="checkbox" ${visibleCols().includes(col.id)?'checked':''} ${col.always?'disabled':''} onchange="setCol('${col.id}',this.checked)"> ${esc(col.label)}</label>`).join('');
     let rows=applyLeadSort(leadRows());
     const bulkBar=BULK_MODE&&SELECTED.size?`<div class="bulk-bar"><span class="bulk-count">${SELECTED.size} selected</span>
+      <button class="btn btn-sm btn-primary" onclick="bulkSyncStages()" title="Sync selected leads' stages with their Eligibility Status">🔄 Sync to Eligibility</button>
       <select id="blkStage" style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px"><option value="">Change stage…</option>${STAGES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
       <button class="btn btn-sm btn-primary" onclick="bulkChangeStage()">Apply</button>
       <button class="btn btn-sm" onclick="bulkExport()" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">Export</button>
@@ -1157,6 +1168,36 @@
     }
     await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
     toast(`${done} lead(s) deleted (recoverable)`, done?'ok':'err');
+  }
+
+  // ════════════ SYNC LEADS WITH ELIGIBILITY STATUS ════════════
+  async function bulkSyncStages(){
+    const n=SELECTED.size;
+    if(!n){ alert('Select at least one lead first.'); return; }
+    if(!confirm(`Sync ${n} lead stage(s) with their Eligibility Status?\n\nThis will update the Lead Stage to match each lead's current Eligibility Status, ensuring all stages are synchronized.`)) return;
+    let done=0;
+    for(const ckey of SELECTED){
+      const c=findByKey(ckey);
+      if(c && c.eligibilityStatus){
+        const r=await api('/crm-meta.php',{action:'set-stage',key:ckey,email:c.email,stage:getStageFromEligibility(c.eligibilityStatus),detail:`Stage synchronized with Eligibility Status: ${c.eligibilityStatus}`});
+        if(r&&r.ok) done++;
+      }
+    }
+    await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
+    toast(`${done} lead stage(s) synchronized`, done?'ok':'err');
+  }
+
+  async function syncAllLeadsToEligibility(){
+    if(!confirm(`Sync ALL ${CONTACTS.length} lead stages with their Eligibility Status?\n\nThis will update every lead's stage to match its current eligibility status. All data is preserved.`)) return;
+    let done=0;
+    for(const c of CONTACTS){
+      if(c.eligibilityStatus && c.stage !== getStageFromEligibility(c.eligibilityStatus)){
+        const r=await api('/crm-meta.php',{action:'set-stage',key:c.ckey,email:c.email,stage:getStageFromEligibility(c.eligibilityStatus),detail:`Auto-sync: Stage matched to Eligibility Status (${c.eligibilityStatus})`});
+        if(r&&r.ok) done++;
+      }
+    }
+    await loadAll(); renderLeads();
+    toast(`${done} lead(s) synchronized to their Eligibility Status`, done?'ok':'err');
   }
 
   /* ---------- modal helpers ---------- */
@@ -1706,19 +1747,25 @@
   /* ---------- editable fields ---------- */
   function editFields(ckey){
     const c=findByKey(ckey); if(!c) return;
-    const f=(lab,id,val)=>`<div style="margin-bottom:8px"><label class="muted" style="font-size:12px">${lab}</label><input id="ef_${id}" value="${esc(val||'')}"></div>`;
+    const f=(lab,id,val,type='text')=>{
+      if(type==='select'){
+        const opts=ELIGIBILITY_STATUSES.map(s=>`<option value="${s}" ${s===val?'selected':''}>${s}</option>`).join('');
+        return `<div style="margin-bottom:8px"><label class="muted" style="font-size:12px">${lab}</label><select id="ef_${id}"><option value="">—</option>${opts}</select></div>`;
+      }
+      return `<div style="margin-bottom:8px"><label class="muted" style="font-size:12px">${lab}</label><input id="ef_${id}" type="${type}" value="${esc(val||'')}"></div>`;
+    };
     $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Edit lead</h3>
       <div class="ui-grid">
         ${f('Full Name','fullName',c.name==='(no name)'?'':c.name)}${f('Email','email',c.email)}${f('Mobile','phone',c.phone)}${f('WhatsApp','whatsapp',c.whatsapp)}
         ${f('Country','country',c.country)}${f('Occupation','occupation',c.occupation)}${f('ANZSCO Code','anzscoCode',c.anzsco)}${f('Points Score','pointsScore',c.points||'')}
-        ${f('Visa Subclasses','eligibleVisaSubclasses',c.visas)}
+        ${f('Visa Subclasses','eligibleVisaSubclasses',c.visas)}${f('Eligibility Status','eligibilityStatus',c.eligibilityStatus,'select')}
       </div>
       <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm btn-primary" onclick="saveFields('${esc(ckey)}')">Save changes</button><button class="btn btn-sm" onclick="setTab('contact')">Cancel</button></div>
-      <p class="muted" style="font-size:12px;margin-top:8px">Edits are stored as CRM overrides (the original submission is preserved) and logged in the activity timeline.</p>
+      <p class="muted" style="font-size:12px;margin-top:8px">Edits are stored as CRM overrides (the original submission is preserved) and logged in the activity timeline.<br><strong>Note:</strong> The Lead Stage is automatically synchronized with the Eligibility Status.</p>
     </div></div>`;
   }
   async function saveFields(ckey){
-    const ids=['fullName','email','phone','whatsapp','country','occupation','anzscoCode','pointsScore','eligibleVisaSubclasses'];
+    const ids=['fullName','email','phone','whatsapp','country','occupation','anzscoCode','pointsScore','eligibleVisaSubclasses','eligibilityStatus'];
     const fields={}; ids.forEach(id=>{ const el=$('ef_'+id); if(el) fields[id]=el.value; });
     const c=findByKey(ckey);
     const r=await api('/crm-meta.php',{action:'save-fields',key:ckey,email:c?c.email:'',fields});
@@ -3027,6 +3074,22 @@
         <div id="bkDiag"></div>
         <div id="bkList" style="margin-top:10px"><p class="muted">Loading snapshots…</p></div>
       </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">⚙️ Lead Stage Synchronization</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6"><strong>Single Source of Truth:</strong> Lead Stage is now automatically synchronized with Eligibility Status. When you change a lead's Eligibility Status, the Stage updates instantly. Use this tool to sync all existing leads or check synchronization status.</p>
+        <table style="font-size:12px;width:100%;margin-bottom:10px">
+          <tr><td style="padding:4px;color:var(--muted)">Eligible</td><td style="padding:4px"><strong>Stage: Eligible</strong></td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Marginal</td><td style="padding:4px"><strong>Stage: Marginal</strong></td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Ineligible</td><td style="padding:4px"><strong>Stage: Ineligible</strong></td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Pending Assessment</td><td style="padding:4px"><strong>Stage: Pending Assessment</strong></td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Not Assessed</td><td style="padding:4px"><strong>Stage: Not Assessed</strong></td></tr>
+        </table>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+          <button class="btn btn-primary" onclick="syncAllLeadsToEligibility()">🔄 Sync ALL leads now</button>
+          <span id="syncMsg" class="muted" style="font-size:13px"></span>
+        </div>
+        <p class="muted" style="font-size:12px;margin-top:8px">Bulk sync can also be done per-lead: select leads in the Applicants list and use <strong>🔄 Sync to Eligibility</strong> button.</p>
+      </div>
+
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">Pipeline Stage Migration</h3>
         <p class="muted" style="font-size:13px;line-height:1.6">Migrate legacy stage names (old 14-stage pipeline) to the new 15 standardised immigration CRM statuses. A full backup is taken automatically <strong>before</strong> any changes are made. Signed Up clients and Lost Leads are never touched. Use <em>Preview</em> first to see exactly what will change.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
