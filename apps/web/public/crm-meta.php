@@ -230,6 +230,20 @@ if ($action === 'set-stage') {
     ));
     log_activity($meta[$key], 'Note deleted', '', $author);
 
+} elseif ($action === 'delete') {
+    // SOFT delete — the lead is hidden from the CRM but its data is preserved and
+    // recoverable. The raw submission in leads.ndjson is never destroyed, so a
+    // deleted lead can always be restored (data-safety: nothing is lost).
+    $meta[$key]['deleted']   = true;
+    $meta[$key]['deletedAt'] = date('c');
+    $meta[$key]['deletedBy'] = $author;
+    log_activity($meta[$key], 'Lead deleted', 'Soft-deleted (recoverable)', $author);
+
+} elseif ($action === 'restore') {
+    unset($meta[$key]['deleted'], $meta[$key]['deletedAt'], $meta[$key]['deletedBy']);
+    $meta[$key]['restoredAt'] = date('c');
+    log_activity($meta[$key], 'Lead restored', '', $author);
+
 } elseif ($action === 'log') {
     log_activity($meta[$key], (string) ($p['event'] ?? 'Activity'), (string) ($p['detail'] ?? ''), $author);
 

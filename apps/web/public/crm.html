@@ -244,6 +244,51 @@
   .widget-body{padding:13px 14px;font-size:13px}
   .widget.collapsed .widget-body{display:none}
   .widget.drag{opacity:.4} .widget.dragover{border-color:var(--accent);border-style:dashed}
+  /* ── HubSpot-style restructured Lead Profile ── */
+  .lp-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+  .lp-card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+  .lp-card.collapsed .lp-card-head{border-bottom:none}
+  .lp-card-head .chev{transition:transform .15s;font-size:10px}
+  .lp-card.collapsed .chev{transform:rotate(-90deg)}
+  .lp-card-body{padding:14px}
+  .lp-card.collapsed .lp-card-body{display:none}
+  .lp-prof{text-align:center;padding:18px 16px}
+  .lp-av{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--navy),#1e3a6b);color:#fff;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .lp-name{font-size:19px;font-weight:800;color:var(--navy);line-height:1.2}
+  .lp-title{font-size:14px;font-weight:600;color:var(--text);margin-top:3px}
+  .lp-quick{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .lp-qbtn{display:flex;flex-direction:column;align-items:center;gap:5px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);transition:color .12s;padding:0}
+  .lp-qcirc{width:42px;height:42px;border-radius:50%;background:var(--primary-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;transition:transform .14s,background .14s,box-shadow .14s}
+  .lp-qbtn:hover{color:var(--navy)}
+  .lp-qbtn:hover .lp-qcirc{background:var(--navy);color:#fff;transform:translateY(-3px) scale(1.06);box-shadow:0 6px 14px rgba(30,58,107,.28)}
+  .lp-qbtn:disabled{opacity:.4;cursor:not-allowed}
+  .lp-qbtn:disabled:hover .lp-qcirc{background:var(--primary-soft);color:var(--navy);transform:none;box-shadow:none}
+  .lp-qbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lp-kv{display:flex;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;gap:10px}
+  .lp-kv:last-child{border-bottom:none}
+  .lp-kv .k{color:var(--muted);min-width:96px;flex:0 0 96px}
+  .lp-kv .v{flex:1;word-break:break-word;font-weight:500}
+  .lp-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .lp-chip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 6px;cursor:pointer;text-align:center;transition:border-color .12s,background .12s}
+  .lp-chip:hover{border-color:var(--navy);background:var(--primary-soft)}
+  .lp-chip .n{font-size:18px;font-weight:800;color:var(--navy)}
+  .lp-chip .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+  .lp-w{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+  .lp-w:hover{border-color:var(--navy);box-shadow:var(--shadow)}
+  .lp-w .lab{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+  .lp-w .cnt{font-size:16px;font-weight:800;color:var(--navy)}
+  .lp-w.info{cursor:default}.lp-w.info:hover{border-color:var(--border);box-shadow:none}
+  .lp-w .sub{font-size:12px;color:var(--muted);font-weight:500;text-align:right;max-width:170px;word-break:break-word}
+  .lp-tl-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .lp-tl-search{flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px}
+  .lp-tl-item{position:relative;padding:11px 0 11px 30px;border-bottom:1px solid var(--border)}
+  .lp-tl-item:before{content:'';position:absolute;left:8px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--navy);box-shadow:0 0 0 3px var(--primary-soft);z-index:1}
+  .lp-tl-item:after{content:'';position:absolute;left:13px;top:24px;bottom:-11px;width:2px;background:var(--border)}
+  .lp-tl-item:last-child:after{display:none}
+  .lp-tl-item .ttl{font-weight:600;font-size:13px}
+  .lp-tl-item .det{font-size:12.5px;color:var(--text);margin-top:2px;white-space:pre-wrap;overflow:hidden}
+  .lp-tl-item.clip .det{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-height:3em}
+  .lp-tl-item .tm{font-size:11px;color:var(--muted);margin-top:3px}
   .stat[draggable]{cursor:grab} .stat.drag{opacity:.4} .stat.dragover{border-color:var(--accent);border-style:dashed;background:var(--primary-soft)}
   .chk-row{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
   .chk-row:last-child{border-bottom:none}
@@ -292,8 +337,8 @@
     <div class="nav-sect">CRM</div>
     <div class="navitem active" data-view="dashboard" onclick="go('dashboard')" title="Dashboard"><span class="ic">📊</span> <span class="lbl">Dashboard</span><span class="fav-star" data-fav="dashboard" onclick="toggleFav('dashboard',event)">★</span></div>
     <div class="navitem" data-view="leads" onclick="go('leads')" title="Applicants"><span class="ic">👤</span> <span class="lbl">Applicants</span><span class="fav-star" data-fav="leads" onclick="toggleFav('leads',event)">★</span></div>
-    <div class="navitem" data-view="clients" onclick="go('clients')" title="Cases"><span class="ic">🗂️</span> <span class="lbl">Cases</span><span class="fav-star" data-fav="clients" onclick="toggleFav('clients',event)">★</span></div>
-    <div class="navitem" data-view="companies" onclick="go('companies')" title="Companies"><span class="ic">🏢</span> <span class="lbl">Companies</span><span class="fav-star" data-fav="companies" onclick="toggleFav('companies',event)">★</span></div>
+    <div class="navitem" data-view="clients" onclick="go('clients')" title="Case Management"><span class="ic">🗂️</span> <span class="lbl">Case Management</span><span class="fav-star" data-fav="clients" onclick="toggleFav('clients',event)">★</span></div>
+    <div class="navitem" data-view="lifecycle" onclick="go('lifecycle')" title="Lead Life Cycle"><span class="ic">🔄</span> <span class="lbl">Lead Life Cycle</span><span class="fav-star" data-fav="lifecycle" onclick="toggleFav('lifecycle',event)">★</span></div>
     <div class="navitem" data-view="pipeline" onclick="go('pipeline')" title="Immigration Pipeline"><span class="ic">📊</span> <span class="lbl">Pipeline</span><span class="fav-star" data-fav="pipeline" onclick="toggleFav('pipeline',event)">★</span></div>
     <div class="nav-sect">WORKSPACE</div>
     <div class="navitem" data-view="tasks" onclick="go('tasks')" title="Tasks &amp; Follow-Ups"><span class="ic">✅</span> <span class="lbl">Tasks</span><span class="fav-star" data-fav="tasks" onclick="toggleFav('tasks',event)">★</span></div>
@@ -513,8 +558,9 @@
         sourceType: isAI?'AI':'Standard',
         stage: meta.stage || (reports.length?'Under Assessment':'New Lead'),
         notes: meta.notes || [], activity: meta.activity || [], overrides: ov,
+        _deleted: meta.deleted===true,
       };
-    });
+    }).filter(c=>!c._deleted);  // soft-deleted leads are hidden but preserved server-side
     CONTACTS.sort((a,b)=>(b.latestDate||'').localeCompare(a.latestDate||''));
   }
 
@@ -523,7 +569,7 @@
   function initSidebar(){ try{ if(localStorage.getItem('imig_crm_navcollapsed')==='1') $('app').classList.add('nav-collapsed'); }catch(e){} if(window.innerWidth<=820) $('app').classList.remove('nav-collapsed'); initFavorites(); initProfileChrome(); }
 
   /* ───────── HubSpot chrome: favorites, dropdowns, quick-create, notifications, toasts ───────── */
-  const NAV_META={dashboard:{ic:'📊',lbl:'Dashboard'},leads:{ic:'👤',lbl:'Applicants'},clients:{ic:'🗂️',lbl:'Cases'},companies:{ic:'🏢',lbl:'Companies'},pipeline:{ic:'📊',lbl:'Pipeline'},tasks:{ic:'✅',lbl:'Tasks'},activities:{ic:'📡',lbl:'Activities'},messages:{ic:'✉️',lbl:'Messages'},documents:{ic:'📁',lbl:'Documents'},calendar:{ic:'📅',lbl:'Calendar'},reports:{ic:'📈',lbl:'Reports'},automations:{ic:'⚡',lbl:'Automation'},invoices:{ic:'💳',lbl:'Invoices'},settings:{ic:'⚙️',lbl:'Settings'}};
+  const NAV_META={dashboard:{ic:'📊',lbl:'Dashboard'},leads:{ic:'👤',lbl:'Applicants'},clients:{ic:'🗂️',lbl:'Case Management'},lifecycle:{ic:'🔄',lbl:'Lead Life Cycle'},pipeline:{ic:'📊',lbl:'Pipeline'},tasks:{ic:'✅',lbl:'Tasks'},activities:{ic:'📡',lbl:'Activities'},messages:{ic:'✉️',lbl:'Messages'},documents:{ic:'📁',lbl:'Documents'},calendar:{ic:'📅',lbl:'Calendar'},reports:{ic:'📈',lbl:'Reports'},automations:{ic:'⚡',lbl:'Automation'},invoices:{ic:'💳',lbl:'Invoices'},settings:{ic:'⚙️',lbl:'Settings'}};
   function getFavs(){ try{ return JSON.parse(localStorage.getItem('imig_crm_favs')||'[]'); }catch(e){ return []; } }
   function setFavs(a){ try{ localStorage.setItem('imig_crm_favs',JSON.stringify(a)); }catch(e){} }
   function toggleFav(view,ev){ if(ev){ev.stopPropagation();} let f=getFavs(); if(f.includes(view))f=f.filter(x=>x!==view); else f.push(view); setFavs(f); initFavorites(); }
@@ -568,10 +614,10 @@
   function toast(msg,kind){ let w=$('toastWrap'); if(!w){ w=document.createElement('div'); w.id='toastWrap'; document.body.appendChild(w); } const t=document.createElement('div'); t.className='toast '+(kind==='ok'?'ok':kind==='err'?'err':''); t.innerHTML=(kind==='ok'?'✓ ':kind==='err'?'⚠ ':'')+esc(msg); w.appendChild(t); setTimeout(()=>{ t.style.transition='opacity .3s,transform .3s'; t.style.opacity='0'; t.style.transform='translateX(20px)'; setTimeout(()=>t.remove(),300); },3200); }
   function go(v){ VIEW=v; PROFILE_KEY=null; document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active',n.dataset.view===v)); render(); }
   function render(){
-    const titles={dashboard:'Dashboard',leads:'Applicants',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',clients:'Cases',companies:'Companies',activities:'Activities',messages:'Messages & Email',documents:'Documents',invoices:'Invoices & Payments',automations:'Automation',settings:'Settings',profile:'Applicant Profile'};
+    const titles={dashboard:'Dashboard',leads:'Applicants',calendar:'Calendar',pipeline:'Immigration Pipeline',reports:'Lead Reports',tasks:'Tasks & Follow-Ups',clients:'Case Management',lifecycle:'Lead Life Cycle',activities:'Activities',messages:'Messages & Email',documents:'Documents',invoices:'Invoices & Payments',automations:'Automation',settings:'Settings',profile:'Applicant Profile'};
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
-    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,companies:renderCompanies,activities:renderActivities,messages:renderMessages,documents:renderDocuments,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+    ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,lifecycle:renderLifecycle,companies:renderCompanies,activities:renderActivities,messages:renderMessages,documents:renderDocuments,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
   }
 
   /* ---------- GLOBAL SEARCH ---------- */
@@ -586,7 +632,7 @@
       if(!r||!r.results)return;
       const results=r.results;
       if(!results.length){if($res)$res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:13px">No results found</div>';return;}
-      const typeIcon={lead:'👥',case:'🧾',note:'📝',task:'✅',email:'✉️'};
+      const typeIcon={lead:'👥',case:'🧾',document:'📎',note:'📝',task:'✅',email:'✉️'};
       const html=results.map(x=>`<div onclick="searchGoto('${esc(x.type)}','${esc(x.id)}','${esc(x.leadKey||'')}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .1s" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
         <div style="display:flex;gap:8px;align-items:flex-start">
           <div style="font-size:16px">${typeIcon[x.type]||'·'}</div>
@@ -600,19 +646,19 @@
     },300);
   }
   function searchGoto(type,id,leadKey){
-    $('globalSearch').value=''; $('searchResults').style.display='none';
-    if(type==='lead'){ go('profile'); PROFILE_KEY=id; renderProfile(); }
-    else if(type==='case'){ go('clients'); CASE_PANEL_ID=id; setTimeout(()=>renderClients(),100); }
-    else if(type==='note'||type==='email'||type==='task'){
-      if(leadKey){ go('profile'); PROFILE_KEY=leadKey; setTimeout(()=>renderProfile(),100); }
-      else go('tasks');
-    }
+    const gs=$('globalSearch'); if(gs)gs.value=''; const sr=$('searchResults'); if(sr)sr.style.display='none';
+    if(type==='lead'){ openProfile(id); }
+    else if(type==='case'){ go('clients'); CASE_PANEL_ID=id; setTimeout(()=>renderClients(),60); }
+    else if(type==='document'){ if(leadKey){ openProfile(leadKey); setTimeout(()=>setTab('documents'),60); } else { go('documents'); } }
+    else if(type==='email'){ if(leadKey){ openProfile(leadKey); setTimeout(()=>setTab('emails'),60); } else { go('messages'); } }
+    else if(type==='note'){ if(leadKey){ openProfile(leadKey); setTimeout(()=>setTab('notes'),60); } else { go('leads'); } }
+    else if(type==='task'){ if(leadKey){ openProfile(leadKey); setTimeout(()=>setTab('tasks'),60); } else { go('tasks'); } }
   }
   document.addEventListener('keydown',(e)=>{
     if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); const s=$('globalSearch'); if(s)s.focus(); }
     if(e.key==='Escape'){ const $res=$('searchResults'); if($res)$res.style.display='none'; }
   });
-  window.addEventListener('click',()=>{ const $res=$('searchResults'); if($res)$res.style.display='none'; });
+  window.addEventListener('click',()=>{ const $res=$('searchResults'); if($res)$res.style.display='none'; const ll=$('leadLookupRes'); if(ll)ll.style.display='none'; });
 
   /* ---------- LEAD SCORING ENGINE ---------- */
   async function recalculateAllScores(){
@@ -1047,7 +1093,8 @@
     const stage=s.value;
     if(!confirm(`Change stage to "${stage}" for ${SELECTED.size} lead(s)?`)) return;
     for(const ckey of SELECTED){
-      await api('/crm-meta.php',{action:'stage',key:ckey,stage});
+      const c=findByKey(ckey);
+      await api('/crm-meta.php',{action:'set-stage',key:ckey,email:(c&&c.email)||'',stage});
     }
     await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
   }
@@ -1057,11 +1104,17 @@
     BULK_MODE=false; SELECTED.clear(); renderLeads();
   }
   async function bulkDelete(){
-    if(!confirm(`Permanently delete ${SELECTED.size} lead(s)? This cannot be undone.`)) return;
+    const n=SELECTED.size;
+    if(!n){ alert('Select at least one lead first.'); return; }
+    if(!confirm(`Delete ${n} lead(s)?\n\nThis is a soft delete — the leads are removed from your lists but their data is preserved and can be recovered. The original records are never destroyed.`)) return;
+    let done=0;
     for(const ckey of SELECTED){
-      await api('/crm-meta.php',{action:'delete',key:ckey});
+      const c=findByKey(ckey);
+      const r=await api('/crm-meta.php',{action:'delete',key:ckey,email:(c&&c.email)||''});
+      if(r&&r.ok) done++;
     }
     await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
+    toast(`${done} lead(s) deleted (recoverable)`, done?'ok':'err');
   }
 
   /* ---------- modal helpers ---------- */
@@ -1239,7 +1292,8 @@
     document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
     render(); window.scrollTo(0,0);
   }
-  function setTab(t){ PROFILE_TAB=t; renderProfile(); }
+  /* In the restructured profile, "tabs" open as a feature modal (center stays the timeline). */
+  function setTab(t){ openFeature(t); }
 
   /* Positive lead progression used for the case-status tracker. */
   const PROGRESSION=['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Signed Up'];
@@ -1248,65 +1302,148 @@
     const c=findByKey(PROFILE_KEY);
     if(!c){ $('content').innerHTML='<p class="muted">Applicant not found. <button class="btn btn-sm" onclick="go(\'leads\')">Back to applicants</button></p>'; return; }
     const myTasks=TASKS.filter(t=>t.leadEmail && c.email && t.leadEmail.toLowerCase()===c.email);
-    const tabs=[
-      ['contact','Contact'],['assessment','Lead Details'],['inputs','User Inputs'],['recs','AI Recommendations'],
-      ['activity','Activity'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],
-      ['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]
-    ];
-    const stageSel=(()=>{const allOpts=[...STAGES,...(STAGES.includes(c.stage)?[]:([c.stage]))];return `<select style="width:100%;display:block;margin-top:4px" onchange="setStage('${esc(c.ckey)}',this.value)">${allOpts.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}${!STAGES.includes(s)?' (legacy)':''}</option>`).join('')}</select>`;})();
-    const switcher=`<select style="width:auto;max-width:260px" onchange="openProfile(this.value)" title="Jump to another applicant">${leadRows().map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' · '+esc(x.email):''}</option>`).join('')}</select>`;
+    const openTasks=myTasks.filter(t=>(t.status||'Open')!=='Done').length;
+    const emailCount=(c.activity||[]).filter(a=>/email/i.test(a.event||'')).length;
+    const counts={notes:c.notes.length,tasks:openTasks,emails:emailCount,reports:c.storedReports.length,documents:c.cvFiles.length};
+    const lookup=`<div style="position:relative"><input id="leadLookup" placeholder="🔍 Find applicant by name, mobile or email…" oninput="leadLookupInput(this.value)" onfocus="leadLookupInput(this.value)" onclick="event.stopPropagation()" autocomplete="off" style="width:300px;max-width:62vw;padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px"><div id="leadLookupRes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg,0 10px 28px rgba(0,0,0,.18));max-height:320px;overflow:auto;margin-top:4px"></div></div>`;
     const initials=(c.name||'?').trim().split(/\s+/).slice(0,2).map(w=>w.charAt(0).toUpperCase()).join('')||'?';
     const pri=PRIORITY_OF(c.cat);
-    const kvRow=(k,v,extra)=>v?`<div class="kv" style="padding:6px 0"><span class="k" style="min-width:78px">${k}</span><span style="flex:1;word-break:break-word">${extra||esc(v)}</span></div>`:'';
-    const wa=(c.whatsapp||'').replace(/[^0-9]/g,'');
-    // LEFT profile card + quick actions
+    const SVG={
+      email:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+      call:'<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>',
+      meeting:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+      task:'<svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+      note:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
+    };
+    const qbtn=(act,label,svg,dis)=>`<button class="lp-qbtn" ${dis?'disabled':`onclick="${act}"`}><span class="lp-qcirc">${svg}</span>${label}</button>`;
+    const quick=`<div class="lp-quick">
+      ${qbtn(`profileEmail('${esc(c.ckey)}')`,'Email',SVG.email,!c.email)}
+      ${qbtn(`logCall('${esc(c.ckey)}')`,'Call',SVG.call)}
+      ${qbtn(`scheduleAppt('${esc(c.ckey)}')`,'Meeting',SVG.meeting)}
+      ${qbtn(`openFeature('tasks')`,'Task',SVG.task)}
+      ${qbtn(`openFeature('notes')`,'Note',SVG.note)}
+    </div>`;
+    const stageSel=`<select style="width:100%;margin-top:2px" onchange="setStage('${esc(c.ckey)}',this.value)">${[...STAGES,...(STAGES.includes(c.stage)?[]:[c.stage])].map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(stageLabel(s))}${!STAGES.includes(s)?' (legacy)':''}</option>`).join('')}</select>`;
+    const model=leadFieldModel(c);
+    const liField=model.find(m=>m.key==='linkedinUrl'&&String(m.value||'').trim()!=='');
+    const SKIP_ABOUT=new Set(['whatsapp','linkedinUrl','fullName','name']);
+    const aboutRows=model.filter(m=>!SKIP_ABOUT.has(m.key)&&String(m.value||'').trim()!=='').map(m=>{
+      let v=esc(m.value); if(m.key==='email') v=`<a href="mailto:${esc(m.value)}">${esc(m.value)}</a>`;
+      return `<div class="lp-kv"><span class="k">${esc(m.label)}</span><span class="v">${v}</span></div>`;
+    }).join('');
+    const cvRow=c.currentCv?`<div class="lp-kv"><span class="k">CV / Résumé</span><span class="v"><a href="javascript:void(0)" onclick="cvOpen('${esc(c.ckey)}')">View</a> · <a href="javascript:void(0)" onclick="cvDownload('${esc(c.ckey)}')">Download</a></span></div>`:'';
+    const liRow=liField?`<div class="lp-kv"><span class="k">LinkedIn</span><span class="v"><a href="${esc(liField.value)}" target="_blank" rel="noopener">View profile ↗</a></span></div>`:'';
+    const consultantRow=`<div class="lp-kv"><span class="k">Consultant</span><span class="v">${esc(CRM_USER())}</span></div>`;
+    const card=(id,title,body)=>`<div class="lp-card${lpCollapsed(id)?' collapsed':''}" data-lpc="${id}"><div class="lp-card-head" onclick="lpToggleCard('${id}')"><span>${title}</span><span class="chev">▼</span></div><div class="lp-card-body">${body}</div></div>`;
+    const chip=(act,n,l)=>`<div class="lp-chip" onclick="${act}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    const leftChips=`<div class="lp-chips">
+      ${chip(`openFeature('notes')`,counts.notes,'Notes')}
+      ${chip(`openFeature('tasks')`,counts.tasks,'Tasks')}
+      ${chip(`openFeature('emails')`,counts.emails,'Emails')}
+      ${chip(`openFeature('reports')`,counts.reports,'Reports')}
+      ${chip(`openFeature('documents')`,counts.documents,'Docs')}
+      ${chip(`openFeature('recs')`,(c.recommendations?'★':'–'),'AI')}
+    </div>`;
+    const aiBody=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="ui-item" style="padding:8px"><div class="lab">Score</div><div class="val">${c.score||0}</div></div>
+      <div class="ui-item" style="padding:8px"><div class="lab">Category</div><div class="val" style="font-size:13px">${esc(c.cat||'Cold')}</div></div>
+      <div class="ui-item" style="padding:8px"><div class="lab">Priority</div><div class="val" style="font-size:13px;color:${pri.col}">${pri.lab}</div></div>
+      <div class="ui-item" style="padding:8px"><div class="lab">Points</div><div class="val">${c.points||'—'}</div></div>
+    </div><button class="btn btn-sm btn-primary" style="width:100%" onclick="aiAssist('${esc(c.ckey)}')">✨ AI assistant</button>`;
     const leftCol=`
-      <div class="rec3-prof">
-        <div class="rec3-av">${esc(initials)}</div>
-        <div style="font-size:18px;font-weight:800;color:var(--navy)">${esc(c.name)}</div>
-        <div class="muted" style="font-size:12.5px;margin-top:2px">${esc(c.occupation||'No occupation')}</div>
+      <div class="lp-card"><div class="lp-prof">
+        <div class="lp-av">${esc(initials)}</div>
+        <div class="lp-name">${esc(c.name)}</div>
+        <div class="lp-title">${esc(c.occupation||'—')}</div>
         <div style="margin-top:8px;display:flex;gap:5px;justify-content:center;flex-wrap:wrap">
           <span class="badge ${c.isAI?'ai':'std'}">${esc(c.sourceType)}</span>
           ${c.hot?'<span class="badge hot">HOT</span>':''}
           <span class="badge" style="background:${pri.col}1a;color:${pri.col}">${pri.lab} priority</span>
         </div>
-        <div class="rec3-quick">
-          ${c.email?`<a class="rec3-qbtn" href="mailto:${esc(c.email)}"><span class="qic">📧</span>Email</a>`:'<span class="rec3-qbtn" style="opacity:.4"><span class="qic">📧</span>Email</span>'}
-          <button class="rec3-qbtn" onclick="logCall('${esc(c.ckey)}')"><span class="qic">📞</span>Call</button>
-          ${wa?`<a class="rec3-qbtn" target="_blank" href="https://wa.me/${wa}"><span class="qic">💬</span>WhatsApp</a>`:'<span class="rec3-qbtn" style="opacity:.4"><span class="qic">💬</span>WhatsApp</span>'}
-          <button class="rec3-qbtn" onclick="setTab('notes')"><span class="qic">📝</span>Note</button>
-          <button class="rec3-qbtn" onclick="scheduleAppt('${esc(c.ckey)}')"><span class="qic">📅</span>Meeting</button>
-          <button class="rec3-qbtn" onclick="aiAssist('${esc(c.ckey)}')"><span class="qic">✨</span>AI</button>
-        </div>
-      </div>
-      <div class="rec3-prof" style="text-align:left;padding:14px 16px">
-        <div class="sect"><h3 style="margin-bottom:8px">About this applicant</h3></div>
-        ${kvRow('Email',c.email,c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'')}
-        ${kvRow('Mobile',c.phone)}
-        ${kvRow('WhatsApp',c.whatsapp)}
-        ${kvRow('Country',c.country)}
-        ${kvRow('Destination',c.destination)}
-        ${kvRow('Visa',c.visas)}
-        ${kvRow('Points',c.points)}
-        ${kvRow('Source',c.source)}
-        ${kvRow('Consultant',CRM_USER())}
-        <div style="margin-top:10px"><span class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.04em">Stage</span>${stageSel}</div>
-        <button class="btn btn-sm" style="width:100%;margin-top:10px" onclick="editFields('${esc(c.ckey)}')">✎ Edit fields</button>
-      </div>`;
+        ${quick}
+      </div></div>
+      ${card('stage','Lead Stage',stageSel)}
+      ${card('about','About this applicant',aboutRows+cvRow+liRow+consultantRow+`<button class="btn btn-sm" style="width:100%;margin-top:10px" onclick="openFeature('inputs')">✎ Edit lead profile</button>`)}
+      ${card('aileft','AI Insights',aiBody)}
+      ${card('counts','Records',leftChips)}`;
+    const lastA=buildActivity(c)[0];
+    const lastAStr=lastA?((lastA.title||'Activity')+' · '+String(lastA.at||'').slice(0,10)):'—';
+    const w=(act,lab,cnt)=>`<div class="lp-w" onclick="${act}"><span class="lab">${lab}</span><span class="cnt">${cnt}</span></div>`;
+    const winfo=(lab,sub)=>`<div class="lp-w info"><span class="lab">${lab}</span><span class="sub">${sub}</span></div>`;
+    const rightCol=`
+      ${w(`openFeature('notes')`,'📝 Notes',counts.notes)}
+      ${w(`openFeature('tasks')`,'✅ Tasks',counts.tasks)}
+      ${w(`openFeature('emails')`,'✉️ Emails',counts.emails)}
+      ${w(`openFeature('reports')`,'📈 Reports',counts.reports)}
+      ${w(`openFeature('documents')`,'📎 Documents',counts.documents)}
+      ${winfo('🔗 Lead Source',esc(c.source||'—'))}
+      ${winfo('🕑 Last Activity',esc(lastAStr))}`;
     $('content').innerHTML=`
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-sm" onclick="go('leads')">← Applicants</button>${switcher}<span class="muted" style="font-size:12px">${leadRows().length} applicant(s)</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-sm" onclick="go('leads')">← Applicants</button>${lookup}<span class="muted" style="font-size:12px">${leadRows().length} applicant(s)</span></div>
       <div class="rec3">
         <div class="rec3-col rec3-left">${leftCol}</div>
         <div class="rec3-col">
-          <div class="tabs">${tabs.map(([id,lab,cnt])=>`<div class="tab ${PROFILE_TAB===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
-          <div id="tabBody"></div>
+          <div class="lp-card"><div class="lp-card-body">
+            <div class="lp-tl-head"><strong style="font-size:14px">Activity Timeline</strong><input class="lp-tl-search" id="lpTlSearch" placeholder="🔍 Search activity…" oninput="lpRenderTimeline()"><button class="btn btn-sm" id="lpClipBtn" onclick="lpToggleClip()">Expand all</button></div>
+            <div id="lpTlFilter" class="act-filter" style="border:none;padding:0 0 10px"></div>
+            <div id="lpTlBody"></div>
+          </div></div>
         </div>
-        <div class="rec3-col rec3-right" id="recWidgets"></div>
+        <div class="rec3-col rec3-right">${rightCol}</div>
       </div>`;
-    renderProfileTab(c, myTasks);
-    renderRecWidgets(c, myTasks);
+    lpRenderTimeline();
+    if(document.getElementById('tabBody')){ renderProfileTab(c, myTasks); }
   }
 
+  /* ───────── Restructured-profile helpers (collapsible cards, feature modal, timeline) ───────── */
+  function lpCollapsed(id){ try{ return (JSON.parse(localStorage.getItem('imig_crm_lpcards')||'[]')).includes(id); }catch(e){ return false; } }
+  function lpToggleCard(id){ let s=[]; try{ s=JSON.parse(localStorage.getItem('imig_crm_lpcards')||'[]'); }catch(e){} if(s.includes(id))s=s.filter(x=>x!==id); else s.push(id); try{ localStorage.setItem('imig_crm_lpcards',JSON.stringify(s)); }catch(e){} const el=document.querySelector('.lp-card[data-lpc="'+id+'"]'); if(el)el.classList.toggle('collapsed'); }
+  /* Open a record feature (Contact, Lead Details, Lead Profile, AI Recs, Notes, Tasks, Emails, Reports, Documents)
+     in a modal that REUSES the existing tab renderers — so all functionality is preserved, center stays the timeline. */
+  function openFeature(t){
+    const c=findByKey(PROFILE_KEY); if(!c) return;
+    const myTasks=TASKS.filter(x=>x.leadEmail && c.email && x.leadEmail.toLowerCase()===c.email);
+    PROFILE_TAB=t;
+    const ftabs=[['contact','Contact'],['assessment','Lead Details'],['inputs','Lead Profile'],['recs','AI Recs'],['notes','Notes',c.notes.length],['tasks','Tasks',myTasks.length],['emails','Emails'],['reports','Reports',c.storedReports.length],['documents','Documents',c.cvFiles.length]];
+    openModal(`<button class="modal-x" onclick="closeModal()">×</button>
+      <div style="font-weight:800;color:var(--navy);font-size:15px;margin-bottom:6px">${esc(c.name)}</div>
+      <div class="tabs" style="flex-wrap:wrap">${ftabs.map(([id,lab,cnt])=>`<div class="tab ${t===id?'active':''}" onclick="setTab('${id}')">${lab}${cnt!=null?`<span class="cnt">${cnt}</span>`:''}</div>`).join('')}</div>
+      <div id="tabBody" style="margin-top:10px;max-height:68vh;overflow:auto"></div>`,true);
+    renderProfileTab(c, myTasks);
+  }
+  function profileEmail(ckey){ openFeature('emails'); }
+  /* Searchable lead lookup (replaces the jump-to dropdown). Searches name / mobile / email. */
+  function leadLookupInput(q){
+    const box=$('leadLookupRes'); if(!box) return;
+    q=(q||'').toLowerCase().trim();
+    if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+    const rows=leadRows().filter(c=>((c.name||'')+' '+(c.email||'')+' '+(c.phone||'')+' '+(c.whatsapp||'')).toLowerCase().includes(q)).slice(0,12);
+    box.style.display='block';
+    box.innerHTML=rows.length?rows.map(c=>`<div onclick="leadLookupPick('${esc(c.ckey)}')" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+      <div style="font-weight:600">${esc(c.name||'(no name)')}</div>
+      <div class="muted" style="font-size:12px">${esc(c.email||'')}${c.phone?' · '+esc(c.phone):''}</div>
+    </div>`).join(''):'<div style="padding:10px 12px;color:var(--muted);font-size:13px">No applicants found</div>';
+  }
+  function leadLookupPick(ckey){ const box=$('leadLookupRes'); if(box)box.style.display='none'; const inp=$('leadLookup'); if(inp)inp.value=''; openProfile(ckey); }
+  /* Center activity timeline with search + type filters + expand/collapse */
+  let LP_TL_CLIP=true, LP_TL_FILTER='all';
+  function lpToggleClip(){ LP_TL_CLIP=!LP_TL_CLIP; const b=$('lpClipBtn'); if(b)b.textContent=LP_TL_CLIP?'Expand all':'Collapse all'; lpRenderTimeline(); }
+  function lpRenderTimeline(){
+    const c=findByKey(PROFILE_KEY); if(!c) return;
+    const body=$('lpTlBody'), fb=$('lpTlFilter'); if(!body) return;
+    const all=buildActivity(c);
+    const types=[['all','All'],['note','Notes'],['call','Calls'],['email','Emails'],['appt','Meetings'],['task','Tasks'],['stage','Status'],['report','Reports'],['doc','Documents']];
+    if(fb) fb.innerHTML=types.map(([id,l])=>`<span class="act-chip ${LP_TL_FILTER===id?'on':''}" onclick="LP_TL_FILTER='${id}';lpRenderTimeline()">${l}</span>`).join('');
+    const q=(($('lpTlSearch')||{}).value||'').toLowerCase().trim();
+    const ICON={note:'📝',call:'📞',email:'📧',stage:'🔁',appt:'📅',task:'✅',report:'📄',doc:'📎'};
+    let rows=all.filter(x=>LP_TL_FILTER==='all'||x.type===LP_TL_FILTER);
+    if(q) rows=rows.filter(x=>((x.title||'')+' '+(x.detail||'')+' '+(x.by||'')).toLowerCase().includes(q));
+    body.innerHTML=rows.length?rows.map(x=>`<div class="lp-tl-item ${LP_TL_CLIP?'clip':''}">
+      <div class="ttl">${ICON[x.type]||'•'} ${esc(x.title)}</div>
+      ${x.detail?`<div class="det">${esc(x.detail)}</div>`:''}
+      <div class="tm">${esc(String(x.at||'').slice(0,16).replace('T',' '))}${x.by?' · '+esc(x.by):''}</div>
+    </div>`).join(''):'<p class="muted" style="font-size:13px;padding:8px 0">No activity matches.</p>';
+  }
   /* ───────── RIGHT-column widgets (draggable + collapsible, HubSpot record page) ───────── */
   const DEFAULT_WIDGETS=['status','docs','tasks','activity','ai','related'];
   function widgetOrder(){ try{ const s=JSON.parse(localStorage.getItem('imig_crm_widgets')||'null'); if(Array.isArray(s)&&s.length) return s.filter(w=>DEFAULT_WIDGETS.includes(w)).concat(DEFAULT_WIDGETS.filter(w=>!s.includes(w))); }catch(e){} return DEFAULT_WIDGETS.slice(); }
@@ -1579,7 +1716,7 @@
   }
   function editInputs(ckey){
     const c=findByKey(ckey); INPUT_MODEL=leadFieldModel(c);
-    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Edit user inputs</h3>
+    $('tabBody').innerHTML=`<div class="card"><div class="sect"><h3>Edit Lead Profile</h3>
       <div class="ui-grid">${INPUT_MODEL.map((m,i)=>`<div><label class="muted" style="font-size:12px">${esc(m.label)}</label><input id="ui_${i}" value="${esc(m.value)}"></div>`).join('')}</div>
       <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm btn-primary" onclick="saveInputs('${esc(ckey)}')">Save changes</button><button class="btn btn-sm" onclick="setTab('inputs')">Cancel</button></div>
     </div></div>`;
@@ -2018,69 +2155,69 @@
   function coName(id){const c=COMPANIES.find(x=>x.id===id);return c?c.name:'';}
   let CASE_PANEL_ID=null;
   async function renderClients(){
-    $('content').innerHTML='<div class=”card”><h3>🧾 Clients &amp; Cases</h3><p class=”muted”>Loading…</p></div>';
+    $('content').innerHTML='<div class="card"><h3>🧾 Clients &amp; Cases</h3><p class="muted">Loading…</p></div>';
     const r=await api('/crm-cases.php',{action:'list'});
     CASES=(r&&r.cases)||[]; COMPANIES=(r&&r.companies)||[];
     const clients=CONTACTS.filter(c=>c.stage==='Signed Up');
     const active=CASES.filter(c=>!['Approved','Refused'].includes(c.status)).length;
     const approved=CASES.filter(c=>c.status==='Approved').length;
-    const stat=(n,l)=>`<div class=”card” style=”display:inline-block;min-width:140px;margin-right:12px”><div style=”font-size:24px;font-weight:800;color:var(--navy)”>${n}</div><div class=”muted” style=”font-size:12px”>${l}</div></div>`;
-    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class=”pill”>${esc(c.type||'')}</span></td><td class=”muted”>${esc(c.country||'')}</td><td class=”muted”>${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class=”right”><button class=”btn btn-sm” onclick=”companyEdit('${esc(c.id)}')”>Edit</button> <button class=”btn btn-sm” onclick=”companyDel('${esc(c.id)}')”>Delete</button></td></tr>`).join('');
+    const stat=(n,l)=>`<div class="card" style="display:inline-block;min-width:140px;margin-right:12px"><div style="font-size:24px;font-weight:800;color:var(--navy)">${n}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
+    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class="pill">${esc(c.type||'')}</span></td><td class="muted">${esc(c.country||'')}</td><td class="muted">${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class="right"><button class="btn btn-sm" onclick="companyEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="companyDel('${esc(c.id)}')">Delete</button></td></tr>`).join('');
     const listItems=caseSplitListHtml();
     if(!CASE_PANEL_ID && CASES.length) CASE_PANEL_ID=CASES[0].id;
     $('content').innerHTML=`
-      <div style=”display:flex;flex-wrap:wrap;margin-bottom:8px”>${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
-      <div class=”sp-wrap” id=”casesSplit”>
-        <div class=”sp-list” id=”casesListPane”>
-          <div style=”padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center”>
-            <strong style=”font-size:13px”>Visa Cases</strong>
-            <button class=”btn btn-primary btn-sm” onclick=”caseNew()”>+ New</button>
+      <div style="display:flex;flex-wrap:wrap;margin-bottom:8px">${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
+      <div class="sp-wrap" id="casesSplit">
+        <div class="sp-list" id="casesListPane">
+          <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <strong style="font-size:13px">Visa Cases</strong>
+            <button class="btn btn-primary btn-sm" onclick="caseNew()">+ New</button>
           </div>
-          <div id=”casesListItems”>${listItems}</div>
+          <div id="casesListItems">${listItems}</div>
         </div>
-        <div class=”sp-detail” id=”caseDetailPane”>
-          <div id=”caseDetailInner”>${CASE_PANEL_ID?caseDetailHtml(CASE_PANEL_ID):'<div style=”padding:40px;text-align:center;color:var(--muted)”>Select a case to view details</div>'}</div>
+        <div class="sp-detail" id="caseDetailPane">
+          <div id="caseDetailInner">${CASE_PANEL_ID?caseDetailHtml(CASE_PANEL_ID):'<div style="padding:40px;text-align:center;color:var(--muted)">Select a case to view details</div>'}</div>
         </div>
       </div>
-      <div id=”caseEditor”></div>
-      <div class=”card” style=”margin-top:14px”><div style=”display:flex;justify-content:space-between;align-items:center”><h3 style=”margin:0”>Companies (employers / sponsors)</h3><button class=”btn btn-primary btn-sm” onclick=”companyNew()”>+ New company</button></div>
-        <div style=”overflow:auto”><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class=”right”></th></tr></thead><tbody>${compRows||'<tr><td colspan=”5” class=”muted” style=”padding:14px”>No companies yet.</td></tr>'}</tbody></table></div></div>
-      <div id=”companyEditor”></div>`;
+      <div id="caseEditor"></div>
+      <div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Companies (employers / sponsors)</h3><button class="btn btn-primary btn-sm" onclick="companyNew()">+ New company</button></div>
+        <div style="overflow:auto"><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class="right"></th></tr></thead><tbody>${compRows||'<tr><td colspan="5" class="muted" style="padding:14px">No companies yet.</td></tr>'}</tbody></table></div></div>
+      <div id="companyEditor"></div>`;
     if(CASE_EDIT)renderCaseEditor(); if(COMPANY_EDIT)renderCompanyEditor();
   }
   function caseSplitListHtml(){
-    if(!CASES.length) return '<div style=”padding:20px;text-align:center;color:var(--muted);font-size:13px”>No cases yet.</div>';
+    if(!CASES.length) return '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No cases yet.</div>';
     return CASES.map(c=>{
       const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
       const active=CASE_PANEL_ID===c.id;
-      return `<div class=”sp-row${active?' active':''}” onclick=”openCasePanel('${esc(c.id)}')”>
-        <div class=”sp-avatar” style=”background:${sc.bg};color:${sc.color};font-size:14px”>${(c.clientName||'?')[0]}</div>
-        <div style=”flex:1;min-width:0”>
-          <div style=”font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.clientName||'—')}</div>
-          <div class=”muted” style=”font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.visaType||'')}${c.country?' · '+esc(c.country):''}</div>
+      return `<div class="sp-row${active?' active':''}" onclick="openCasePanel('${esc(c.id)}')">
+        <div class="sp-avatar" style="background:${sc.bg};color:${sc.color};font-size:14px">${(c.clientName||'?')[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.clientName||'—')}</div>
+          <div class="muted" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.visaType||'')}${c.country?' · '+esc(c.country):''}</div>
         </div>
-        <div style=”text-align:right;flex-shrink:0”>
-          <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:10px”>${esc(c.status||'')}</span>
-          ${c.targetDate?`<div class=”muted” style=”font-size:10px;margin-top:2px”>${esc(c.targetDate)}</div>`:''}
+        <div style="text-align:right;flex-shrink:0">
+          <span class="pill" style="background:${sc.bg};color:${sc.color};font-size:10px">${esc(c.status||'')}</span>
+          ${c.targetDate?`<div class="muted" style="font-size:10px;margin-top:2px">${esc(c.targetDate)}</div>`:''}
         </div>
       </div>`;
     }).join('');
   }
   function caseDetailHtml(id){
-    const c=CASES.find(x=>x.id===id); if(!c) return '<div style=”padding:32px;color:var(--muted)”>Case not found.</div>';
+    const c=CASES.find(x=>x.id===id); if(!c) return '<div style="padding:32px;color:var(--muted)">Case not found.</div>';
     const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
     const lead=CONTACTS.find(x=>x.ckey===c.ckey||x.email===c.email);
     const remindDue=c.reminderDate&&c.reminderDate<=new Date().toISOString().slice(0,10);
-    const row=(l,v)=>v?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0;width:140px;white-space:nowrap”>${l}</td><td style=”font-size:13px;padding:4px 0”>${v}</td></tr>`:'';
-    return `<div style=”padding:16px”>
-      <div style=”display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px”>
+    const row=(l,v)=>v?`<tr><td class="muted" style="font-size:12px;padding:4px 8px 4px 0;width:140px;white-space:nowrap">${l}</td><td style="font-size:13px;padding:4px 0">${v}</td></tr>`:'';
+    return `<div style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <div>
-          <h3 style=”margin:0 0 4px”>${esc(c.clientName||'—')}</h3>
-          <div class=”muted” style=”font-size:12px”>${esc(c.email||'')}${lead?` · <a href=”#” onclick=”go('profile');PROFILE_KEY='${esc(c.ckey||'')}';renderProfile();return false” style=”color:var(--blue)”>View Lead →</a>`:''}</div>
+          <h3 style="margin:0 0 4px">${esc(c.clientName||'—')}</h3>
+          <div class="muted" style="font-size:12px">${esc(c.email||'')}${lead?` · <a href="#" onclick="go('profile');PROFILE_KEY='${esc(c.ckey||'')}';renderProfile();return false" style="color:var(--blue)">View Lead →</a>`:''}</div>
         </div>
-        <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:13px;padding:4px 12px”>${esc(c.status||'')}</span>
+        <span class="pill" style="background:${sc.bg};color:${sc.color};font-size:13px;padding:4px 12px">${esc(c.status||'')}</span>
       </div>
-      <table style=”width:100%;margin-bottom:12px”>
+      <table style="width:100%;margin-bottom:12px">
         ${row('Visa / pathway',esc(c.visaType||''))}
         ${row('Country',esc(c.country||''))}
         ${row('File number',esc(c.fileNumber||''))}
@@ -2089,13 +2226,13 @@
         ${row('State / nomination',esc(c.stateNomination||''))}
         ${row('Target date',esc(c.targetDate||''))}
         ${row('Fee',esc(c.fee||''))}
-        ${c.reminderDate?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0”>State-opening reminder</td><td style=”font-size:13px;padding:4px 0”>${esc(c.reminderDate)} ${remindDue?'<span class=”badge hot”>DUE</span>':''}</td></tr>`:''}
+        ${c.reminderDate?`<tr><td class="muted" style="font-size:12px;padding:4px 8px 4px 0">State-opening reminder</td><td style="font-size:13px;padding:4px 0">${esc(c.reminderDate)} ${remindDue?'<span class="badge hot">DUE</span>':''}</td></tr>`:''}
       </table>
-      ${c.notes?`<div class=”note” style=”font-size:13px;white-space:pre-wrap;margin-bottom:12px”>${esc(c.notes)}</div>`:''}
-      <div style=”display:flex;gap:8px;flex-wrap:wrap”>
-        <button class=”btn btn-sm btn-primary” onclick=”caseEdit('${esc(c.id)}')”>✏️ Edit</button>
-        <button class=”btn btn-sm” onclick=”generateCaseEmailForId('${esc(c.id)}')”>✉️ Email</button>
-        <button class=”btn btn-sm” onclick=”caseDel('${esc(c.id)}')”>Delete</button>
+      ${c.notes?`<div class="note" style="font-size:13px;white-space:pre-wrap;margin-bottom:12px">${esc(c.notes)}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="caseEdit('${esc(c.id)}')">✏️ Edit</button>
+        <button class="btn btn-sm" onclick="generateCaseEmailForId('${esc(c.id)}')">✉️ Email</button>
+        <button class="btn btn-sm" onclick="caseDel('${esc(c.id)}')">Delete</button>
       </div>
     </div>`;
   }
@@ -2181,6 +2318,46 @@
 
   /* ════════════ NEW MODULE: COMPANIES ════════════ */
   let COMPANY_Q='';
+  /* ════════════ NEW MODULE: LEAD LIFE CYCLE (replaces the Companies sidebar module) ════════════ */
+  let LC_FILTER='all', LC_Q='';
+  function lifecycleOf(c){
+    const s=(c.stage||'').toLowerCase();
+    if(/sign(ed)?\s*up|won|approved|enrol|paid/.test(s)) return 'Closed Won';
+    if(/lost|not\s*qualif|does not|duplicate|invalid|spam|reject|dead/.test(s)) return 'Closed Lost';
+    if(/assess|review|consider|\bcv\b|resume|document|submit|follow|no answer|no pickup|future/.test(s)) return 'In Consideration';
+    return 'Consultation';
+  }
+  function renderLifecycle(){
+    const ST=['Consultation','In Consideration','Closed Won','Closed Lost'];
+    const COL={'Consultation':'#2563eb','In Consideration':'#b45309','Closed Won':'#1a7f37','Closed Lost':'#b91c1c'};
+    const rows=leadRows();
+    const buckets={}; ST.forEach(s=>buckets[s]=[]);
+    rows.forEach(c=>{ (buckets[lifecycleOf(c)]||buckets.Consultation).push(c); });
+    const total=rows.length||1;
+    const won=buckets['Closed Won'].length, lost=buckets['Closed Lost'].length;
+    const conv=(won+lost)?Math.round(won/(won+lost)*100):0;
+    const kpis=ST.map(s=>{ const n=buckets[s].length; const act=LC_FILTER===s; return `<div class="card" style="cursor:pointer;border-top:3px solid ${COL[s]};${act?'box-shadow:0 0 0 2px '+COL[s]:''}" onclick="LC_FILTER='${act?'all':s}';renderLifecycle()"><div class="muted" style="font-size:11.5px;text-transform:uppercase;letter-spacing:.03em">${s}</div><div style="font-size:26px;font-weight:800;color:${COL[s]}">${n}</div><div class="muted" style="font-size:12px">${Math.round(n/total*100)}% of leads</div></div>`; }).join('');
+    const q=(LC_Q||'').toLowerCase().trim();
+    const vis=LC_FILTER==='all'?ST:[LC_FILTER];
+    let list=[]; vis.forEach(s=>buckets[s].forEach(c=>list.push([c,s])));
+    if(q) list=list.filter(([c])=>((c.name||'')+' '+(c.email||'')+' '+(c.phone||'')+' '+(c.stage||'')).toLowerCase().includes(q));
+    list.sort((a,b)=>(b[0].latestDate||'').localeCompare(a[0].latestDate||''));
+    const tbl=list.map(([c,s])=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')"><td><strong>${esc(c.name||'(no name)')}</strong><div class="muted" style="font-size:11px">${esc(c.email||'')}</div></td><td><span class="badge" style="background:${COL[s]}1a;color:${COL[s]}">${s}</span></td><td class="muted">${esc(c.stage||'')}</td><td class="muted">${esc(c.country||'—')}</td><td class="muted">${esc(c.source||'—')}</td><td class="muted">${esc((c.latestDate||'').slice(0,10))}</td></tr>`).join('')||`<tr><td colspan="6" class="muted" style="padding:22px;text-align:center">No leads in this stage.</td></tr>`;
+    $('content').innerHTML=`
+      <div class="grid stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px">${kpis}</div>
+      <div class="card" style="margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div><span class="muted" style="font-size:12px">Conversion (Won / Closed)</span><div style="font-size:20px;font-weight:800;color:#1a7f37">${conv}%</div></div>
+        <div class="progbar" style="flex:1;min-width:160px"><i style="width:${conv}%;background:#1a7f37"></i></div>
+        <div class="muted" style="font-size:12px">${won} won · ${lost} lost · ${rows.length} total</div>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="lcq" placeholder="Search leads…" value="${esc(LC_Q)}" oninput="LC_Q=this.value;renderLifecycle();setTimeout(()=>{const e=document.getElementById('lcq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},0)">
+        <span class="muted">${list.length} lead(s)${LC_FILTER!=='all'?' · '+LC_FILTER:''}</span>
+        ${LC_FILTER!=='all'?`<button class="btn btn-sm" onclick="LC_FILTER='all';renderLifecycle()">Clear filter</button>`:''}
+      </div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Lead</th><th>Life cycle</th><th>Stage</th><th>Country</th><th>Source</th><th>Updated</th></tr></thead><tbody>${tbl}</tbody></table></div>`;
+  }
+
   async function renderCompanies(){
     $('content').innerHTML='<div class="card"><h3>🏢 Companies</h3><p class="muted">Loading…</p></div>';
     const r=await api('/crm-cases.php',{action:'list'});

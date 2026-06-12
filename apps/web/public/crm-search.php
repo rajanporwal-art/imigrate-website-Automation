@@ -9,7 +9,12 @@ header('Content-Type: application/json; charset=utf-8');
 
 @include __DIR__ . '/admin-config.php';
 
-$q = trim(strtolower((string) ($_GET['q'] ?? $_POST['q'] ?? '')));
+// Accept the query from GET, POST form fields, OR a JSON request body.
+// The CRM's api() helper sends application/json, which does NOT populate
+// $_POST — without this, $q was always empty and search returned nothing.
+$__body = json_decode((string) file_get_contents('php://input'), true);
+if (!is_array($__body)) $__body = [];
+$q = trim(strtolower((string) ($_GET['q'] ?? $_POST['q'] ?? $__body['q'] ?? '')));
 if (strlen($q) < 2) {
     echo json_encode(['ok' => true, 'results' => []]);
     exit;
@@ -43,20 +48,53 @@ function snippet($text, $query, $len = 80) {
     return '…' . substr($text, $start, $end - $start) . '…';
 }
 
+// Load lead metadata (stage + soft-delete flag) keyed by ckey, so search can
+// show the current stage and hide soft-deleted leads.
+$meta = [];
+if (is_file($dir . '/crm-meta.ndjson')) {
+    foreach (file($dir . '/crm-meta.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $row = json_decode($line, true);
+        if (is_array($row) && !empty($row['key'])) $meta[$row['key']] = $row;
+    }
+}
+
 // 1. LEADS
+// Lead rows store their data under a `fields` object, and the stable contact
+// key (ckey) is DERIVED (email, else "id:<id>") — it is not a top-level column.
+// We group submissions by ckey so each contact appears once, matched on the
+// latest non-empty value of name / email / mobile / whatsapp / occupation.
 $leads = load_ndjson($dir . '/leads.ndjson');
+$byKey = [];
 foreach ($leads as $lead) {
-    if (fuzzy_match($lead['name'] ?? '', $q) ||
-        fuzzy_match($lead['email'] ?? '', $q) ||
-        fuzzy_match($lead['phone'] ?? '', $q) ||
-        fuzzy_match($lead['occupation'] ?? '', $q)) {
+    $f = is_array($lead['fields'] ?? null) ? $lead['fields'] : [];
+    $email = strtolower(trim((string) ($f['email'] ?? '')));
+    $ckey = $email !== '' ? $email : ('id:' . ($lead['id'] ?? ''));
+    // latest non-empty wins
+    $prev = $byKey[$ckey] ?? [];
+    $byKey[$ckey] = [
+        'ckey' => $ckey,
+        'name' => ($f['fullName'] ?? $f['name'] ?? $prev['name'] ?? ''),
+        'email' => ($email ?: ($prev['email'] ?? '')),
+        'phone' => ($f['phone'] ?? $prev['phone'] ?? ''),
+        'whatsapp' => ($f['whatsapp'] ?? $prev['whatsapp'] ?? ''),
+        'occupation' => ($f['occupation'] ?? $prev['occupation'] ?? ''),
+    ];
+}
+foreach ($byKey as $c) {
+    if (fuzzy_match((string) $c['name'], $q) ||
+        fuzzy_match((string) $c['email'], $q) ||
+        fuzzy_match((string) $c['phone'], $q) ||
+        fuzzy_match((string) $c['whatsapp'], $q) ||
+        fuzzy_match((string) $c['occupation'], $q)) {
+        $stage = $meta[$c['ckey']]['stage'] ?? ($meta[$c['email']]['stage'] ?? '');
+        if (!empty($meta[$c['ckey']]['deleted']) || !empty($meta[$c['email']]['deleted'])) continue; // hide soft-deleted
         $results[] = [
             'type' => 'lead',
-            'id' => $lead['ckey'] ?? '',
-            'title' => $lead['name'] ?? 'Unknown',
-            'snippet' => ($lead['email'] ?? '') . ' · ' . ($lead['stage'] ?? ''),
-            'stage' => $lead['stage'] ?? '',
-            'email' => $lead['email'] ?? '',
+            'id' => $c['ckey'],
+            'title' => $c['name'] ?: ($c['email'] ?: 'Unknown'),
+            'snippet' => trim(($c['email'] ?: $c['phone']) . ($stage ? ' · ' . $stage : '')),
+            'stage' => $stage,
+            'email' => $c['email'],
         ];
     }
 }
@@ -129,9 +167,25 @@ foreach ($emails as $email) {
     }
 }
 
+// 6. DOCUMENTS (uploaded files, tied to a lead by ckey/leadEmail)
+$docs = load_ndjson($dir . '/docs.ndjson');
+foreach ($docs as $doc) {
+    if (fuzzy_match($doc['name'] ?? '', $q) ||
+        fuzzy_match($doc['category'] ?? '', $q)) {
+        $results[] = [
+            'type' => 'document',
+            'id' => $doc['id'] ?? '',
+            'title' => 'Document: ' . ($doc['name'] ?? 'file'),
+            'snippet' => trim((string) ($doc['category'] ?? '') . ' · ' . (($doc['leadEmail'] ?? '') ?: 'unlinked')),
+            'leadKey' => $doc['ckey'] ?? (strtolower((string) ($doc['leadEmail'] ?? ''))),
+            'status' => '',
+        ];
+    }
+}
+
 // Sort by type (leads first, then others), limit to 30
 usort($results, function($a, $b) {
-    $typeOrder = ['lead' => 0, 'case' => 1, 'note' => 2, 'task' => 3, 'email' => 4];
+    $typeOrder = ['lead' => 0, 'case' => 1, 'document' => 2, 'note' => 3, 'task' => 4, 'email' => 5];
     return ($typeOrder[$a['type']] ?? 99) - ($typeOrder[$b['type']] ?? 99);
 });
 
