@@ -361,7 +361,7 @@ if ($action === 'onedrive-list') {
     exit;
 }
 
-/* Rich health data for the backup health UI panel. */
+/* Rich health data for the backup health UI panel. Deployed 2026-06-13. */
 if ($action === 'backup-health') {
     $curLeads = leads_count($ROOT);
     $hwm = (int) ($state['highWaterMark'] ?? 0);
