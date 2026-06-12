@@ -106,6 +106,49 @@ function run_user_rules($autoFile, $logFile, $notifFile, $dir, $trigger, $ctx) {
 $action  = (string) ($p['action'] ?? 'run');
 $trigger = (string) ($p['trigger'] ?? 'Status Changed');
 
+/* ---- TIME-BASED INACTIVITY CHECK (run from cron) ---- */
+if ($action === 'check-inactivity') {
+    $checkKey = (string) ($p['checkKey'] ?? '');
+    if ($checkKey !== ($CRON_SECRET ?? '')) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Forbidden']);
+        exit;
+    }
+    // Load all leads and check for inactivity
+    $leads = [];
+    if (is_file($dir . '/leads.ndjson')) {
+        foreach (file($dir . '/leads.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $l) {
+            $r = json_decode($l, true);
+            if (is_array($r)) $leads[] = $r;
+        }
+    }
+    $actionsRun = 0;
+    foreach ($leads as $lead) {
+        $lastAct = $lead['lastActivity'] ?? $lead['createdAt'] ?? date('c');
+        $hoursSince = (time() - strtotime($lastAct)) / 3600;
+        $daysSince = $hoursSince / 24;
+        // Check rules with inactivity triggers
+        $rules = rules_load($autoFile);
+        foreach ($rules as $rule) {
+            if (empty($rule['enabled'])) continue;
+            // "Days Since Activity" trigger
+            if (($rule['trigger'] ?? '') === 'Days Since Activity') {
+                $threshold = (int) ($rule['daysThreshold'] ?? 7);
+                if ($daysSince >= $threshold && $daysSince < ($threshold + 1)) {
+                    // This lead just hit the threshold
+                    $ctx = ['stage' => $lead['stage'] ?? '', 'name' => $lead['name'] ?? '', 'email' => $lead['email'] ?? '', 'key' => $lead['ckey'] ?? '', 'trigger' => 'Days Since Activity', 'cat' => $lead['scoreCategory'] ?? '', 'source' => $lead['source'] ?? '', 'occupation' => $lead['occupation'] ?? ''];
+                    foreach (($rule['actions'] ?? []) as $a) {
+                        $res = exec_action($a, $ctx, $dir, $notifFile);
+                        if ($res) { $actionsRun++; autolog($logFile, ['at' => date('c'), 'rule' => $rule['name'] ?? '', 'trigger' => 'Days Since Activity', 'lead' => $ctx['name'], 'action' => $res]); }
+                    }
+                }
+            }
+        }
+    }
+    echo json_encode(['ok' => true, 'checked' => count($leads), 'actionsRun' => $actionsRun]);
+    exit;
+}
+
 /* ---- rule management + logs (Automation Center) ---- */
 if ($action === 'rules-list') { echo json_encode(['ok' => true, 'rules' => rules_load($autoFile)]); exit; }
 if ($action === 'rule-save') {

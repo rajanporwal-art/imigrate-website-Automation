@@ -201,6 +201,10 @@
         <button class="navtoggle" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle menu">☰</button>
         <h2 id="viewTitle">Dashboard</h2>
       </div>
+      <div style="display:flex;gap:8px;align-items:center;flex:1;max-width:300px;margin:0 16px" id="searchBox">
+        <input id="globalSearch" type="text" placeholder="🔍 Search… (Ctrl+K)" style="width:100%;padding:6px 12px;border-radius:6px;border:1px solid var(--border);font-size:13px" oninput="globalSearchInput(this.value)">
+        <div id="searchResults" style="position:absolute;top:100%;left:0;right:0;margin-top:2px;background:var(--bg);border:1px solid var(--border);border-radius:6px;max-height:400px;overflow:auto;z-index:100;display:none" onclick="event.stopPropagation()"></div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span id="loadMsg" class="status muted"></span>
         <button class="btn btn-sm" onclick="loadAll()">↻ Refresh</button>
@@ -375,6 +379,82 @@
     $('viewTitle').textContent=titles[VIEW]||'';
     if(VIEW==='profile'){ renderProfile(); return; }
     ({dashboard:renderDashboard,leads:renderLeads,calendar:renderCalendar,pipeline:renderPipeline,reports:renderReports,tasks:renderTasks,clients:renderClients,invoices:renderInvoices,automations:renderAutomations,settings:renderSettings}[VIEW]||renderDashboard)();
+  }
+
+  /* ---------- GLOBAL SEARCH ---------- */
+  let SEARCH_TIMEOUT;
+  async function globalSearchInput(q){
+    clearTimeout(SEARCH_TIMEOUT);
+    const $res=$('searchResults');
+    if(!q||q.length<2){if($res)$res.style.display='none';return;}
+    if($res)$res.style.display='flex';
+    SEARCH_TIMEOUT=setTimeout(async()=>{
+      const r=await api('/crm-search.php',{q});
+      if(!r||!r.results)return;
+      const results=r.results;
+      if(!results.length){if($res)$res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:13px">No results found</div>';return;}
+      const typeIcon={lead:'👥',case:'🧾',note:'📝',task:'✅',email:'✉️'};
+      const html=results.map(x=>`<div onclick="searchGoto('${esc(x.type)}','${esc(x.id)}','${esc(x.leadKey||'')}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .1s" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="font-size:16px">${typeIcon[x.type]||'·'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.title)}</div>
+            <div class="muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.snippet)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+      if($res)$res.innerHTML=html;
+    },300);
+  }
+  function searchGoto(type,id,leadKey){
+    $('globalSearch').value=''; $('searchResults').style.display='none';
+    if(type==='lead'){ go('profile'); PROFILE_KEY=id; renderProfile(); }
+    else if(type==='case'){ go('clients'); CASE_PANEL_ID=id; setTimeout(()=>renderClients(),100); }
+    else if(type==='note'||type==='email'||type==='task'){
+      if(leadKey){ go('profile'); PROFILE_KEY=leadKey; setTimeout(()=>renderProfile(),100); }
+      else go('tasks');
+    }
+  }
+  document.addEventListener('keydown',(e)=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); const s=$('globalSearch'); if(s)s.focus(); }
+    if(e.key==='Escape'){ const $res=$('searchResults'); if($res)$res.style.display='none'; }
+  });
+  window.addEventListener('click',()=>{ const $res=$('searchResults'); if($res)$res.style.display='none'; });
+
+  /* ---------- LEAD SCORING ENGINE ---------- */
+  async function recalculateAllScores(){
+    const msg=$('scoringMsg'); if(msg)msg.textContent='Calculating…';
+    let done=0,total=CONTACTS.length;
+    for(const lead of CONTACTS){
+      const r=await api('/crm-scoring.php',{action:'calculate-score',ckey:lead.ckey});
+      done++;
+      if(msg)msg.textContent=`${done}/${total}…`;
+    }
+    if(msg){ msg.textContent='✓ All scores recalculated'; msg.className='ok'; }
+    CONTACTS=await api('/crm-leads.php',{action:'list'}).then(r=>(r&&r.contacts)||CONTACTS);
+    viewScoringReport();
+  }
+  async function viewScoringReport(){
+    const msg=$('scoringMsg'); if(msg)msg.className='muted';
+    const report=$('scoringReport');
+    const cats={Hot:0,Warm:0,'Sales Ready':0,Cold:0};
+    const rows=[];
+    for(const lead of CONTACTS){
+      const cat=lead.scoreCategory||'Cold';
+      if(cats.hasOwnProperty(cat))cats[cat]++;
+      if(lead.score&&lead.score>0){
+        rows.push({name:lead.name,email:lead.email,score:lead.score,cat,stage:lead.stage});
+      }
+    }
+    rows.sort((a,b)=>b.score-a.score);
+    const catBadges=(c,n)=>`<span class="pill" style="background:${c==='Hot'?'#fecaca':c==='Warm'?'#fef3c7':c==='Sales Ready'?'#dbeafe':'#f1f5f9'};color:${c==='Hot'?'#991b1b':c==='Warm'?'#b45309':c==='Sales Ready'?'#1d4ed8':'#475569'}">${n}</span>`;
+    const html=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+      ${Object.entries(cats).map(([c,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${c} leads</div></div>`).join('')}
+    </div>
+    <table style="font-size:12px"><thead><tr><th>Lead</th><th>Score</th><th>Category</th><th>Stage</th></tr></thead>
+    <tbody>${rows.slice(0,20).map(r=>`<tr><td><strong>${esc(r.name)}</strong><div class="muted">${esc(r.email)}</div></td><td><strong>${r.score}</strong></td><td>${catBadges(r.cat,r.cat)}</td><td class="muted">${esc(r.stage)}</td></tr>`).join('')}
+    ${rows.length>20?`<tr><td colspan="4" class="muted" style="padding:8px;text-align:center">…and ${rows.length-20} more</td></tr>`:''}</tbody></table>`;
+    if(report)report.innerHTML=html;
   }
 
   /* ---------- dashboard (clickable widgets) ---------- */
@@ -1750,7 +1830,7 @@
     if(AUTO_EDIT)renderAutoEditor();
   }
   function syncAuto(){ if(!AUTO_EDIT)return; const g=id=>{const e=$(id);return e?e.value:undefined;}; let v; if((v=g('ar_name'))!==undefined)AUTO_EDIT.name=v; if((v=g('ar_stage'))!==undefined)AUTO_EDIT.stage=v; if((v=g('ar_cat'))!==undefined)AUTO_EDIT.condCat=v; if((v=g('ar_src'))!==undefined)AUTO_EDIT.condSource=v; }
-  const AUTO_TRIGGERS=['Status Changed','Lead Created','Document Uploaded','Invoice Paid','Task Overdue'];
+  const AUTO_TRIGGERS=['Status Changed','Lead Created','Document Uploaded','Invoice Paid','Task Overdue','Days Since Activity'];
   const AUTO_TEMPLATES=[
     {name:'Welcome email on sign-up',trigger:'Status Changed',stage:'Signed Up',condCat:'',condSource:'',actions:[{type:'send-email',subject:'Welcome to iMigrate, {{name}}!',body:'<p>Hi {{name}},</p><p>Welcome to <strong>iMigrate Migration Solutions</strong>! We are thrilled to have you on board and look forward to helping you achieve your immigration goals.</p><p>Your dedicated consultant will be in touch shortly to kick off your onboarding. In the meantime, if you have any questions, just reply to this email.</p><p>Warm regards,<br>The iMigrate Team</p>'},{type:'task',title:'Onboarding call: {{name}}',taskType:'Call',priority:'High',dueDays:1}]},
     {name:'Follow-up after no answer',trigger:'Status Changed',stage:'No Answer – Follow-up Sent',condCat:'',condSource:'',actions:[{type:'task',title:'Retry contact: {{name}}',taskType:'Call',priority:'Normal',dueDays:2},{type:'notification',message:'No answer 2nd attempt due: {{name}}'}]},
@@ -1791,6 +1871,7 @@
         <div><label class="muted" style="font-size:12px">Trigger</label><select id="ar_trigger" onchange="syncAuto();AUTO_EDIT.trigger=this.value;renderAutoEditor()">${AUTO_TRIGGERS.map(t=>`<option ${t===r.trigger?'selected':''}>${t}</option>`).join('')}</select></div>
       </div>
       ${r.trigger==='Status Changed'?`<label class="muted" style="font-size:12px;margin-top:8px;display:block">When stage becomes</label><select id="ar_stage" style="margin-top:2px">${stageOpts}</select>`:''}
+      ${r.trigger==='Days Since Activity'?`<label class="muted" style="font-size:12px;margin-top:8px;display:block">Trigger after N days of no activity</label><div style="display:flex;gap:8px;margin-top:4px"><input id="ar_days" type="number" min="1" max="365" value="${r.daysThreshold||7}" style="width:80px" oninput="AUTO_EDIT.daysThreshold=parseInt(this.value)"> <span class="muted" style="align-self:center;font-size:12px">days (runs once per lead at this threshold)</span></div>`:''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
         <div><label class="muted" style="font-size:12px">Condition · lead score</label><select id="ar_cat">${catOpts}</select></div>
         <div><label class="muted" style="font-size:12px">Condition · source</label><select id="ar_src">${srcOpts}</select></div>
@@ -1831,6 +1912,20 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="toggleTheme()">Toggle dark / light</button>
         <button class="btn" onclick="exportCsv()">⬇ Export all leads (CSV)</button>
         <a class="btn" href="/cms.html" target="_blank">🌐 Open Website CMS</a></div>
+      </div>
+      <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">📊 Lead Scoring</h3>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:0 0 10px">Auto-calculate lead engagement scores based on email opens, clicks, calls, and meetings. Scores determine if a lead is <strong>Cold</strong> (&lt;5), <strong>Sales Ready</strong> (5–19), <strong>Warm</strong> (20–49), or <strong>Hot</strong> (50+).</p>
+        <table style="font-size:12px;width:100%;margin-bottom:10px">
+          <tr><td style="padding:4px;color:var(--muted)">Email open</td><td style="padding:4px"><strong>+5</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Email click</td><td style="padding:4px"><strong>+10</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Email reply</td><td style="padding:4px"><strong>+20</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Call completed</td><td style="padding:4px"><strong>+10</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Meeting</td><td style="padding:4px"><strong>+30</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">Note added (past 7d)</td><td style="padding:4px"><strong>+2</strong> points</td></tr>
+          <tr><td style="padding:4px;color:var(--muted)">No activity (per week)</td><td style="padding:4px"><strong>−15</strong> points</td></tr>
+        </table>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="recalculateAllScores()">🔄 Recalculate all scores</button><button class="btn btn-sm" onclick="viewScoringReport()">📈 Scoring report</button><span id="scoringMsg" class="muted" style="font-size:12px;align-self:center"></span></div>
+        <div id="scoringReport" style="margin-top:10px"></div>
       </div>
       <div class="card" style="margin-bottom:14px"><h3 style="margin:0 0 8px">HubSpot integration</h3>
         <div id="hubspotPanel"><p class="muted">Loading…</p></div>
