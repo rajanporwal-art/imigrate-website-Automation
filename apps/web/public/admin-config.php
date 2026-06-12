@@ -23,3 +23,9 @@
 // Safe fallback so the app still runs if auth/secrets.php hasn't been created yet.
 if (!isset($EDIT_PASSWORD)) { $EDIT_PASSWORD = 'imigrate-admin-2026'; }
 if (!isset($CRON_SECRET))   { $CRON_SECRET = ''; }
+
+// HubSpot integration — load from environment or auth/secrets.php
+if (!isset($HUBSPOT_API_KEY)) {
+    $HUBSPOT_API_KEY = getenv('HUBSPOT_API_KEY') ?: '';
+    $HUBSPOT_PORTAL_ID = getenv('HUBSPOT_PORTAL_ID') ?: '';
+}
