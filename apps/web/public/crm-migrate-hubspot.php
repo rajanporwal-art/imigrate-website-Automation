@@ -189,6 +189,7 @@ if ($action === 'migrate') {
                     if (!($existing['fields']['company'] ?? '')) $existing['fields']['company'] = $company;
                     if (!($existing['fields']['occupation'] ?? '')) $existing['fields']['occupation'] = $title;
                     $existing['fields']['hsContactId'] = $hsId;
+                    $existing['fields']['hsLeadStatus'] = $hsStage;
 
                     foreach ($existing_leads as &$l) {
                         if (($l['id'] ?? '') === ($existing['id'] ?? '')) {
@@ -222,6 +223,7 @@ if ($action === 'migrate') {
                             'occupation' => $title,
                             'source' => 'HubSpot',
                             'hsContactId' => $hsId,
+                            'hsLeadStatus' => $hsStage,
                         ],
                         'submissions' => 1,
                         'createdAt' => date('c'),

@@ -584,6 +584,7 @@
         occupation:g('occupation'), anzsco:g('anzscoCode'), points, visas, visasCount,
         recommendations:g('aiRecommendations'), userInputs:g('userInputs'),
         eligibilityStatus:g('eligibilityStatus'), assessmentDate:g('assessmentDate')||(reports.length?(reports[reports.length-1].timestamp||'').slice(0,10):''),
+        hsLeadStatus:g('hsLeadStatus'), hsContactId:g('hsContactId'),
         source:g('leadSource')||g('source')||last.formName||'', firstSource:(first.fields||{}).leadSource||(first.fields||{}).source||first.formName||'',
         firstDate:(first.timestamp||'').slice(0,10), latestDate:(last.timestamp||'').slice(0,10),
         hasCV, cvFiles:c.submissions.filter(s=>(s.fields||{}).cvFile).map(s=>({file:(s.fields||{}).cvFile,name:(s.fields||{}).cvOriginalName||(s.fields||{}).cvFile,at:s.timestamp})),
@@ -856,6 +857,7 @@
     {id:'stage',label:'Stage',td:c=>stageBadge(stageLabel(c.stage))},
     {id:'score',label:'Score',td:c=>`${c.score} <span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span>`},
     {id:'status',label:'Lead Status',td:c=>esc(c.eligibilityStatus||'—')},
+    {id:'hsLeadStatus',label:'HubSpot Status',td:c=>esc(c.hsLeadStatus||'—')},
     {id:'source',label:'Source',td:c=>`<span class="muted">${esc(c.source||'—')}</span>`},
     {id:'updated',label:'Updated',td:c=>`<span class="muted">${esc(c.latestDate||'')}</span>`},
     {id:'lastActivity',label:'Last Activity',td:c=>{const lastAct=getLastActivityTime(c);return lastAct?`<span class="muted">${esc(lastAct.slice(0,10))}</span><div style="font-size:11px;color:var(--muted)">${esc(lastAct.slice(11,16))}</div>`:'<span class="muted">—</span>';}},
@@ -1002,7 +1004,7 @@
       </div>
       <div class="card" style="margin-bottom:10px">
         <strong style="font-size:13px;display:block;margin-bottom:8px">Lead details</strong>
-        ${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points',c.points||'')}${kv('Visas',c.visas)}${kv('Status',c.eligibilityStatus)}
+        ${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points',c.points||'')}${kv('Visas',c.visas)}${kv('Status',c.eligibilityStatus)}${c.hsLeadStatus?kv('HubSpot Status',c.hsLeadStatus):''}
         <div style="margin-top:8px"><span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span> <span class="muted" style="font-size:12px">Score: ${c.score}</span></div>
       </div>`;
     } else if(PANEL_TAB==='notes'){
@@ -1636,7 +1638,7 @@
     } else if(PROFILE_TAB==='assessment'){
       b.innerHTML=`<div class="card"><div class="sect"><h3>Lead details</h3>
         ${kv('Occupation',c.occupation)}${kv('ANZSCO Code',c.anzsco)}${kv('Points Score',c.points||'')}
-        ${kv('Visa Subclasses',c.visas)}${kv('Eligibility status',c.eligibilityStatus)}${kv('Lead Date',c.assessmentDate)}
+        ${kv('Visa Subclasses',c.visas)}${kv('Eligibility status',c.eligibilityStatus)}${c.hsLeadStatus?kv('HubSpot Status',c.hsLeadStatus):''}${kv('Lead Date',c.assessmentDate)}
         ${kv('Lead Source',c.source)}</div>
         <div style="margin-top:14px"><button class="btn btn-sm" onclick="editFields('${esc(c.ckey)}')">✎ Edit fields</button></div></div>`;
     } else if(PROFILE_TAB==='inputs'){
