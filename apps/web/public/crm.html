@@ -142,7 +142,30 @@
   .cal-ev{background:rgba(11,31,68,.1);color:var(--navy);border-radius:5px;padding:1px 5px;margin-top:3px;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   [data-theme="dark"] .cal-ev{background:rgba(255,255,255,.12);color:#fff}
   .cal-dow{font-size:11px;color:var(--muted);text-transform:uppercase;text-align:center;padding:4px 0;font-weight:600}
-  @media(max-width:820px){#app{grid-template-columns:1fr}#app.nav-collapsed{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}#app.nav-collapsed .navitem .lbl{display:inline}.kv .k{min-width:110px};.lead-split{grid-template-columns:1fr}}
+  @media(max-width:820px){#app{grid-template-columns:1fr}#app.nav-collapsed{grid-template-columns:1fr}.sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;gap:6px}.sidebar .brand{width:100%}.navitem{flex:1 0 auto}#app.nav-collapsed .navitem .lbl{display:inline}.kv .k{min-width:110px};.lead-split{grid-template-columns:1fr}.sp-wrap{grid-template-columns:1fr!important}}
+  /* ── HubSpot-style split-panel leads view ── */
+  .sp-wrap{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - 106px);overflow:hidden;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+  .sp-list{overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .sp-list-head{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:2}
+  .sp-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+  .sp-row:hover{background:rgba(0,0,0,.025)} [data-theme="dark"] .sp-row:hover{background:rgba(255,255,255,.04)}
+  .sp-row.active{background:rgba(11,31,68,.06);border-left:3px solid var(--accent)} [data-theme="dark"] .sp-row.active{background:rgba(200,162,74,.12)}
+  .sp-row.checked{background:rgba(200,162,74,.08)}
+  .sp-avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 34px}
+  .sp-row-info{flex:1;min-width:0}
+  .sp-row-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sp-row-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .sp-detail{overflow-y:auto;background:var(--bg);padding:0;display:flex;flex-direction:column}
+  .sp-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-direction:column;gap:8px}
+  .sp-panel-head{padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}
+  .sp-panel-tabs{display:flex;gap:2px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--border)}
+  .sp-panel-tab{padding:7px 12px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+  .sp-panel-tab.active{color:var(--navy);border-bottom-color:var(--accent)} [data-theme="dark"] .sp-panel-tab.active{color:#fff}
+  .sp-panel-body{padding:14px 16px;flex:1}
+  /* ── Bulk action bar ── */
+  .bulk-bar{display:flex;gap:8px;align-items:center;padding:7px 12px;background:var(--navy);color:#fff;border-radius:8px;margin-bottom:8px;flex-wrap:wrap;font-size:13px}
+  .bulk-bar select,.bulk-bar button{font-size:12px}
+  .bulk-bar .bulk-count{font-weight:700;min-width:80px}
 </style>
 </head>
 <body data-theme="light">
@@ -196,6 +219,10 @@
   const CRM_USER = () => localStorage.getItem('imig_crm_user') || 'Consultant';
   let LEADS = [], CONTACTS = [], META = {}, TASKS = [], REPORTS = [], VIEW = 'dashboard';
   let PROFILE_KEY = null, PROFILE_TAB = 'contact';
+  // Split-panel & bulk-select state
+  let SPLIT_VIEW = (()=>{ try{ return localStorage.getItem('imig_split')==='1'; }catch(e){ return false; } })();
+  let PANEL_KEY = null, PANEL_TAB = 'overview';
+  let BULK_MODE = false, SELECTED = new Set();
 
   const STAGES = ['New Lead','Pending Call','Pending CV / Resume','Pending Appointment','Appointment Scheduled','Pending Follow-up','Under Assessment','Future Lead','No Answer – Follow-up Sent','No Pickup – Email/WhatsApp Sent','Does Not Qualify','Signed Up','Lost Lead','Duplicate Lead','Invalid Lead / Spam'];
   // Legacy stage names stay displayable for backward compat (stored values unchanged).
@@ -421,12 +448,20 @@
     });
   }
   function renderLeads(){
+    if(SPLIT_VIEW) return renderSplitLeads();
     const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
     const catOpts=['','Cold','Warm','Hot','Sales Ready'].map(s=>`<option value="${s}" ${s===leadFilter.cat?'selected':''}>${s||'All scores'}</option>`).join('');
     const typeOpts=[['','All leads'],['AI','AI leads'],['Standard','Standard leads']].map(([v,l])=>`<option value="${v}" ${v===leadFilter.type?'selected':''}>${l}</option>`).join('');
     const cols=LEAD_COLS.filter(col=>visibleCols().includes(col.id));
     const colMenu=LEAD_COLS.map(col=>`<label><input type="checkbox" ${visibleCols().includes(col.id)?'checked':''} ${col.always?'disabled':''} onchange="setCol('${col.id}',this.checked)"> ${esc(col.label)}</label>`).join('');
     let rows=leadRows();
+    const bulkBar=BULK_MODE&&SELECTED.size?`<div class="bulk-bar"><span class="bulk-count">${SELECTED.size} selected</span>
+      <select id="blkStage" style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px"><option value="">Change stage…</option>${STAGES.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
+      <button class="btn btn-sm btn-primary" onclick="bulkChangeStage()">Apply</button>
+      <button class="btn btn-sm" onclick="bulkExport()" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">Export</button>
+      <button class="btn btn-sm" onclick="bulkDelete()" style="background:#e11d2a;border-color:#e11d2a;color:#fff">Delete</button>
+      <button class="btn btn-sm" onclick="BULK_MODE=false;SELECTED.clear();renderLeads()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff;margin-left:auto">✕ Cancel</button>
+    </div>`:'';
     $('content').innerHTML=`
       <div class="toolbar">
         <input type="search" id="lq" placeholder="Search name, email, phone, occupation…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderLeads();document.getElementById('lq').focus()">
@@ -435,16 +470,250 @@
         <select onchange="leadFilter.cat=this.value;renderLeads()">${catOpts}</select>
         <span class="muted">${rows.length} lead(s)</span>
         <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm ${BULK_MODE?'btn-primary':''}" onclick="BULK_MODE=!BULK_MODE;SELECTED.clear();renderLeads()" title="Select leads for bulk actions">☑ Select</button>
+          <button class="btn btn-sm ${SPLIT_VIEW?'btn-primary':''}" onclick="toggleSplitView()" title="Split view: list + detail side-by-side">⊟ Split</button>
           <div class="menu"><button class="btn btn-sm" onclick="toggleColMenu()">⚙ Columns</button><div class="menu-pop" id="colMenu" style="display:none">${colMenu}</div></div>
           <button class="btn btn-sm" onclick="openBulkImport()">⬆ Import</button>
           <button class="btn btn-sm" onclick="exportCsv()">⬇ Export</button>
           <button class="btn btn-sm btn-primary" onclick="openCreateLead()">+ Create Lead</button>
         </div>
       </div>
+      ${bulkBar}
       <div class="card" style="padding:0;overflow:auto">
-        <table><thead><tr>${cols.map(col=>`<th>${esc(col.th||col.label)}</th>`).join('')}</tr></thead>
-        <tbody>${rows.map((c)=>`<tr class="clk" onclick="openProfile('${esc(c.ckey)}')">${cols.map(col=>`<td>${col.td(c)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="muted" style="padding:20px">No leads match.</td></tr>`}</tbody></table>
+        <table><thead><tr>
+          ${BULK_MODE?`<th style="width:36px"><input type="checkbox" title="Select all" onchange="bulkAll(this.checked)"></th>`:''}
+          ${cols.map(col=>`<th>${esc(col.th||col.label)}</th>`).join('')}
+        </tr></thead>
+        <tbody>${rows.map((c)=>`<tr class="clk" onclick="${BULK_MODE?`bulkToggle('${esc(c.ckey)}',this)`:`openProfile('${esc(c.ckey)}')`}">
+          ${BULK_MODE?`<td onclick="event.stopPropagation()"><input type="checkbox" ${SELECTED.has(c.ckey)?'checked':''} onchange="bulkToggle('${esc(c.ckey)}',this.closest('tr'))"></td>`:''}
+          ${cols.map(col=>`<td>${col.td(c)}</td>`).join('')}
+        </tr>`).join('')||`<tr><td colspan="${cols.length+(BULK_MODE?1:0)}" class="muted" style="padding:20px">No leads match.</td></tr>`}</tbody></table>
       </div>`;
+    if(BULK_MODE){ const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); } }
+    else { const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); } }
+  }
+
+  /* ── Split-panel view ── */
+  function toggleSplitView(){
+    SPLIT_VIEW=!SPLIT_VIEW; PANEL_KEY=null; BULK_MODE=false; SELECTED.clear();
+    try{ localStorage.setItem('imig_split',SPLIT_VIEW?'1':'0'); }catch(e){}
+    renderLeads();
+  }
+
+  function renderSplitLeads(){
+    const rows=leadRows();
+    const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===leadFilter.stage?'selected':''}>${s?esc(stageLabel(s)):'All stages'}</option>`).join('');
+    const listItems=rows.map(c=>{
+      const initials=(c.name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+      const sc=STAGE_COLORS[c.stage]||{bg:'#e2e8f0',color:'#475569'};
+      return `<div class="sp-row ${PANEL_KEY===c.ckey?'active':''}" onclick="openPanel('${esc(c.ckey)}')">
+        <div class="sp-avatar" style="background:${sc.bg};color:${sc.color}">${initials}</div>
+        <div class="sp-row-info">
+          <div class="sp-row-name">${esc(c.name)} ${c.hot?'🔥':''}</div>
+          <div class="sp-row-sub">${esc(c.occupation||c.email||'—')} · ${esc(c.stage)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    const detail=PANEL_KEY?renderPanelHtml(findByKey(PANEL_KEY)):`<div class="sp-empty"><span style="font-size:32px">👆</span><span>Select a lead to view details</span><span class="muted" style="font-size:12px">${rows.length} leads in this view</span></div>`;
+    $('content').innerHTML=`
+      <div class="toolbar" style="margin-bottom:8px">
+        <input type="search" id="lq" placeholder="Search…" value="${esc(leadFilter.q)}" oninput="leadFilter.q=this.value;renderSplitLeads();document.getElementById('lq').focus()">
+        <select onchange="leadFilter.stage=this.value;renderSplitLeads()">${stageOpts}</select>
+        <span class="muted">${rows.length}</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm btn-primary" onclick="toggleSplitView()" title="Switch to table view">⊞ Table</button>
+          <button class="btn btn-sm" onclick="openBulkImport()">⬆ Import</button>
+          <button class="btn btn-sm btn-primary" onclick="openCreateLead()">+ Lead</button>
+        </div>
+      </div>
+      <div class="sp-wrap">
+        <div class="sp-list">
+          <div class="sp-list-head" style="font-size:12px;color:var(--muted);font-weight:600">${rows.length} LEADS</div>
+          ${listItems||'<div class="sp-empty" style="padding:24px;text-align:center"><span class="muted">No leads match</span></div>'}
+        </div>
+        <div class="sp-detail" id="spDetail">${detail}</div>
+      </div>`;
+    const lq=$('lq'); if(lq){ const v=lq.value; lq.focus(); lq.setSelectionRange(v.length,v.length); }
+  }
+
+  function openPanel(ckey){
+    PANEL_KEY=ckey; PANEL_TAB='overview';
+    if(SPLIT_VIEW){
+      // Update active row
+      document.querySelectorAll('.sp-row').forEach(r=>r.classList.remove('active'));
+      const rows=document.querySelectorAll('.sp-row');
+      rows.forEach(r=>{ if(r.getAttribute('onclick')&&r.getAttribute('onclick').includes(CSS.escape(ckey))) r.classList.add('active'); });
+      const d=$('spDetail'); if(d){ d.innerHTML=renderPanelHtml(findByKey(ckey)); bindPanelEvents(); }
+    } else {
+      openProfile(ckey);
+    }
+  }
+
+  function setPanelTab(t){ PANEL_TAB=t; const d=$('spDetail'); if(d&&PANEL_KEY){ d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); bindPanelEvents(); } }
+
+  function renderPanelHtml(c){
+    if(!c) return '<div class="sp-empty"><span class="muted">Lead not found</span></div>';
+    const myTasks=TASKS.filter(t=>t.leadEmail&&c.email&&t.leadEmail.toLowerCase()===c.email);
+    const stSel=`<select style="font-size:12px;width:auto;padding:3px 6px" onchange="setPanelStage('${esc(c.ckey)}',this.value)">${STAGES.map(s=>`<option value="${esc(s)}" ${s===c.stage?'selected':''}>${esc(s)}</option>`).join('')}</select>`;
+    const tabs=[['overview','Overview'],['notes','Notes'+(c.notes.length?` (${c.notes.length})`:'')],['activity','Activity'],['tasks','Tasks'+(myTasks.length?` (${myTasks.length})`:'')],['emails','Emails']];
+    let body='';
+    if(PANEL_TAB==='overview'){
+      const kv=(k,v)=>v?`<div class="kv"><span class="k">${k}</span><span>${esc(v)}</span></div>`:'';
+      body=`<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong style="font-size:13px">Contact info</strong>
+          <button class="btn btn-sm" onclick="go('leads');setTimeout(()=>openProfile('${esc(c.ckey)}'),50)" style="font-size:11px">Open full profile ↗</button>
+        </div>
+        ${kv('Email',c.email)}${kv('Phone',c.phone)}${kv('WhatsApp',c.whatsapp)}${kv('Country',c.country)}${kv('Source',c.source)}${kv('First seen',c.firstDate)}
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <strong style="font-size:13px;display:block;margin-bottom:8px">Lead details</strong>
+        ${kv('Occupation',c.occupation)}${kv('ANZSCO',c.anzsco)}${kv('Points',c.points||'')}${kv('Visas',c.visas)}${kv('Status',c.eligibilityStatus)}
+        <div style="margin-top:8px"><span class="badge ${c.cat==='Sales Ready'?'ready':c.cat==='Hot'?'hotcat':c.cat==='Warm'?'warm':'cold'}">${c.cat}</span> <span class="muted" style="font-size:12px">Score: ${c.score}</span></div>
+      </div>`;
+    } else if(PANEL_TAB==='notes'){
+      const notes=(c.notes||[]).slice().reverse();
+      body=`<div class="card">
+        <textarea id="pnNote" rows="3" placeholder="Add a note…" style="margin-bottom:6px"></textarea>
+        <button class="btn btn-sm btn-primary" onclick="panelAddNote('${esc(c.ckey)}')">Save note</button>
+        <div style="margin-top:12px">${notes.map(n=>`<div class="note">${esc(n.text)}<div class="t"><span>${esc(fmtDT(n.at))} · ${esc(n.author||'Consultant')}</span></div></div>`).join('')||'<p class="muted" style="font-size:13px">No notes yet.</p>'}</div>
+      </div>`;
+    } else if(PANEL_TAB==='activity'){
+      const acts=buildActivity(c);
+      const ICON={note:'📝',call:'📞',email:'📧',stage:'🔁',appt:'📅',task:'✅',report:'📄',doc:'📎'};
+      body=`<div class="card"><div class="tl">${acts.map(x=>`<div class="tl-item"><div style="font-weight:600">${ICON[x.type]||'•'} ${esc(x.title)}</div>${x.detail?`<div style="font-size:12px">${esc(x.detail)}</div>`:''}<div class="t">${esc(fmtDT(x.at))}${x.by?' · '+esc(x.by):''}</div></div>`).join('')||'<p class="muted">No activity yet.</p>'}</div></div>`;
+    } else if(PANEL_TAB==='tasks'){
+      body=`<div class="card">
+        <div class="toolbar" style="margin-bottom:8px">
+          <input id="ptTitleP" placeholder="Task title…" style="flex:1;min-width:100px">
+          <input id="ptDueP" type="date" style="width:130px">
+          <button class="btn btn-sm btn-primary" onclick="panelAddTask('${esc(c.ckey)}','${esc(c.email)}')">+ Task</button>
+        </div>
+        ${myTasks.length?`<table><thead><tr><th>Task</th><th>Due</th><th>Status</th></tr></thead><tbody>${myTasks.map(t=>`<tr><td>${esc(t.title)}</td><td class="muted">${esc(t.due||'—')}</td><td><select style="font-size:12px;width:auto" onchange="updTaskStatus('${t.id}',this.value)"><option ${t.status==='Open'?'selected':''}>Open</option><option ${t.status==='In Progress'?'selected':''}>In Progress</option><option ${t.status==='Done'?'selected':''}>Done</option></select></td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="font-size:13px">No tasks. Add one above.</p>'}
+      </div>`;
+    } else if(PANEL_TAB==='emails'){
+      body=`<div id="panelEmailArea"><p class="muted" style="font-size:13px">Loading…</p></div>`;
+      setTimeout(()=>panelLoadEmails(c),50);
+    }
+    return `
+      <div class="sp-panel-head">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:16px;font-weight:800">${esc(c.name)} ${c.hot?'<span class="badge hot">HOT</span>':''} <span class="badge ${c.isAI?'ai':'std'}">${c.sourceType}</span></div>
+            <div class="muted" style="font-size:12px;margin-top:2px">${esc(c.occupation||'—')} ${c.points?'· '+c.points+' pts':''}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+            ${c.email?`<a class="btn btn-sm" href="mailto:${esc(c.email)}" title="Email">📧</a>`:''}
+            <button class="btn btn-sm" onclick="logCall('${esc(c.ckey)}')" title="Log call">📞</button>
+            <button class="btn btn-sm" onclick="scheduleAppt('${esc(c.ckey)}')" title="Schedule">📅</button>
+            <button class="btn btn-sm" onclick="aiAssist('${esc(c.ckey)}')" title="AI assist">✨</button>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
+          <span class="muted" style="font-size:12px">Stage:</span>${stSel}
+        </div>
+      </div>
+      <div class="sp-panel-tabs">${tabs.map(([id,lbl])=>`<div class="sp-panel-tab ${PANEL_TAB===id?'active':''}" onclick="setPanelTab('${id}')">${lbl}</div>`).join('')}</div>
+      <div class="sp-panel-body">${body}</div>`;
+  }
+
+  function bindPanelEvents(){
+    // Re-attach any deferred renders
+    const pea=$('panelEmailArea'); if(pea&&PANEL_KEY){ const c=findByKey(PANEL_KEY); if(c) panelLoadEmails(c); }
+  }
+
+  function openComposeForKey(ckey){
+    // Temporarily leave split view to open the full email compose panel
+    SPLIT_VIEW=false; PROFILE_KEY=ckey; PROFILE_TAB='emails'; VIEW='profile';
+    document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
+    render(); window.scrollTo(0,0);
+  }
+
+  async function panelLoadEmails(c){
+    const el=$('panelEmailArea'); if(!el) return;
+    if(!c.email){ el.innerHTML='<p class="muted" style="font-size:13px">No email on file.</p>'; return; }
+    const r=await api('/crm-email.php',{action:'by',key:c.ckey});
+    const emails=(r.emails||[]);
+    el.innerHTML=`<div class="card">
+      ${c.email?`<div style="margin-bottom:10px"><button class="btn btn-sm btn-primary" onclick="openComposeForKey('${esc(c.ckey)}')">+ Compose email</button></div>`:''}
+      ${emails.length?`<table><thead><tr><th>Subject</th><th>Status</th><th>Sent</th></tr></thead><tbody>${emails.slice(0,20).map(e=>`<tr><td>${esc(e.subject)}</td><td>${esc(e.status||'—')}</td><td class="muted">${esc(fmtDT(e.sentAt||e.createdAt))}</td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="font-size:13px">No emails sent yet.</p>'}
+    </div>`;
+  }
+
+  async function panelAddNote(ckey){
+    const el=$('pnNote'); if(!el) return;
+    const text=el.value.trim(); if(!text) return;
+    const c=findByKey(ckey);
+    const r=await api('/crm-meta.php',{action:'note-add',key:ckey,email:c?c.email:'',text});
+    if(r&&r.ok){ META[ckey]=r.meta||META[ckey]; buildContacts(); const nc=findByKey(ckey); if(nc){nc.notes=r.meta.notes||nc.notes;} PANEL_TAB='notes'; const d=$('spDetail'); if(d&&PANEL_KEY) d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); }
+    else alert(r.error||'Could not save note');
+  }
+
+  async function panelAddTask(ckey, email){
+    const t=$('ptTitleP'); const d=$('ptDueP');
+    const title=t?t.value.trim():''; if(!title) return;
+    const r=await api('/crm-tasks.php',{action:'add',title,type:'Follow-up',due:d?d.value:'',priority:'Normal',leadEmail:email,ckey,assignedTo:CRM_USER()});
+    if(r&&r.ok){ TASKS=r.tasks; PANEL_TAB='tasks'; const dEl=$('spDetail'); if(dEl&&PANEL_KEY) dEl.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); }
+    else alert(r.error||'Could not add task');
+  }
+
+  async function setPanelStage(ckey, stage){
+    const r=await api('/crm-meta.php',{action:'stage',key:ckey,stage});
+    if(r&&r.ok){ META[ckey]=r.meta; buildContacts(); const d=$('spDetail'); if(d&&PANEL_KEY){ d.innerHTML=renderPanelHtml(findByKey(PANEL_KEY)); } renderSplitListItems(); }
+    else alert('Could not update stage');
+  }
+
+  function renderSplitListItems(){
+    const list=document.querySelector('.sp-list');
+    if(!list) return;
+    const rows=leadRows();
+    const items=rows.map(c=>{
+      const initials=(c.name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+      const sc=STAGE_COLORS[c.stage]||{bg:'#e2e8f0',color:'#475569'};
+      return `<div class="sp-row ${PANEL_KEY===c.ckey?'active':''}" onclick="openPanel('${esc(c.ckey)}')">
+        <div class="sp-avatar" style="background:${sc.bg};color:${sc.color}">${initials}</div>
+        <div class="sp-row-info">
+          <div class="sp-row-name">${esc(c.name)} ${c.hot?'🔥':''}</div>
+          <div class="sp-row-sub">${esc(c.occupation||c.email||'—')} · ${esc(c.stage)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    list.innerHTML=`<div class="sp-list-head" style="font-size:12px;color:var(--muted);font-weight:600">${rows.length} LEADS</div>${items}`;
+  }
+
+  /* ── Bulk select helpers ── */
+  function bulkToggle(ckey, row){
+    if(SELECTED.has(ckey)){ SELECTED.delete(ckey); if(row) row.classList.remove('checked'); }
+    else { SELECTED.add(ckey); if(row) row.classList.add('checked'); }
+    const bar=document.querySelector('.bulk-bar');
+    if(bar){ const cnt=bar.querySelector('.bulk-count'); if(cnt) cnt.textContent=SELECTED.size+' selected'; }
+    if(!SELECTED.size) renderLeads();
+  }
+  function bulkAll(on){
+    SELECTED.clear();
+    if(on) leadRows().forEach(c=>SELECTED.add(c.ckey));
+    renderLeads();
+  }
+  async function bulkChangeStage(){
+    const s=$('blkStage'); if(!s||!s.value){ alert('Choose a stage first.'); return; }
+    const stage=s.value;
+    if(!confirm(`Change stage to "${stage}" for ${SELECTED.size} lead(s)?`)) return;
+    for(const ckey of SELECTED){
+      await api('/crm-meta.php',{action:'stage',key:ckey,stage});
+    }
+    await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
+  }
+  function bulkExport(){
+    const leads=leadRows().filter(c=>SELECTED.has(c.ckey));
+    exportCsvRows(leads);
+    BULK_MODE=false; SELECTED.clear(); renderLeads();
+  }
+  async function bulkDelete(){
+    if(!confirm(`Permanently delete ${SELECTED.size} lead(s)? This cannot be undone.`)) return;
+    for(const ckey of SELECTED){
+      await api('/crm-meta.php',{action:'delete',key:ckey});
+    }
+    await loadAll(); BULK_MODE=false; SELECTED.clear(); renderLeads();
   }
 
   /* ---------- modal helpers ---------- */
@@ -616,7 +885,12 @@
 
   /* ---------- full-page profile ---------- */
   function findByKey(k){ return CONTACTS.find(c=>c.ckey===k) || CONTACTS.find(c=>c.email===k); }
-  function openProfile(k){ PROFILE_KEY=k; PROFILE_TAB='contact'; VIEW='profile'; document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active')); render(); window.scrollTo(0,0); }
+  function openProfile(k){
+    if(SPLIT_VIEW){ openPanel(k); return; }
+    PROFILE_KEY=k; PROFILE_TAB='contact'; VIEW='profile';
+    document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
+    render(); window.scrollTo(0,0);
+  }
   function setTab(t){ PROFILE_TAB=t; renderProfile(); }
 
   function renderProfile(){
@@ -1296,25 +1570,91 @@
   const STATE_NOMINATIONS=['','NSW','VIC','QLD','SA','WA','TAS','ACT','NT','Canada — Express Entry','Canada — PNP (Ontario)','Canada — PNP (BC)','Canada — PNP (Alberta)','Canada — Other PNP','Not applicable'];
   const CASE_COLORS={'New Case':{bg:'#dbeafe',color:'#1d4ed8'},'Document Collection':{bg:'#fef9c3',color:'#854d0e'},'Application Prep':{bg:'#fde68a',color:'#b45309'},'Submitted':{bg:'#ede9fe',color:'#5b21b6'},'Awaiting Decision':{bg:'#e0f2fe',color:'#0369a1'},'Approved':{bg:'#dcfce7',color:'#166534'},'Refused':{bg:'#fecaca',color:'#991b1b'},'On Hold':{bg:'#f1f5f9',color:'#475569'}};
   function coName(id){const c=COMPANIES.find(x=>x.id===id);return c?c.name:'';}
+  let CASE_PANEL_ID=null;
   async function renderClients(){
-    $('content').innerHTML='<div class="card"><h3>🧾 Clients &amp; Cases</h3><p class="muted">Loading…</p></div>';
+    $('content').innerHTML='<div class=”card”><h3>🧾 Clients &amp; Cases</h3><p class=”muted”>Loading…</p></div>';
     const r=await api('/crm-cases.php',{action:'list'});
     CASES=(r&&r.cases)||[]; COMPANIES=(r&&r.companies)||[];
     const clients=CONTACTS.filter(c=>c.stage==='Signed Up');
     const active=CASES.filter(c=>!['Approved','Refused'].includes(c.status)).length;
     const approved=CASES.filter(c=>c.status==='Approved').length;
-    const stat=(n,l)=>`<div class="card" style="display:inline-block;min-width:140px;margin-right:12px"><div style="font-size:24px;font-weight:800;color:var(--navy)">${n}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
-    const caseRows=CASES.map(c=>{const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};return `<tr><td><strong>${esc(c.clientName||'—')}</strong><div class="muted" style="font-size:11px">${esc(c.email||'')}</div></td><td>${esc(c.visaType||'')}</td><td class="muted">${esc(c.country||'')}</td><td class="muted">${esc(coName(c.companyId))}</td><td><span class="pill" style="background:${sc.bg};color:${sc.color}">${esc(c.status||'')}</span></td><td class="muted">${esc(c.targetDate||'')}</td><td class="muted">${esc(c.fee||'')}</td><td class="right"><button class="btn btn-sm" onclick="caseEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="caseDel('${esc(c.id)}')">Delete</button></td></tr>`;}).join('');
-    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class="pill">${esc(c.type||'')}</span></td><td class="muted">${esc(c.country||'')}</td><td class="muted">${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class="right"><button class="btn btn-sm" onclick="companyEdit('${esc(c.id)}')">Edit</button> <button class="btn btn-sm" onclick="companyDel('${esc(c.id)}')">Delete</button></td></tr>`).join('');
-    $('content').innerHTML=`<div style="display:flex;flex-wrap:wrap;margin-bottom:6px">${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
-      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Visa cases</h3><button class="btn btn-primary btn-sm" onclick="caseNew()">+ New case</button></div>
-        <div style="overflow:auto"><table><thead><tr><th>Client</th><th>Visa</th><th>Country</th><th>Company</th><th>Status</th><th>Target</th><th>Fee</th><th class="right"></th></tr></thead><tbody>${caseRows||'<tr><td colspan="8" class="muted" style="padding:14px">No cases yet. Click “New case” to open a visa application for a signed-up client.</td></tr>'}</tbody></table></div></div>
-      <div id="caseEditor"></div>
-      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Companies (employers / sponsors)</h3><button class="btn btn-primary btn-sm" onclick="companyNew()">+ New company</button></div>
-        <div style="overflow:auto"><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class="right"></th></tr></thead><tbody>${compRows||'<tr><td colspan="5" class="muted" style="padding:14px">No companies yet.</td></tr>'}</tbody></table></div></div>
-      <div id="companyEditor"></div>`;
+    const stat=(n,l)=>`<div class=”card” style=”display:inline-block;min-width:140px;margin-right:12px”><div style=”font-size:24px;font-weight:800;color:var(--navy)”>${n}</div><div class=”muted” style=”font-size:12px”>${l}</div></div>`;
+    const compRows=COMPANIES.map(c=>`<tr><td><strong>${esc(c.name)}</strong></td><td><span class=”pill”>${esc(c.type||'')}</span></td><td class=”muted”>${esc(c.country||'')}</td><td class=”muted”>${esc(c.contactName||'')}${c.contactEmail?' · '+esc(c.contactEmail):''}</td><td class=”right”><button class=”btn btn-sm” onclick=”companyEdit('${esc(c.id)}')”>Edit</button> <button class=”btn btn-sm” onclick=”companyDel('${esc(c.id)}')”>Delete</button></td></tr>`).join('');
+    const listItems=caseSplitListHtml();
+    if(!CASE_PANEL_ID && CASES.length) CASE_PANEL_ID=CASES[0].id;
+    $('content').innerHTML=`
+      <div style=”display:flex;flex-wrap:wrap;margin-bottom:8px”>${stat(clients.length,'Signed-up clients')}${stat(CASES.length,'Total cases')}${stat(active,'Active cases')}${stat(approved,'Approved')}</div>
+      <div class=”sp-wrap” id=”casesSplit”>
+        <div class=”sp-list” id=”casesListPane”>
+          <div style=”padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center”>
+            <strong style=”font-size:13px”>Visa Cases</strong>
+            <button class=”btn btn-primary btn-sm” onclick=”caseNew()”>+ New</button>
+          </div>
+          <div id=”casesListItems”>${listItems}</div>
+        </div>
+        <div class=”sp-detail” id=”caseDetailPane”>
+          <div id=”caseDetailInner”>${CASE_PANEL_ID?caseDetailHtml(CASE_PANEL_ID):'<div style=”padding:40px;text-align:center;color:var(--muted)”>Select a case to view details</div>'}</div>
+        </div>
+      </div>
+      <div id=”caseEditor”></div>
+      <div class=”card” style=”margin-top:14px”><div style=”display:flex;justify-content:space-between;align-items:center”><h3 style=”margin:0”>Companies (employers / sponsors)</h3><button class=”btn btn-primary btn-sm” onclick=”companyNew()”>+ New company</button></div>
+        <div style=”overflow:auto”><table><thead><tr><th>Name</th><th>Type</th><th>Country</th><th>Contact</th><th class=”right”></th></tr></thead><tbody>${compRows||'<tr><td colspan=”5” class=”muted” style=”padding:14px”>No companies yet.</td></tr>'}</tbody></table></div></div>
+      <div id=”companyEditor”></div>`;
     if(CASE_EDIT)renderCaseEditor(); if(COMPANY_EDIT)renderCompanyEditor();
   }
+  function caseSplitListHtml(){
+    if(!CASES.length) return '<div style=”padding:20px;text-align:center;color:var(--muted);font-size:13px”>No cases yet.</div>';
+    return CASES.map(c=>{
+      const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
+      const active=CASE_PANEL_ID===c.id;
+      return `<div class=”sp-row${active?' active':''}” onclick=”openCasePanel('${esc(c.id)}')”>
+        <div class=”sp-avatar” style=”background:${sc.bg};color:${sc.color};font-size:14px”>${(c.clientName||'?')[0]}</div>
+        <div style=”flex:1;min-width:0”>
+          <div style=”font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.clientName||'—')}</div>
+          <div class=”muted” style=”font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis”>${esc(c.visaType||'')}${c.country?' · '+esc(c.country):''}</div>
+        </div>
+        <div style=”text-align:right;flex-shrink:0”>
+          <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:10px”>${esc(c.status||'')}</span>
+          ${c.targetDate?`<div class=”muted” style=”font-size:10px;margin-top:2px”>${esc(c.targetDate)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function caseDetailHtml(id){
+    const c=CASES.find(x=>x.id===id); if(!c) return '<div style=”padding:32px;color:var(--muted)”>Case not found.</div>';
+    const sc=CASE_COLORS[c.status]||{bg:'#e2e8f0',color:'#475569'};
+    const lead=CONTACTS.find(x=>x.ckey===c.ckey||x.email===c.email);
+    const remindDue=c.reminderDate&&c.reminderDate<=new Date().toISOString().slice(0,10);
+    const row=(l,v)=>v?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0;width:140px;white-space:nowrap”>${l}</td><td style=”font-size:13px;padding:4px 0”>${v}</td></tr>`:'';
+    return `<div style=”padding:16px”>
+      <div style=”display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px”>
+        <div>
+          <h3 style=”margin:0 0 4px”>${esc(c.clientName||'—')}</h3>
+          <div class=”muted” style=”font-size:12px”>${esc(c.email||'')}${lead?` · <a href=”#” onclick=”go('profile');PROFILE_KEY='${esc(c.ckey||'')}';renderProfile();return false” style=”color:var(--blue)”>View Lead →</a>`:''}</div>
+        </div>
+        <span class=”pill” style=”background:${sc.bg};color:${sc.color};font-size:13px;padding:4px 12px”>${esc(c.status||'')}</span>
+      </div>
+      <table style=”width:100%;margin-bottom:12px”>
+        ${row('Visa / pathway',esc(c.visaType||''))}
+        ${row('Country',esc(c.country||''))}
+        ${row('File number',esc(c.fileNumber||''))}
+        ${row('Company',esc(coName(c.companyId)))}
+        ${row('Assessing auth.',esc(c.assessingAuthority||''))}
+        ${row('State / nomination',esc(c.stateNomination||''))}
+        ${row('Target date',esc(c.targetDate||''))}
+        ${row('Fee',esc(c.fee||''))}
+        ${c.reminderDate?`<tr><td class=”muted” style=”font-size:12px;padding:4px 8px 4px 0”>State-opening reminder</td><td style=”font-size:13px;padding:4px 0”>${esc(c.reminderDate)} ${remindDue?'<span class=”badge hot”>DUE</span>':''}</td></tr>`:''}
+      </table>
+      ${c.notes?`<div class=”note” style=”font-size:13px;white-space:pre-wrap;margin-bottom:12px”>${esc(c.notes)}</div>`:''}
+      <div style=”display:flex;gap:8px;flex-wrap:wrap”>
+        <button class=”btn btn-sm btn-primary” onclick=”caseEdit('${esc(c.id)}')”>✏️ Edit</button>
+        <button class=”btn btn-sm” onclick=”generateCaseEmailForId('${esc(c.id)}')”>✉️ Email</button>
+        <button class=”btn btn-sm” onclick=”caseDel('${esc(c.id)}')”>Delete</button>
+      </div>
+    </div>`;
+  }
+  function openCasePanel(id){ CASE_PANEL_ID=id; const li=$('casesListItems'); if(li) li.innerHTML=caseSplitListHtml(); const di=$('caseDetailInner'); if(di) di.innerHTML=caseDetailHtml(id); }
+  function generateCaseEmailForId(id){ const c=CASES.find(x=>x.id===id); if(!c)return; CASE_EDIT=JSON.parse(JSON.stringify(c)); generateCaseEmail(); }
   function renderCaseEditor(){
     const c=CASE_EDIT; if(!c){const e=$('caseEditor');if(e)e.innerHTML='';return;}
     const clientOpts=['<option value="">— Select client —</option>',...CONTACTS.map(x=>`<option value="${esc(x.ckey)}" ${x.ckey===c.ckey?'selected':''}>${esc(x.name)}${x.email?' ('+esc(x.email)+')':''}${x.stage==='Signed Up'?' ✓':''}</option>`)].join('');
@@ -1410,39 +1750,69 @@
     if(AUTO_EDIT)renderAutoEditor();
   }
   function syncAuto(){ if(!AUTO_EDIT)return; const g=id=>{const e=$(id);return e?e.value:undefined;}; let v; if((v=g('ar_name'))!==undefined)AUTO_EDIT.name=v; if((v=g('ar_stage'))!==undefined)AUTO_EDIT.stage=v; if((v=g('ar_cat'))!==undefined)AUTO_EDIT.condCat=v; if((v=g('ar_src'))!==undefined)AUTO_EDIT.condSource=v; }
+  const AUTO_TRIGGERS=['Status Changed','Lead Created','Document Uploaded','Invoice Paid','Task Overdue'];
+  const AUTO_TEMPLATES=[
+    {name:'Welcome email on sign-up',trigger:'Status Changed',stage:'Signed Up',condCat:'',condSource:'',actions:[{type:'send-email',subject:'Welcome to iMigrate, {{name}}!',body:'<p>Hi {{name}},</p><p>Welcome to <strong>iMigrate Migration Solutions</strong>! We are thrilled to have you on board and look forward to helping you achieve your immigration goals.</p><p>Your dedicated consultant will be in touch shortly to kick off your onboarding. In the meantime, if you have any questions, just reply to this email.</p><p>Warm regards,<br>The iMigrate Team</p>'},{type:'task',title:'Onboarding call: {{name}}',taskType:'Call',priority:'High',dueDays:1}]},
+    {name:'Follow-up after no answer',trigger:'Status Changed',stage:'No Answer – Follow-up Sent',condCat:'',condSource:'',actions:[{type:'task',title:'Retry contact: {{name}}',taskType:'Call',priority:'Normal',dueDays:2},{type:'notification',message:'No answer 2nd attempt due: {{name}}'}]},
+    {name:'Notify on new hot lead',trigger:'Lead Created',stage:'',condCat:'Hot',condSource:'',actions:[{type:'notification',message:'🔥 New hot lead created: {{name}} ({{occupation}})'}]},
+    {name:'Re-engagement email on lost lead',trigger:'Status Changed',stage:'Lost Lead',condCat:'',condSource:'',actions:[{type:'send-email',subject:'We\'d love to help you again, {{name}}',body:'<p>Hi {{name}},</p><p>We noticed you\'ve decided not to proceed for now — and that\'s totally okay. Immigration journeys take time, and we\'ll be here whenever you\'re ready.</p><p>If your circumstances change or you have any questions about visa pathways in the future, please don\'t hesitate to reach out.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'}]},
+    {name:'Zapier webhook on approval',trigger:'Status Changed',stage:'Approved',condCat:'',condSource:'',actions:[{type:'webhook',url:'https://hooks.zapier.com/hooks/catch/YOUR_ID/YOUR_KEY/'}]},
+    {name:'Task overdue alert',trigger:'Task Overdue',stage:'',condCat:'',condSource:'',actions:[{type:'notification',message:'⚠️ Overdue task for {{name}} — please action now'}]},
+    {name:'Invoice paid — start case',trigger:'Invoice Paid',stage:'',condCat:'',condSource:'',actions:[{type:'task',title:'Open visa case for {{name}}',taskType:'Follow-up',priority:'High',dueDays:0},{type:'notification',message:'Invoice paid — open case for {{name}}'}]},
+  ];
   function autoActionRow(a,i){
-    const types=[['task','Create task'],['notification','Notification'],['webhook','Webhook']];
+    const types=[['task','Create task'],['notification','Notification'],['send-email','Send email'],['webhook','Webhook']];
     const typeSel=`<select onchange="AUTO_EDIT.actions[${i}].type=this.value;renderAutoEditor()" style="width:auto">${types.map(([v,l])=>`<option value="${v}" ${v===a.type?'selected':''}>${l}</option>`).join('')}</select>`;
     let fields='';
     if(a.type==='task'){ fields=`<input placeholder="Task title (e.g. Call {{name}})" value="${esc(a.title||'')}" oninput="AUTO_EDIT.actions[${i}].title=this.value">
       <div style="display:flex;gap:6px;flex-wrap:wrap"><input placeholder="Task type" value="${esc(a.taskType||'Follow-up')}" oninput="AUTO_EDIT.actions[${i}].taskType=this.value" style="width:130px"><select onchange="AUTO_EDIT.actions[${i}].priority=this.value" style="width:auto">${['High','Normal','Low'].map(pr=>`<option ${pr===(a.priority||'Normal')?'selected':''}>${pr}</option>`).join('')}</select><input type="number" min="0" value="${a.dueDays!=null?a.dueDays:1}" oninput="AUTO_EDIT.actions[${i}].dueDays=this.value" style="width:90px" title="Due in N days"></div>`; }
     else if(a.type==='notification'){ fields=`<input placeholder="Message (e.g. New hot lead: {{name}})" value="${esc(a.message||'')}" oninput="AUTO_EDIT.actions[${i}].message=this.value">`; }
+    else if(a.type==='send-email'){ fields=`<input placeholder="Subject" value="${esc(a.subject||'')}" oninput="AUTO_EDIT.actions[${i}].subject=this.value" style="margin-bottom:4px">
+      <textarea placeholder="Email body (HTML supported)" style="min-height:70px;font-family:monospace;font-size:12px" oninput="AUTO_EDIT.actions[${i}].body=this.value">${esc(a.body||'')}</textarea>
+      <div class="muted" style="font-size:11px">Sends to the lead's email. Use {{name}}, {{occupation}}, {{stage}} as placeholders. Requires M365 / SMTP connected.</div>`; }
     else if(a.type==='webhook'){ fields=`<input placeholder="https://hooks.zapier.com/… (POST lead JSON)" value="${esc(a.url||'')}" oninput="AUTO_EDIT.actions[${i}].url=this.value">`; }
     return `<div class="note" style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="flex:1">${typeSel}</div><button class="btn btn-sm" onclick="autoRemoveAction(${i})">✕</button></div><div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">${fields}</div></div>`;
   }
   function renderAutoEditor(){
     const r=AUTO_EDIT; if(!r){const e=$('autoEditor');if(e)e.innerHTML='';return;}
-    const TRIGGERS=['Status Changed','Lead Created','Document Uploaded'];
     const stageOpts=['',...STAGES].map(s=>`<option value="${esc(s)}" ${s===r.stage?'selected':''}>${s?esc(s):'Any stage'}</option>`).join('');
     const catOpts=['','Sales Ready','Hot','Warm','Cold'].map(s=>`<option value="${s}" ${s===r.condCat?'selected':''}>${s||'Any score'}</option>`).join('');
     const srcOpts=['','AI','Standard'].map(s=>`<option value="${s}" ${s===r.condSource?'selected':''}>${s||'Any source'}</option>`).join('');
     const actHtml=(r.actions||[]).map((a,i)=>autoActionRow(a,i)).join('');
-    $('autoEditor').innerHTML=`<div class="card"><h3>${r._new?'New rule':'Edit rule'}</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><label class="muted" style="font-size:12px">Rule name</label><input id="ar_name" value="${esc(r.name||'')}"></div>
-        <div><label class="muted" style="font-size:12px">Trigger</label><select id="ar_trigger" onchange="syncAuto();AUTO_EDIT.trigger=this.value;renderAutoEditor()">${TRIGGERS.map(t=>`<option ${t===r.trigger?'selected':''}>${t}</option>`).join('')}</select></div>
+    const tmplOpts=AUTO_TEMPLATES.map((t,i)=>`<option value="${i}">${esc(t.name)}</option>`).join('');
+    $('autoEditor').innerHTML=`<div class="card"><h3 style="margin-top:0">${r._new?'New rule':'Edit rule'}</h3>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <label class="muted" style="font-size:12px;white-space:nowrap">Start from template:</label>
+        <select id="ar_tmpl" style="width:auto"><option value="">— Choose template —</option>${tmplOpts}</select>
+        <button class="btn btn-sm" onclick="autoApplyTemplate()">Apply</button>
       </div>
-      ${r.trigger==='Status Changed'?`<label class="muted" style="font-size:12px;margin-top:6px;display:block">When stage becomes</label><select id="ar_stage">${stageOpts}</select>`:''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
-        <div><label class="muted" style="font-size:12px">Condition · score</label><select id="ar_cat">${catOpts}</select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="muted" style="font-size:12px">Rule name</label><input id="ar_name" value="${esc(r.name||'')}" placeholder="e.g. Welcome email on sign-up"></div>
+        <div><label class="muted" style="font-size:12px">Trigger</label><select id="ar_trigger" onchange="syncAuto();AUTO_EDIT.trigger=this.value;renderAutoEditor()">${AUTO_TRIGGERS.map(t=>`<option ${t===r.trigger?'selected':''}>${t}</option>`).join('')}</select></div>
+      </div>
+      ${r.trigger==='Status Changed'?`<label class="muted" style="font-size:12px;margin-top:8px;display:block">When stage becomes</label><select id="ar_stage" style="margin-top:2px">${stageOpts}</select>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div><label class="muted" style="font-size:12px">Condition · lead score</label><select id="ar_cat">${catOpts}</select></div>
         <div><label class="muted" style="font-size:12px">Condition · source</label><select id="ar_src">${srcOpts}</select></div>
       </div>
-      <h4 style="margin:14px 0 6px">Actions</h4><div id="ar_actions">${actHtml||'<p class="muted" style="font-size:12px">No actions yet — add one below.</p>'}</div>
+      <h4 style="margin:14px 0 6px">Actions</h4>
+      <div id="ar_actions">${actHtml||'<p class="muted" style="font-size:12px">No actions yet — add one below.</p>'}</div>
       <button class="btn btn-sm" onclick="autoAddAction()">+ Add action</button>
-      <div style="margin-top:12px;display:flex;gap:8px;align-items:center"><button class="btn btn-primary btn-sm" onclick="autoSave()">Save rule</button><button class="btn btn-sm" onclick="AUTO_EDIT=null;renderAutomations()">Cancel</button><span id="ar_msg" class="muted" style="font-size:12px"></span></div>
-      <p class="muted" style="font-size:11px;margin-top:8px">Placeholders: <code>{{name}}</code>, <code>{{occupation}}</code>, <code>{{stage}}</code>. Webhook POSTs the lead as JSON to your URL (works with Zapier / Make).</p></div>`;
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="autoSave()">Save rule</button>
+        <button class="btn btn-sm" onclick="AUTO_EDIT=null;renderAutomations()">Cancel</button>
+        <span id="ar_msg" class="muted" style="font-size:12px"></span>
+      </div>
+      <p class="muted" style="font-size:11px;margin-top:8px">Placeholders in any field: <code>{{name}}</code>, <code>{{occupation}}</code>, <code>{{stage}}</code>. Webhook POSTs lead JSON to your URL (Zapier / Make compatible). Send-email requires M365 or SMTP configured.</p></div>`;
     $('autoEditor').scrollIntoView({behavior:'smooth'});
   }
+  window.autoApplyTemplate=()=>{
+    const sel=$('ar_tmpl'); if(!sel||sel.value==='')return;
+    const t=AUTO_TEMPLATES[parseInt(sel.value)]; if(!t)return;
+    syncAuto();
+    AUTO_EDIT.name=AUTO_EDIT.name||t.name; AUTO_EDIT.trigger=t.trigger; AUTO_EDIT.stage=t.stage||''; AUTO_EDIT.condCat=t.condCat||''; AUTO_EDIT.condSource=t.condSource||''; AUTO_EDIT.actions=JSON.parse(JSON.stringify(t.actions));
+    renderAutoEditor();
+  };
   window.autoNew=()=>{AUTO_EDIT={_new:true,name:'',enabled:true,trigger:'Status Changed',stage:'',condCat:'',condSource:'',actions:[{type:'task',priority:'Normal',dueDays:1}]};renderAutoEditor();};
   window.autoEdit=(id)=>{const r=AUTO_RULES.find(x=>x.id===id);if(!r)return;AUTO_EDIT=JSON.parse(JSON.stringify(r));renderAutoEditor();};
   window.autoAddAction=()=>{syncAuto();AUTO_EDIT.actions=AUTO_EDIT.actions||[];AUTO_EDIT.actions.push({type:'task',priority:'Normal',dueDays:1});renderAutoEditor();};
@@ -1814,13 +2184,14 @@
   }
 
   /* ---------- export / theme ---------- */
-  function exportCsv(){
+  function exportCsvRows(contacts){
     const cols=['name','sourceType','email','phone','whatsapp','country','occupation','anzsco','points','visas','score','cat','stage','source','firstDate','latestDate'];
     const rows=[cols.join(',')];
-    CONTACTS.forEach(c=>rows.push(cols.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
+    contacts.forEach(c=>rows.push(cols.map(k=>{let v=c[k];v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';}).join(',')));
     const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='imigrate-crm-leads.csv';a.click();
   }
+  function exportCsv(){ exportCsvRows(CONTACTS); }
   function setTheme(t){document.body.dataset.theme=t;localStorage.setItem('imig_crm_theme',t);$('themeBtn').textContent=t==='dark'?'☀️ Light':'🌙 Dark';}
   function toggleTheme(){setTheme(document.body.dataset.theme==='dark'?'light':'dark');}
 

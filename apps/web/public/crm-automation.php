@@ -65,6 +65,18 @@ function exec_action($a, $ctx, $dir, $notifFile) {
         @file_put_contents($notifFile, json_encode(['id' => auto_id(), 'at' => date('c'), 'message' => $msg, 'ckey' => $key, 'lead' => $name, 'read' => false]) . "\n", FILE_APPEND | LOCK_EX);
         return 'Notification: ' . $msg;
     }
+    if ($type === 'send-email') {
+        $subject = $fill($a['subject'] ?? ('Update for ' . $name));
+        $body    = $fill($a['body'] ?? '<p>Hi {{name}},</p><p>Following up on your immigration inquiry.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>');
+        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && is_file(__DIR__ . '/crm-email.php')) {
+            $payload = json_encode(['action' => 'send', 'password' => $EDIT_PASSWORD, 'ckey' => $key, 'to' => $email, 'toName' => $name, 'subject' => $subject, 'html' => $body, 'author' => 'Automation', 'template' => 'automation']);
+            $ctx2 = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $payload, 'timeout' => 15]]);
+            $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host  = $_SERVER['HTTP_HOST'] ?? 'www.imigratesolution.com';
+            @file_get_contents($proto . '://' . $host . '/crm-email.php', false, $ctx2);
+        }
+        return 'Email sent to ' . $email . ': ' . $subject;
+    }
     if ($type === 'webhook') {
         $url = (string) ($a['url'] ?? '');
         if ($url !== '' && function_exists('curl_init') && preg_match('#^https?://#i', $url)) {

@@ -174,6 +174,14 @@ function go(mod){ VIEW=mod; buildNav(); const tgt=navTargetFor(mod);
   if(mod==='dash.notifications') return renderNotifications();
   if(mod==='mkt.dashboard') return renderMarketingDashboard();
   if(mod==='mkt.aistudio') return renderAIStudio();
+  if(mod==='mkt.email') return renderEmailMarketing();
+  if(mod==='mkt.campaigns') return renderCampaigns();
+  if(mod==='mkt.calendar') return renderContentCalendar();
+  if(mod==='mkt.analytics') return renderMarketingAnalytics();
+  if(mod==='mkt.social') return renderSocialMedia();
+  if(mod==='mkt.emailauto') return renderEmailAutomations();
+  if(mod==='mkt.ads') return renderAdsManager();
+  if(mod==='mkt.whatsapp') return renderWhatsAppHub();
   if(mod==='int.anthropic') return renderAIIntegration();
   if(mod==='int.api') return renderIntegrationsOverview();
   if(typeof CONNECTORS!=='undefined' && CONNECTORS[mod]) return renderIntegration(mod);
@@ -329,13 +337,9 @@ function rApiKeys(){
 const FRAMEWORK={
   'mkt.social':['📱','Social Media','Schedule and publish posts to Facebook, Instagram and LinkedIn.','Connect each network (OAuth) to enable scheduling. Requires registered apps + access tokens.'],
   'mkt.gbp':['📍','Google Business Profile','Manage your Google Business listing, posts and reviews.','Connect a Google account with Business Profile API access.'],
-  'mkt.email':['✉️','Email Campaigns','Create and send email campaigns to your lead segments.','Sending uses Microsoft 365 (when connected) or the server mailer; segments come from the CRM. Compose & per-lead sends are available now in CRM → lead profile.'],
   'mkt.emailauto':['🔁','Email Automations','Drip sequences and triggered follow-ups.','Runs on the scheduled-email cron (CRM → Settings). Visual sequence builder connects here.'],
   'mkt.whatsapp':['💬','WhatsApp Automations','Automated WhatsApp messages and templates.','Requires WhatsApp Business API credentials (see Integrations).'],
   'mkt.ads':['📊','Ads Manager','Manage Google &amp; Meta ad campaigns and view spend.','Connect Google Ads and Meta Ads accounts (OAuth + API access).'],
-  'mkt.calendar':['🗓️','Content Calendar','Plan blogs, social posts and campaigns on a calendar.','Pulls scheduled blogs (CMS) and campaigns; full drag-drop calendar connects here.'],
-  'mkt.campaigns':['🎯','Campaigns','Plan and track multi-channel marketing campaigns.','Generate campaign content in AI Content Studio; channel publishing connects via the Ads & Social integrations.'],
-  'mkt.analytics':['📈','Analytics','Traffic, leads and conversion analytics.','Connect Google Analytics; CRM lead/report counts are summarised here.'],
   'int.m365':['🔌','Microsoft 365','Outlook email, Calendar and OneDrive via Microsoft Graph.','Built — connect in CRM → Settings → Microsoft 365 (Azure app required).'],
   'int.outlook':['📧','Outlook','Send and read email via the connected Microsoft 365 account.','Built — part of the Microsoft 365 connection (CRM → Settings → Microsoft 365).'],
   'int.onedrive':['☁️','OneDrive','Back up CRM data and store documents in OneDrive.','Built — part of the Microsoft 365 connection (CRM → Settings → Microsoft 365).'],
@@ -352,7 +356,7 @@ function renderFramework(mod){
   const built=f[3].startsWith('Built');
   let extra='';
   if(mod==='int.m365'||mod==='int.hubspot'||mod==='int.outlook'||mod==='int.onedrive')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Open in CRM →</a>`;
-  if(mod==='mkt.email')extra=`<a class="btn btn-sm btn-primary" href="/crm.html" target="_blank">Compose in CRM →</a>`;
+  if(mod==='mkt.email')extra=`<button class="btn btn-sm btn-primary" onclick="go('mkt.email')">Open Email Campaigns →</button>`;
   if(mod==='mkt.campaigns')extra=`<button class="btn btn-sm btn-primary" onclick="go('mkt.aistudio')">Open AI Content Studio →</button>`;
   if(mod==='mkt.analytics')extra=`<button class="btn btn-sm" onclick="go('crm.reports')">View CRM reports</button>`;
   if(mod==='int.api')extra=`<button class="btn btn-sm btn-primary" onclick="go('int.anthropic')">Claude AI key</button> <button class="btn btn-sm" onclick="go('int.m365')">Microsoft 365</button>`;
@@ -710,6 +714,593 @@ async function aiToEmailTemplate(content, fallbackName){
   if(r&&r.ok){ alert('Saved to CRM email templates ✓\n\nIt now appears in CRM → lead → Emails → Template dropdown. Use {{name}} {{occupation}} {{points}} {{visas}} for per-lead personalisation.'); }
   else alert('Save failed: '+((r&&r.error)||''));
 }
+
+/* ============================================================
+   MARKETING HUB — Email Campaigns, Campaign Pipeline,
+   Content Calendar, Analytics
+   ============================================================ */
+
+async function mktApi(body){
+  try{
+    const r=await fetch('/marketing.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:SVC,...body})});
+    return await r.json();
+  }catch(e){ return {ok:false,error:'Request failed — check your connection.'}; }
+}
+function mktFmt(n){ return n==null?'—':n.toLocaleString(); }
+function mktRate(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
+function mktStatusBadge(s){
+  const m={'draft':'<span class="badge tag">Draft</span>','queued':'<span class="badge warm">Queued</span>','sending':'<span class="badge warm">Sending…</span>','sent':'<span class="badge active">Sent</span>','scheduled':'<span class="badge std">Scheduled</span>','cancelled':'<span style="color:var(--muted);font-size:12px">Cancelled</span>'};
+  return m[s]||`<span class="badge tag">${esc(s)}</span>`;
+}
+
+/* ---- Email Marketing ---- */
+async function renderEmailMarketing(){
+  $('view').innerHTML='<div class="card"><h3>Email Campaigns</h3><p class="muted">Loading…</p></div>';
+  const [camps,stats]=await Promise.all([mktApi({action:'campaign.list'}),mktApi({action:'stats'})]);
+  const list=(camps.campaigns||[]);
+  const s=stats;
+  const summary=`<div class="grid stats" style="margin-bottom:16px">
+    <div class="card stat"><div class="n">${mktFmt(s.emailsSent)}</div><div class="l">Emails sent</div></div>
+    <div class="card stat"><div class="n">${mktFmt(s.emailsOpened)}</div><div class="l">Unique opens</div><div class="hint">${mktRate(s.emailsOpened,s.emailsSent)}</div></div>
+    <div class="card stat"><div class="n">${mktFmt(s.emailsClicked)}</div><div class="l">Clicks</div><div class="hint">${mktRate(s.emailsClicked,s.emailsSent)}</div></div>
+    <div class="card stat"><div class="n">${list.length}</div><div class="l">Campaigns</div></div>
+  </div>`;
+  const rows=list.map(c=>`<tr>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td class="muted" style="font-size:12px">${esc(c.subject||'').slice(0,60)}</td>
+    <td>${mktStatusBadge(c.status)}</td>
+    <td class="muted">${mktFmt(c.totalRecipients||0)}</td>
+    <td class="muted">${mktFmt(c.sent||0)} / ${mktFmt(c.failed||0)}</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(c.createdAt))}</td>
+    <td style="text-align:right">
+      ${c.status==='draft'?`<button class="btn btn-sm btn-primary" onclick="mktSendCampaign('${esc(c.id)}')">Send</button> `:''}
+      <button class="btn btn-sm" onclick="mktEditCampaign(${esc(JSON.stringify(c))})">Edit</button>
+      ${['draft','cancelled'].includes(c.status)?`<button class="btn btn-sm" onclick="mktDeleteCampaign('${esc(c.id)}')">Delete</button>`:''}
+      ${['queued','scheduled'].includes(c.status)?`<button class="btn btn-sm" onclick="mktCancelCampaign('${esc(c.id)}')">Cancel</button>`:''}
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=summary+`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0">Campaigns</h3>
+        <button class="btn btn-primary btn-sm" onclick="mktNewCampaign()">+ New Campaign</button>
+      </div>
+      <div style="overflow:auto"><table>
+        <thead><tr><th>Name</th><th>Subject</th><th>Status</th><th>Recipients</th><th>Sent / Failed</th><th>Created</th><th class="right">Actions</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" class="muted" style="padding:14px">No campaigns yet. Click "+ New Campaign" to start.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+  <div id="mktCampForm"></div>`;
+}
+
+async function mktNewCampaign(){ mktEditCampaign(null); }
+async function mktEditCampaign(camp){
+  const segs=await mktApi({action:'segments'});
+  const stages=(segs.stages||[]).map(s=>`<option value="stage:${esc(s)}">${esc(s)}</option>`).join('');
+  const countries=(segs.countries||[]).map(c=>`<option value="country:${esc(c)}">${esc(c)}</option>`).join('');
+  const segOpts=`<option value="all">All leads (${mktFmt(segs.total||0)})</option>${stages}${countries}`;
+  const c=camp||{};
+  const formHtml=`<div class="card" id="mktForm">
+    <h3 style="margin-top:0">${c.id?'Edit Campaign':'New Email Campaign'}</h3>
+    <div class="fgrid">
+      <div class="full"><label class="fl">Campaign name</label><input id="mf_name" value="${esc(c.name||'')}" placeholder="e.g. January Visa Update Newsletter"></div>
+      <div class="full"><label class="fl">Email subject line</label><input id="mf_subject" value="${esc(c.subject||'')}" placeholder="e.g. Your immigration pathway for 2026 — iMigrate"></div>
+      <div><label class="fl">Recipient segment</label><select id="mf_seg">${segOpts}</select></div>
+      <div><label class="fl">Schedule (leave blank to send now)</label><input id="mf_sched" type="datetime-local" value="${esc(c.scheduleAt?c.scheduleAt.slice(0,16):'')}"></div>
+    </div>
+    <label class="fl">Email body (HTML supported; use {{name}}, {{first_name}}, {{country}}, {{occupation}}, {{stage}})</label>
+    <textarea id="mf_html" style="min-height:260px;font-family:monospace;font-size:12px">${esc(c.html||'')}</textarea>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="mktSaveCampaignForm('${esc(c.id||'')}')">Save draft</button>
+      <button class="btn btn-sm" onclick="mktPreviewSegment()">Preview recipients</button>
+      ${c.id?`<button class="btn btn-sm btn-primary" onclick="mktSaveAndSend('${esc(c.id)}')">Save &amp; Send now</button>`:''}
+      <button class="btn btn-sm" onclick="$('mktCampForm').innerHTML=''">Cancel</button>
+      <span id="mf_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <div id="mf_preview" style="margin-top:10px"></div>
+  </div>`;
+  const el=$('mktCampForm');
+  el.innerHTML=formHtml;
+  // Pre-select segment
+  if(c.segment) { const s=$('mf_seg'); if(s) { for(let i=0;i<s.options.length;i++) if(s.options[i].value===c.segment){ s.selectedIndex=i; break; } } }
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+async function mktPreviewSegment(){
+  const seg=$('mf_seg')&&$('mf_seg').value||'all';
+  const r=await mktApi({action:'campaign.preview',segment:seg});
+  const el=$('mf_preview'); if(!el)return;
+  if(!r.ok){ el.innerHTML=`<p class="err">${esc(r.error||'Failed')}</p>`; return; }
+  el.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px">
+    <strong>${mktFmt(r.count)} recipient${r.count!==1?'s':''}</strong> will receive this email.
+    ${r.sample&&r.sample.length?'<div class="muted" style="margin-top:6px">First 5: '+(r.sample.map(x=>esc(x.name||x.email)).join(', '))+'…</div>':''}
+  </div>`;
+}
+
+async function mktSaveCampaignForm(existingId){
+  const msg=$('mf_msg'); if(msg) msg.textContent='Saving…';
+  const camp={
+    id:existingId||undefined,
+    name:$('mf_name')&&$('mf_name').value||'Untitled',
+    subject:$('mf_subject')&&$('mf_subject').value||'',
+    html:$('mf_html')&&$('mf_html').value||'',
+    segment:$('mf_seg')&&$('mf_seg').value||'all',
+    scheduleAt:$('mf_sched')&&$('mf_sched').value||'',
+  };
+  if(!camp.subject.trim()){ if(msg){msg.textContent='Subject is required.';msg.className='err';} return null; }
+  if(!camp.html.trim()){ if(msg){msg.textContent='Email body is required.';msg.className='err';} return null; }
+  const r=await mktApi({action:'campaign.save',campaign:camp,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderEmailMarketing(); return r.id||existingId; }
+  else { if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} return null; }
+}
+
+async function mktSaveAndSend(existingId){
+  const id=await mktSaveCampaignForm(existingId); if(!id)return;
+  mktSendCampaign(id);
+}
+
+async function mktSendCampaign(id){
+  const sched=$('mf_sched')&&$('mf_sched').value;
+  if(!confirm('Send this campaign? The emails will be dispatched to all matching leads now (via the background cron). Continue?'))return;
+  const r=await mktApi({action:'campaign.send',id,scheduleAt:sched||''});
+  if(r.ok){ alert(`Campaign queued ✓\n${mktFmt(r.queued)} emails will be sent by the background cron (every 5 min, ~20 per run).`); renderEmailMarketing(); }
+  else alert(r.error||'Could not queue campaign.');
+}
+
+async function mktCancelCampaign(id){ if(!confirm('Cancel this campaign? Unsent emails will be skipped.'))return; await mktApi({action:'campaign.cancel',id}); renderEmailMarketing(); }
+async function mktDeleteCampaign(id){ if(!confirm('Delete this draft campaign? This cannot be undone.'))return; await mktApi({action:'campaign.delete',id}); renderEmailMarketing(); }
+
+/* ---- Campaign Pipeline ---- */
+async function renderCampaigns(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading campaigns…</p></div>';
+  const r=await mktApi({action:'campaign.list'});
+  const camps=(r.campaigns||[]);
+  const cols=[
+    {key:'draft',     label:'Draft',     color:'#94a3b8'},
+    {key:'queued',    label:'Queued',    color:'#f59e0b'},
+    {key:'sending',   label:'Sending',   color:'#3b82f6'},
+    {key:'scheduled', label:'Scheduled', color:'#6366f1'},
+    {key:'sent',      label:'Sent',      color:'#16a34a'},
+    {key:'cancelled', label:'Cancelled', color:'#ef4444'},
+  ];
+  const kanban=cols.map(col=>{
+    const cards=camps.filter(c=>c.status===col.key).map(c=>`<div class="kcard">
+      <div class="nm">${esc(c.name)}</div>
+      <div class="meta">${esc((c.subject||'').slice(0,55))}</div>
+      <div class="meta" style="margin-top:4px">${mktFmt(c.totalRecipients||0)} recipients · Sent ${mktFmt(c.sent||0)}</div>
+      <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">
+        ${col.key==='draft'?`<button class="btn btn-sm btn-primary" style="font-size:11px;padding:2px 7px" onclick="mktSendCampaign('${esc(c.id)}')">Send</button>`:''}
+        <button class="btn btn-sm" style="font-size:11px;padding:2px 7px" onclick="go('mkt.email')">View</button>
+      </div>
+    </div>`).join('');
+    return `<div class="kcol"><h4 style="border-left:3px solid ${col.color}">${esc(col.label)} <span style="color:var(--muted)">${camps.filter(c=>c.status===col.key).length}</span></h4><div class="kbody">${cards||'<div class="muted" style="font-size:12px;padding:6px">None</div>'}</div></div>`;
+  }).join('');
+  $('view').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <p class="muted" style="margin:0">Your campaign pipeline — all channels in one view.</p>
+    <button class="btn btn-primary btn-sm" onclick="go('mkt.email')">+ New Campaign</button>
+  </div>
+  <div class="kanban">${kanban}</div>`;
+}
+
+/* ---- Content Calendar ---- */
+async function renderContentCalendar(){
+  $('view').innerHTML='<div class="card"><p class="muted">Building calendar…</p></div>';
+  const r=await mktApi({action:'campaign.list'});
+  const camps=(r.campaigns||[]);
+  const now=new Date();
+  let yr=now.getFullYear(), mo=now.getMonth();
+  const render=(y,m)=>{
+    const first=new Date(y,m,1); const last=new Date(y,m+1,0);
+    const pad=first.getDay(); // 0=Sun
+    const monthName=first.toLocaleString('default',{month:'long',year:'numeric'});
+    // events: scheduled + sent campaigns
+    const events={};
+    camps.forEach(c=>{
+      const d=c.scheduleAt||c.sentAt||c.createdAt||'';
+      if(!d)return;
+      const k=d.slice(0,10);
+      if(!events[k])events[k]=[];
+      events[k].push(c);
+    });
+    let cells='';
+    for(let i=0;i<pad;i++) cells+=`<div class="cal-cell dim"></div>`;
+    for(let d=1;d<=last.getDate();d++){
+      const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday=(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate());
+      const evs=(events[key]||[]).map(c=>`<div class="cal-ev" title="${esc(c.name)}">${esc(c.name.slice(0,22))}</div>`).join('');
+      cells+=`<div class="cal-cell ${isToday?'today':''}"><div class="d">${d}</div>${evs}</div>`;
+    }
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <button class="btn btn-sm" onclick="mktCalNav(${y},${m-1})">◀</button>
+        <strong style="font-size:15px">${monthName}</strong>
+        <button class="btn btn-sm" onclick="mktCalNav(${y},${m+1})">▶</button>
+        <button class="btn btn-sm" onclick="mktCalNav(${now.getFullYear()},${now.getMonth()})">Today</button>
+        <span class="muted" style="margin-left:auto;font-size:12px">${camps.length} campaigns total</span>
+      </div>
+      <div class="cal-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:6px">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      </div>
+      <div class="cal-grid">${cells}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">Campaign dots show scheduled send dates. Create campaigns in <button class="btn btn-sm" onclick="go('mkt.email')" style="font-size:12px">Email Campaigns →</button></p>
+    `;
+  };
+  const draw=(y,m)=>{ $('view').innerHTML=render(y,m); };
+  window.mktCalNav=(y,m)=>{ if(m<0){y--;m=11;} if(m>11){y++;m=0;} draw(y,m); };
+  draw(yr,mo);
+}
+
+/* ---- Marketing Analytics ---- */
+async function renderMarketingAnalytics(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading analytics…</p></div>';
+  const [st,lr]=await Promise.all([
+    mktApi({action:'stats'}),
+    mktApi({action:'lead-summary'}),
+  ]);
+  const leads=(lr.leads||[]);
+  // Stage breakdown
+  const stageCounts={};
+  leads.forEach(l=>{ const s=l._stage||l.stage||'Unknown'; stageCounts[s]=(stageCounts[s]||0)+1; });
+  const stageRows=Object.entries(stageCounts).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<tr><td>${esc(s)}</td><td><strong>${mktFmt(n)}</strong></td><td class="muted">${mktRate(n,leads.length)}</td></tr>`).join('');
+  const campRows=(st.campaigns||[]).map(c=>`<tr>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td>${mktStatusBadge(c.status)}</td>
+    <td>${mktFmt(c.totalRecipients||0)}</td>
+    <td>${mktFmt(c.sent||0)}</td>
+    <td>${mktFmt(c.emailOpens||0)} <span class="muted">(${mktRate(c.emailOpens||0,c.sent||0)})</span></td>
+    <td>${mktFmt(c.emailClicks||0)} <span class="muted">(${mktRate(c.emailClicks||0,c.sent||0)})</span></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="grid stats" style="margin-bottom:16px">
+      <div class="card stat"><div class="n">${mktFmt(leads.length)}</div><div class="l">Total leads</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsSent)}</div><div class="l">Total emails sent</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsOpened)}</div><div class="l">Total opens</div><div class="hint">${mktRate(st.emailsOpened,st.emailsSent)}</div></div>
+      <div class="card stat"><div class="n">${mktFmt(st.emailsClicked)}</div><div class="l">Total clicks</div><div class="hint">${mktRate(st.emailsClicked,st.emailsSent)}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr 2fr;gap:16px;align-items:start">
+      <div class="card">
+        <h3>Leads by stage</h3>
+        <table><thead><tr><th>Stage</th><th>Leads</th><th>%</th></tr></thead>
+        <tbody>${stageRows||'<tr><td colspan="3" class="muted">No leads yet.</td></tr>'}</tbody></table>
+      </div>
+      <div class="card">
+        <h3>Campaign performance</h3>
+        <table><thead><tr><th>Campaign</th><th>Status</th><th>Recipients</th><th>Sent</th><th>Opens</th><th>Clicks</th></tr></thead>
+        <tbody>${campRows||'<tr><td colspan="6" class="muted" style="padding:12px">No sent campaigns yet. <button class="btn btn-sm" onclick="go(\'mkt.email\')">Create one →</button></td></tr>'}</tbody>
+      </table>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   SOCIAL MEDIA HUB
+   ============================================================ */
+async function renderSocialMedia(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading social posts…</p></div>';
+  const r=await mktApi({action:'social.list'});
+  const posts=(r.items||[]);
+  const PLATFORMS=['Facebook','Instagram','LinkedIn','Twitter/X','Google Business'];
+  const statusColor={Draft:'tag',Scheduled:'warm',Published:'active',Paused:'tag'};
+  const rows=posts.map(p=>`<tr>
+    <td style="max-width:260px"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.text||'').slice(0,80)}</div>
+      <div class="muted" style="font-size:11px">${esc((p.platforms||[]).join(', '))}</div></td>
+    <td><span class="badge ${statusColor[p.status]||'tag'}">${esc(p.status||'Draft')}</span></td>
+    <td class="muted" style="font-size:12px">${esc(p.scheduledFor||'—')}</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(p.updatedAt))}</td>
+    <td class="right"><button class="btn btn-sm" onclick="socialEdit(${esc(JSON.stringify(p))})">Edit</button> <button class="btn btn-sm" onclick="socialDelete('${esc(p.id)}')">Delete</button></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">Social Media Posts</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="go('mkt.aistudio')" title="Generate content with AI">✨ AI Studio</button>
+          <button class="btn btn-sm btn-primary" onclick="socialNew()">+ New Post</button>
+        </div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Draft and schedule posts. Connect Facebook/Instagram/LinkedIn in Integrations to publish directly; until then use the Copy button to post manually.</p>
+      <table><thead><tr><th>Post</th><th>Status</th><th>Scheduled for</th><th>Updated</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="muted" style="padding:14px">No posts yet. Click "+ New Post" to start drafting.</td></tr>'}</tbody></table>
+    </div>
+    <div id="socialForm"></div>`;
+}
+function socialNew(){ socialEdit({id:'',text:'',platforms:['Facebook','Instagram'],status:'Draft',scheduledFor:'',notes:''}); }
+function socialEdit(post){
+  const PLATFORMS=['Facebook','Instagram','LinkedIn','Twitter/X','Google Business'];
+  const p=typeof post==='string'?JSON.parse(post):post;
+  const plCks=PLATFORMS.map(pl=>`<label style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><input type="checkbox" style="width:auto" ${(p.platforms||[]).includes(pl)?'checked':''} value="${esc(pl)}" class="pl_ck"> ${esc(pl)}</label>`).join('');
+  const stOpts=['Draft','Scheduled','Published','Paused'].map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('');
+  $('socialForm').innerHTML=`<div class="card" id="sfBox">
+    <h3 style="margin-top:0">${p.id?'Edit post':'New post'}</h3>
+    <label class="fl">Post content</label>
+    <textarea id="sf_text" style="min-height:120px" placeholder="Write your social post…">${esc(p.text||'')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn btn-sm" onclick="aiSocialDraft()">✨ Draft with AI</button>
+      <span id="sf_ai" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <label class="fl">Platforms</label><div style="margin-top:4px">${plCks}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div><label class="fl">Status</label><select id="sf_status">${stOpts}</select></div>
+      <div><label class="fl">Schedule date/time (optional)</label><input id="sf_sched" type="datetime-local" value="${esc(p.scheduledFor?p.scheduledFor.slice(0,16):'')}"></div>
+    </div>
+    <label class="fl">Notes (internal)</label><input id="sf_notes" value="${esc(p.notes||'')}" placeholder="Campaign name, hashtags, image URL…">
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="socialSave('${esc(p.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('sf_text').value);this.textContent='Copied ✓'">📋 Copy text</button>
+      <button class="btn btn-sm" onclick="$('socialForm').innerHTML=''">Cancel</button>
+      <span id="sf_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('socialForm').scrollIntoView({behavior:'smooth'});
+}
+async function aiSocialDraft(){
+  const msg=$('sf_ai'); if(msg){msg.textContent='Generating…';msg.className='muted';}
+  const r=await aiApi({action:'generate',type:'social',brief:'Write 3 social media post variations for iMigrate Migration Solutions. Focus on immigration pathways to Australia and Canada. Include a call to action.'});
+  if(r.ok){ const t=$('sf_text'); if(t) t.value=r.text||''; if(msg){msg.textContent='Done ✓';msg.className='ok';} }
+  else if(msg){ msg.textContent=r.error||'AI not available'; msg.className='err'; }
+}
+async function socialSave(existingId){
+  const msg=$('sf_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const platforms=[...document.querySelectorAll('.pl_ck:checked')].map(x=>x.value);
+  const item={id:existingId||undefined,text:$('sf_text').value,platforms,status:$('sf_status').value,scheduledFor:$('sf_sched').value,notes:$('sf_notes').value};
+  const r=await mktApi({action:'social.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderSocialMedia(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function socialDelete(id){ if(!confirm('Delete this post?'))return; await mktApi({action:'social.delete',id}); renderSocialMedia(); }
+
+/* ============================================================
+   EMAIL AUTOMATIONS (drip sequences)
+   ============================================================ */
+async function renderEmailAutomations(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading sequences…</p></div>';
+  const r=await mktApi({action:'seq.list'});
+  const seqs=(r.items||[]);
+  const stBadge=s=>s==='Active'?'<span class="badge active">Active</span>':s==='Paused'?'<span class="badge warm">Paused</span>':'<span class="badge tag">Draft</span>';
+  const rows=seqs.map(s=>`<tr>
+    <td><strong>${esc(s.name||'Untitled')}</strong><div class="muted" style="font-size:11px">${esc(s.trigger||'')}</div></td>
+    <td>${stBadge(s.status||'Draft')}</td>
+    <td class="muted">${(s.steps||[]).length} step(s)</td>
+    <td class="muted" style="font-size:12px">${esc(fmtDT(s.updatedAt))}</td>
+    <td class="right">
+      <button class="btn btn-sm btn-primary" onclick="seqToggle('${esc(s.id)}','${s.status==='Active'?'Paused':'Active'}')">${s.status==='Active'?'Pause':'Activate'}</button>
+      <button class="btn btn-sm" onclick="seqEdit(${esc(JSON.stringify(s))})">Edit</button>
+      <button class="btn btn-sm" onclick="seqDelete('${esc(s.id)}')">Delete</button>
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">Email Automations</h3>
+        <button class="btn btn-sm btn-primary" onclick="seqNew()">+ New Sequence</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Drip sequences automatically send timed emails when a lead hits a trigger. The cron job (every 5 min) processes due steps.</p>
+      <table><thead><tr><th>Sequence</th><th>Status</th><th>Steps</th><th>Updated</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="muted" style="padding:14px">No sequences yet. Click "+ New Sequence" to build a drip campaign.</td></tr>'}</tbody></table>
+    </div>
+    <div id="seqForm"></div>`;
+}
+function seqNew(){ seqEdit({id:'',name:'',trigger:'Stage: New Lead',status:'Draft',steps:[{delay:0,subject:'Welcome to iMigrate!',body:'<p>Hi {{name}},</p><p>Thank you for reaching out. We look forward to helping you with your immigration journey.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'}]}); }
+function seqEdit(seq){
+  const s=typeof seq==='string'?JSON.parse(seq):seq;
+  const TRIGGERS=['Stage: New Lead','Stage: Signed Up','Stage: Under Assessment','Stage: Appointment Scheduled','Stage: Does Not Qualify','Lead Created','Invoice Paid'];
+  const trOpts=TRIGGERS.map(t=>`<option ${t===s.trigger?'selected':''}>${t}</option>`).join('');
+  const stOpts=['Draft','Active','Paused'].map(st=>`<option ${st===(s.status||'Draft')?'selected':''}>${st}</option>`).join('');
+  const steps=(s.steps||[]);
+  const stepHtml=steps.map((st,i)=>`<div class="note" id="seqStep_${i}" style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <strong style="font-size:13px">Step ${i+1}</strong>
+      <button class="btn btn-sm" onclick="seqRemoveStep(${i})">✕ Remove</button>
+    </div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:8px">
+      <div><label class="fl" style="margin-top:0">Wait (days)</label><input type="number" min="0" id="sq_delay_${i}" value="${st.delay||0}" style="width:100%"></div>
+      <div><label class="fl" style="margin-top:0">Subject</label><input id="sq_subj_${i}" value="${esc(st.subject||'')}" placeholder="Email subject…"></div>
+    </div>
+    <label class="fl">Email body (HTML)</label>
+    <textarea id="sq_body_${i}" style="min-height:80px;font-family:monospace;font-size:12px">${esc(st.body||'')}</textarea>
+  </div>`).join('');
+  $('seqForm').innerHTML=`<div class="card" id="seqBox">
+    <h3 style="margin-top:0">${s.id?'Edit sequence':'New sequence'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="fl" style="margin-top:0">Sequence name</label><input id="sq_name" value="${esc(s.name||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Trigger</label><select id="sq_trigger">${trOpts}</select></div>
+      <div><label class="fl" style="margin-top:0">Status</label><select id="sq_status">${stOpts}</select></div>
+    </div>
+    <h4 style="margin:0 0 8px">Steps (emails)</h4>
+    <div id="seqSteps">${stepHtml||'<p class="muted" style="font-size:13px">No steps yet — add one below.</p>'}</div>
+    <button class="btn btn-sm" style="margin-bottom:12px" onclick="seqAddStep()">+ Add step</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="seqSave('${esc(s.id||'')}')">Save sequence</button>
+      <button class="btn btn-sm" onclick="$('seqForm').innerHTML=''">Cancel</button>
+      <span id="sq_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Use {{name}}, {{occupation}}, {{stage}} in subject and body for personalisation. Step 1 (delay=0) fires immediately on trigger.</p>
+  </div>`;
+  $('seqForm').scrollIntoView({behavior:'smooth'});
+}
+let SEQ_STEPS=[];
+function seqAddStep(){
+  const steps=seqCollectSteps(); steps.push({delay:3,subject:'Following up — iMigrate',body:'<p>Hi {{name}},</p><p>Just checking in on your immigration plans. We are here to help whenever you are ready.</p><p>Warm regards,<br>iMigrate Migration Solutions</p>'});
+  const box=$('seqForm'); if(!box) return;
+  const s={id:box.dataset.id||'',name:$('sq_name')&&$('sq_name').value||'',trigger:$('sq_trigger')&&$('sq_trigger').value||'',status:$('sq_status')&&$('sq_status').value||'Draft',steps};
+  seqEdit(s);
+}
+function seqRemoveStep(i){
+  const steps=seqCollectSteps(); steps.splice(i,1);
+  const box=$('seqForm'); if(!box) return;
+  const s={id:box.dataset.id||'',name:$('sq_name')&&$('sq_name').value||'',trigger:$('sq_trigger')&&$('sq_trigger').value||'',status:$('sq_status')&&$('sq_status').value||'Draft',steps};
+  seqEdit(s);
+}
+function seqCollectSteps(){
+  const steps=[]; let i=0;
+  while($(`sq_delay_${i}`)!==null){
+    steps.push({delay:parseInt($(`sq_delay_${i}`).value)||0,subject:$(`sq_subj_${i}`).value,body:$(`sq_body_${i}`).value}); i++;
+  }
+  return steps;
+}
+async function seqSave(existingId){
+  const msg=$('sq_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('sq_name').value,trigger:$('sq_trigger').value,status:$('sq_status').value,steps:seqCollectSteps()};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'seq.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderEmailAutomations(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function seqToggle(id,newStatus){
+  const r=await mktApi({action:'seq.list'});
+  const seq=(r.items||[]).find(s=>s.id===id); if(!seq)return;
+  seq.status=newStatus;
+  await mktApi({action:'seq.save',item:seq}); renderEmailAutomations();
+}
+async function seqDelete(id){ if(!confirm('Delete this sequence?'))return; await mktApi({action:'seq.delete',id}); renderEmailAutomations(); }
+
+/* ============================================================
+   ADS MANAGER
+   ============================================================ */
+async function renderAdsManager(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading ad campaigns…</p></div>';
+  const r=await mktApi({action:'ads.list'});
+  const camps=(r.items||[]);
+  const tot=camps.reduce((s,c)=>s+(parseFloat(c.spend)||0),0);
+  const leads=camps.reduce((s,c)=>s+(parseInt(c.leads)||0),0);
+  const conv=camps.reduce((s,c)=>s+(parseInt(c.conversions)||0),0);
+  const cpl=leads?'$'+(tot/leads).toFixed(2):'—';
+  const rows=camps.map(c=>`<tr>
+    <td><strong>${esc(c.name||'—')}</strong><div class="muted" style="font-size:11px">${esc(c.platform||'')}</div></td>
+    <td class="muted">${esc(c.dateRange||'—')}</td>
+    <td><strong>$${parseFloat(c.spend||0).toFixed(2)}</strong></td>
+    <td>${mktFmt(parseInt(c.impressions||0))}</td>
+    <td>${mktFmt(parseInt(c.clicks||0))}</td>
+    <td>${mktFmt(parseInt(c.leads||0))}</td>
+    <td><strong>${mktFmt(parseInt(c.conversions||0))}</strong></td>
+    <td class="muted">${(c.leads&&c.spend)?'$'+(parseFloat(c.spend)/parseInt(c.leads)).toFixed(2):'—'}</td>
+    <td class="right"><button class="btn btn-sm" onclick="adsEdit(${esc(JSON.stringify(c))})">Edit</button> <button class="btn btn-sm" onclick="adsDelete('${esc(c.id)}')">Delete</button></td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="grid stats" style="margin-bottom:16px">
+      <div class="card stat"><div class="n">$${tot.toFixed(2)}</div><div class="l">Total spend</div></div>
+      <div class="card stat"><div class="n">${mktFmt(leads)}</div><div class="l">Total leads</div></div>
+      <div class="card stat"><div class="n">${mktFmt(conv)}</div><div class="l">Conversions</div></div>
+      <div class="card stat"><div class="n">${cpl}</div><div class="l">Cost per lead</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="margin:0">Ad Campaigns</h3>
+        <button class="btn btn-sm btn-primary" onclick="adsNew()">+ New Campaign</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Track ad spend and results across Google, Meta, LinkedIn and other platforms. Connect Google/Meta APIs in Integrations for live data pull.</p>
+      <div style="overflow:auto"><table><thead><tr><th>Campaign</th><th>Dates</th><th>Spend</th><th>Impressions</th><th>Clicks</th><th>Leads</th><th>Signups</th><th>CPL</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="9" class="muted" style="padding:14px">No campaigns yet. Track your first ad campaign.</td></tr>'}</tbody></table></div>
+    </div>
+    <div id="adsForm"></div>`;
+}
+function adsNew(){ adsEdit({id:'',name:'',platform:'Google Ads',dateRange:'',spend:'',impressions:'',clicks:'',leads:'',conversions:'',notes:''}); }
+function adsEdit(camp){
+  const c=typeof camp==='string'?JSON.parse(camp):camp;
+  const PLATS=['Google Ads','Meta (Facebook/Instagram)','LinkedIn Ads','TikTok Ads','Twitter/X Ads','YouTube Ads','Other'];
+  const plOpts=PLATS.map(p=>`<option ${p===c.platform?'selected':''}>${p}</option>`).join('');
+  $('adsForm').innerHTML=`<div class="card" id="adsBox">
+    <h3 style="margin-top:0">${c.id?'Edit campaign':'New campaign'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div><label class="fl" style="margin-top:0">Campaign name</label><input id="ad_name" value="${esc(c.name||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Platform</label><select id="ad_plat">${plOpts}</select></div>
+      <div><label class="fl" style="margin-top:0">Date range</label><input id="ad_dates" value="${esc(c.dateRange||'')}" placeholder="e.g. Jun 1–30, 2026"></div>
+      <div><label class="fl" style="margin-top:0">Spend (USD)</label><input id="ad_spend" type="number" step="0.01" min="0" value="${esc(c.spend||'')}" placeholder="0.00"></div>
+      <div><label class="fl" style="margin-top:0">Impressions</label><input id="ad_imp" type="number" min="0" value="${esc(c.impressions||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Clicks</label><input id="ad_clicks" type="number" min="0" value="${esc(c.clicks||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Leads generated</label><input id="ad_leads" type="number" min="0" value="${esc(c.leads||'')}"></div>
+      <div><label class="fl" style="margin-top:0">Signed up (conversions)</label><input id="ad_conv" type="number" min="0" value="${esc(c.conversions||'')}"></div>
+    </div>
+    <label class="fl">Notes</label><input id="ad_notes" value="${esc(c.notes||'')}">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm btn-primary" onclick="adsSave('${esc(c.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="$('adsForm').innerHTML=''">Cancel</button>
+      <span id="ad_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('adsForm').scrollIntoView({behavior:'smooth'});
+}
+async function adsSave(existingId){
+  const msg=$('ad_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('ad_name').value,platform:$('ad_plat').value,dateRange:$('ad_dates').value,spend:$('ad_spend').value,impressions:$('ad_imp').value,clicks:$('ad_clicks').value,leads:$('ad_leads').value,conversions:$('ad_conv').value,notes:$('ad_notes').value};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'ads.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderAdsManager(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function adsDelete(id){ if(!confirm('Delete this campaign?'))return; await mktApi({action:'ads.delete',id}); renderAdsManager(); }
+
+/* ============================================================
+   WHATSAPP HUB
+   ============================================================ */
+async function renderWhatsAppHub(){
+  $('view').innerHTML='<div class="card"><p class="muted">Loading templates…</p></div>';
+  const r=await mktApi({action:'wa.list'});
+  const tmpls=(r.items||[]);
+  const rows=tmpls.map(t=>`<tr>
+    <td><strong>${esc(t.name||'—')}</strong><div class="muted" style="font-size:11px">${esc(t.category||'')}</div></td>
+    <td style="max-width:300px"><div style="white-space:pre-wrap;font-size:12px;max-height:60px;overflow:hidden">${esc((t.body||'').slice(0,120))}</div></td>
+    <td class="right">
+      <button class="btn btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc((t.body||'').replace(/'/g,"\\'"))}');this.textContent='Copied ✓'">Copy</button>
+      <button class="btn btn-sm" onclick="waEdit(${esc(JSON.stringify(t))})">Edit</button>
+      <button class="btn btn-sm" onclick="waDelete('${esc(t.id)}')">Delete</button>
+    </td>
+  </tr>`).join('');
+  $('view').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">WhatsApp Templates</h3>
+        <div style="display:flex;gap:8px">
+          <a class="btn btn-sm" href="https://business.whatsapp.com" target="_blank">WhatsApp Business →</a>
+          <button class="btn btn-sm btn-primary" onclick="waNew()">+ New Template</button>
+        </div>
+      </div>
+      <p class="muted" style="font-size:13px;margin:0 0 10px">Save reusable message templates. Click Copy to paste into WhatsApp Business. Connect the WhatsApp Business API in Integrations to send programmatically from the CRM.</p>
+      <table><thead><tr><th>Template name</th><th>Preview</th><th class="right"></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="3" class="muted" style="padding:14px">No templates yet. Add one below.</td></tr>'}</tbody></table>
+    </div>
+    <div id="waForm"></div>`;
+}
+function waNew(){ waEdit({id:'',name:'',category:'Follow-up',body:'Hi {{name}}, this is iMigrate Migration Solutions! 🌏\n\nWe\'d love to discuss your immigration options to Australia or Canada.\n\nWould you be available for a quick call this week?\n\nReply YES to book your free consultation.\n\niMigrate Team'}); }
+function waEdit(tmpl){
+  const t=typeof tmpl==='string'?JSON.parse(tmpl):tmpl;
+  const catOpts=['Follow-up','Welcome','Appointment Reminder','Assessment Ready','Re-engagement','Promotion','Other'].map(c=>`<option ${c===t.category?'selected':''}>${c}</option>`).join('');
+  $('waForm').innerHTML=`<div class="card" id="waBox">
+    <h3 style="margin-top:0">${t.id?'Edit template':'New template'}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="fl" style="margin-top:0">Template name</label><input id="wa_name" value="${esc(t.name||'')}" placeholder="e.g. New Lead Welcome"></div>
+      <div><label class="fl" style="margin-top:0">Category</label><select id="wa_cat">${catOpts}</select></div>
+    </div>
+    <label class="fl">Message body</label>
+    <textarea id="wa_body" style="min-height:160px" placeholder="Write your WhatsApp message…">${esc(t.body||'')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn btn-sm" onclick="aiWaDraft()">✨ Draft with AI</button>
+      <span id="wa_ai" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:6px">Use {{name}}, {{occupation}}, {{stage}} for personalisation. WhatsApp limits messages to 1024 characters.</p>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm btn-primary" onclick="waSave('${esc(t.id||'')}')">Save</button>
+      <button class="btn btn-sm" onclick="$('waForm').innerHTML=''">Cancel</button>
+      <span id="wa_msg" class="muted" style="font-size:12px;align-self:center"></span>
+    </div>
+  </div>`;
+  $('waForm').scrollIntoView({behavior:'smooth'});
+}
+async function aiWaDraft(){
+  const msg=$('wa_ai'); if(msg){msg.textContent='Generating…';msg.className='muted';}
+  const r=await aiApi({action:'generate',type:'whatsapp',brief:'Write a short WhatsApp message (under 200 words) for iMigrate Migration Solutions to follow up with an immigration lead. Be warm, professional, mention free consultation, use {{name}} placeholder.'});
+  if(r.ok){ const t=$('wa_body'); if(t) t.value=r.text||''; if(msg){msg.textContent='Done ✓';msg.className='ok';} }
+  else if(msg){ msg.textContent=r.error||'AI not available'; msg.className='err'; }
+}
+async function waSave(existingId){
+  const msg=$('wa_msg'); if(msg){msg.textContent='Saving…';msg.className='muted';}
+  const item={id:existingId||undefined,name:$('wa_name').value,category:$('wa_cat').value,body:$('wa_body').value};
+  if(!item.name.trim()){ if(msg){msg.textContent='Name required';msg.className='err';} return; }
+  const r=await mktApi({action:'wa.save',item,author:USER.name||'Admin'});
+  if(r.ok){ if(msg){msg.textContent='Saved ✓';msg.className='ok';} renderWhatsAppHub(); }
+  else{ if(msg){msg.textContent=r.error||'Save failed';msg.className='err';} }
+}
+async function waDelete(id){ if(!confirm('Delete this template?'))return; await mktApi({action:'wa.delete',id}); renderWhatsAppHub(); }
 
 /* ---------- boot ---------- */
 restore();
