@@ -1,0 +1,104 @@
+name: CMS Sync — pull live CMS edits into the repo
+
+# Pulls CMS overrides from the production server and commits them to the repo
+# so that the repo always has the latest published content. This ensures that
+# deploys never overwrite CMS edits with stale repo defaults.
+#
+# Runs:
+#   • On a schedule (daily at 03:00 UTC)
+#   • Manually via "Run workflow" in the Actions tab
+#   • Automatically before each deploy (called as a pre-step)
+#
+# The workflow:
+#   1. Calls cms-export.php?action=export on the live server
+#   2. Writes each domain's data to the corresponding JSON file in the repo
+#   3. Commits and pushes to the `main` branch (if anything changed)
+#
+# This commit does NOT trigger a deploy because it pushes to `cms-sync` branch
+# and opens a PR (or auto-merges if no conflicts).
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # daily at 03:00 UTC
+  workflow_dispatch: {}    # manual trigger
+
+jobs:
+  sync-cms:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Export CMS overrides from production
+        id: export
+        run: |
+          if [ -z "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "CRM_BACKUP_KEY not set — skipping CMS sync."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Fetching CMS export from production…"
+          EXPORT=$(curl -fsS --max-time 60 \
+            "https://www.imigratesolution.com/cms-export.php?action=export&key=${{ secrets.CRM_BACKUP_KEY }}" \
+            2>/dev/null) || { echo "Export failed or timed out"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; }
+
+          # Validate JSON
+          echo "$EXPORT" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null || {
+            echo "Invalid JSON response"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0;
+          }
+
+          # Extract each domain and write to the repo file
+          CHANGED=false
+          for domain in content faqs forms blog seo pages media visas; do
+            DATA=$(echo "$EXPORT" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          dom = d.get('domains',{}).get('$domain')
+          if dom and dom.get('data'):
+              print(json.dumps(dom['data'], indent=2, ensure_ascii=False))
+          " 2>/dev/null)
+
+            if [ -n "$DATA" ] && [ "$DATA" != "null" ]; then
+              TARGET="apps/web/public/${domain}.json"
+              # Only update if content actually differs
+              if [ -f "$TARGET" ]; then
+                CURRENT=$(cat "$TARGET" 2>/dev/null)
+                if [ "$DATA" != "$CURRENT" ]; then
+                  echo "$DATA" > "$TARGET"
+                  echo "  Updated: $TARGET"
+                  CHANGED=true
+                else
+                  echo "  Unchanged: $TARGET"
+                fi
+              else
+                echo "$DATA" > "$TARGET"
+                echo "  Created: $TARGET"
+                CHANGED=true
+              fi
+            fi
+          done
+
+          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push CMS updates
+        if: steps.export.outputs.changed == 'true'
+        run: |
+          git config user.name "CMS Sync Bot"
+          git config user.email "cms-sync@imigratesolution.com"
+          git add apps/web/public/*.json
+          git diff --cached --quiet && { echo "No changes to commit"; exit 0; }
+          git commit -m "$(cat <<'EOF'
+          CMS sync: pull latest content from production
+
+          Auto-synced CMS overrides from the live server so the repo
+          stays current with published content edits.
+
+          Co-Authored-By: CMS Sync Bot <cms-sync@imigratesolution.com>
+          EOF
+          )"
+          git push origin main

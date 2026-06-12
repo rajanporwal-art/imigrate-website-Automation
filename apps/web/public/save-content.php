@@ -1,9 +1,15 @@
 <?php
 /**
- * Saves the website's editable content (content.json).
+ * Saves the website's editable content.
  * Used by /admin.html. Works on standard Hostinger PHP hosting.
  *
- * SECURITY: change the password below before deploying.
+ * DURABILITY: writes to cms-overrides/<file> instead of the root file.
+ * The root file is the repo-shipped seed (updated on each deploy); the
+ * override is never touched by deploys (FTP exclude), so CMS edits are
+ * permanent. The website SPA reads override → root → compiled defaults
+ * via cmsFetchJson(), so published changes are always visible.
+ *
+ * SECURITY: password is set in admin-config.php / auth/secrets.php.
  */
 
 // Password is set in admin-config.php (single source of truth).
@@ -65,20 +71,33 @@ if ($json === false) {
     exit;
 }
 
-$path = __DIR__ . '/' . $file;
+// DURABILITY: write to cms-overrides/ instead of the root file.
+// cms-overrides/ is excluded from FTP deploys, so these edits survive
+// every deployment. The website reads override → root → defaults.
+$ovDir = __DIR__ . '/cms-overrides';
+if (!is_dir($ovDir)) { @mkdir($ovDir, 0755, true); }
+$path = $ovDir . '/' . $file;
 
-// Keep a one-step backup before overwriting.
+// Also snapshot into cms-versions/ for rollback capability.
+$verRoot = __DIR__ . '/cms-versions';
+$domain = pathinfo($file, PATHINFO_FILENAME);
+$verDir = $verRoot . '/' . $domain;
+if (!is_dir($verDir)) { @mkdir($verDir, 0755, true); }
 if (is_file($path)) {
-    @copy($path, $path . '.backup');
+    $ts = date('Ymd-His') . '-' . substr(md5(uniqid('', true)), 0, 4);
+    @copy($path, $verDir . '/' . $ts . '.json');
+    @file_put_contents($verDir . '/index.ndjson',
+        json_encode(['ts' => $ts, 'editor' => 'Admin (legacy)', 'at' => date('c'), 'bytes' => (int) @filesize($path), 'note' => 'pre-save']) . "\n",
+        FILE_APPEND | LOCK_EX);
 }
 
 if (file_put_contents($path, $json, LOCK_EX) === false) {
     http_response_code(500);
     echo json_encode([
         'ok' => false,
-        'error' => 'Could not write ' . $file . '. In Hostinger File Manager, set this file\'s permissions to 644 (writable by owner).',
+        'error' => 'Could not write ' . $file . '. Check permissions on cms-overrides/ directory.',
     ]);
     exit;
 }
 
-echo json_encode(['ok' => true]);
+echo json_encode(['ok' => true, 'persisted_to' => 'cms-overrides/' . $file]);

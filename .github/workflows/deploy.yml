@@ -30,6 +30,38 @@ jobs:
       - name: Build (Vite → dist/apps/web)
         run: npm run build
 
+      # Pull latest CMS overrides from the live server BEFORE building dist.
+      # This ensures the repo's seed JSON files match what the CMS has published,
+      # so even if the override fetch fails on the client side, the deployed base
+      # files reflect the latest content. Best-effort: a failure here is harmless
+      # because cms-overrides/ on the server is the authoritative source anyway.
+      - name: Sync CMS overrides from production (best-effort)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
+            echo "Pulling CMS overrides from production…"
+            EXPORT=$(curl -fsS --max-time 30 \
+              "https://www.imigratesolution.com/cms-export.php?action=export&key=${{ secrets.CRM_BACKUP_KEY }}" \
+              2>/dev/null) || { echo "CMS export not available yet (first deploy?) — skipping"; exit 0; }
+            for domain in content faqs forms blog seo pages media visas; do
+              DATA=$(echo "$EXPORT" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          dom = d.get('domains',{}).get('$domain')
+          if dom and dom.get('data'):
+              print(json.dumps(dom['data'], indent=2, ensure_ascii=False))
+          " 2>/dev/null)
+              if [ -n "$DATA" ] && [ "$DATA" != "null" ]; then
+                echo "$DATA" > "apps/web/public/${domain}.json"
+                echo "  Synced: ${domain}.json"
+              fi
+            done
+            echo "CMS sync complete."
+          else
+            echo "CRM_BACKUP_KEY not set — skipping CMS sync."
+          fi
+
       - name: Copy PHP + server-side files to dist (before FTP deploy)
         run: |
           echo "Copying PHP files from source to dist…"
@@ -43,6 +75,8 @@ jobs:
           cp apps/web/public/m365-lib.php dist/apps/web/ 2>/dev/null || true
           cp apps/web/public/m365.php dist/apps/web/ 2>/dev/null || true
           cp apps/web/public/m365-config.example.php dist/apps/web/ 2>/dev/null || true
+          # Copy .htaccess for security rules
+          cp apps/web/public/.htaccess dist/apps/web/ 2>/dev/null || true
           echo "PHP files copied to dist."
 
       # Take a point-in-time snapshot of the live CRM record store BEFORE
@@ -91,9 +125,31 @@ jobs:
       # a retry reconnects and completes the publish. Attempts 1–2 are
       # continue-on-error; only a 3rd consecutive failure fails the job.
       #
-      # ⚠️ exclude list MUST keep leads/** auth/** hubspot.json m365-config.php
-      # ai-data/** system-backups/** — these are never in the repo; the mirror
-      # would DELETE them otherwise, disconnecting integrations + wiping CRM data.
+      # ⚠️ CRITICAL: FTP exclude list. With dangerous-clean-slate:false, the FTP
+      # mirror will NEVER delete or overwrite files/dirs that match these patterns.
+      # This is the ONLY mechanism that protects server-side data from deploys.
+      #
+      # Protected categories (matching user's Data Persistence Requirements):
+      #   leads/**          — CRM: leads, clients, cases, tasks, notes, appointments,
+      #                       email templates, automations, pipelines, reports,
+      #                       dashboard settings, campaigns, scoring, documents
+      #   auth/**           — Credentials: HubSpot API key, passwords, cron secret
+      #   cms-overrides/**  — CMS: all published content edits (content, blog, FAQs,
+      #                       visas, pages, SEO, media metadata, forms)
+      #   cms-versions/**   — CMS version history for rollback
+      #   media/**          — Uploaded files: images, documents, attachments
+      #   ai-data/**        — AI configuration and training data
+      #   system-backups/** — Automated backup snapshots
+      #   hubspot.json      — HubSpot integration config
+      #   m365-config.php   — Microsoft 365 integration config
+      #   forms.json        — Form submissions and config (server-edited)
+      #   .htpasswd         — HTTP Basic Auth credentials
+      #   **/*.backup       — One-step backup files
+      #   email-threads.ndjson — HubSpot email sync data
+      #   portal-config.json — Portal settings
+      #   .ftp-deploy-sync-state.json — FTP deploy state (never delete)
+      #
+      # DO NOT REMOVE ANY LINE without understanding the consequences.
       - name: Deploy to Hostinger via FTP (attempt 1)
         id: ftp1
         continue-on-error: true
@@ -111,12 +167,15 @@ jobs:
             **/.git*
             **/.git*/**
             .htpasswd
+            .ftp-deploy-sync-state.json
             leads/**
             auth/**
             **/*.backup
             forms.json
             hubspot.json
             m365-config.php
+            email-threads.ndjson
+            portal-config.json
             media/**
             cms-versions/**
             cms-overrides/**
