@@ -49,15 +49,19 @@ jobs:
       # deploying, so lead data can be restored if anything goes wrong.
       # Best-effort: requires the CRM_BACKUP_KEY secret (matches $CRON_SECRET in
       # admin-config.php). CRM data (leads/**) is excluded from deploys anyway.
+      # ALL curls use --max-time so a slow/hung server-side snapshot can NEVER
+      # hang the job and hold the concurrency lock (which would block the next
+      # deploy). timeout-minutes is a hard ceiling on the whole step.
       - name: Snapshot all data before deploy (best-effort)
         continue-on-error: true
+        timeout-minutes: 4
         run: |
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
             echo "Requesting pre-deploy full-system snapshot…"
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "system-backup snapshot failed (non-blocking)"
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=pre&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged pre-deploy" || true
+            curl -fsS --max-time 120 "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" && echo "" || echo "system-backup snapshot failed/timed out (non-blocking)"
+            curl -fsS --max-time 30 "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=pre&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "logged pre-deploy" || true
             # legacy leads-only snapshot too (harmless redundancy)
-            curl -fsS "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null || true
+            curl -fsS --max-time 60 "https://www.imigratesolution.com/crm-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null || true
           else
             echo "CRM_BACKUP_KEY not set — skipping pre-deploy snapshot (all data is excluded from deploys regardless)."
           fi
@@ -155,14 +159,15 @@ jobs:
       - name: Post-deploy health check + snapshot (report only)
         if: always()
         continue-on-error: true
+        timeout-minutes: 4
         run: |
           echo "=== POST-DEPLOY HEALTH CHECK ==="
           for url in "/" "/crm.html" "/portal.html"; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "https://www.imigratesolution.com${url}" || echo "000")
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "https://www.imigratesolution.com${url}" || echo "000")
             echo "  ${url} -> HTTP ${code}"
           done
           if [ -n "${{ secrets.CRM_BACKUP_KEY }}" ]; then
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  deploy logged" || true
-            curl -fsS "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  post-deploy snapshot saved" || true
+            curl -fsS --max-time 30 "https://www.imigratesolution.com/system-backup.php?action=deploy-log&phase=post&sha=${{ github.sha }}&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  deploy logged" || true
+            curl -fsS --max-time 120 "https://www.imigratesolution.com/system-backup.php?action=snapshot&key=${{ secrets.CRM_BACKUP_KEY }}" >/dev/null && echo "  post-deploy snapshot saved" || echo "  post-deploy snapshot skipped/timed out (non-blocking)"
           fi
           echo "=== HEALTH CHECK COMPLETE ==="
