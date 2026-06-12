@@ -370,75 +370,17 @@ if ($action === 'verify-auth') {
     exit;
 }
 
-/* CRITICAL: Restore auth/secrets.php from latest backup if missing */
-if ($action === 'restore-auth') {
-    $key = (string) ($p['key'] ?? '');
-    if (!isset($CRON_SECRET) || $CRON_SECRET === '' || !hash_equals($CRON_SECRET, $key)) {
-        http_response_code(403);
-        echo json_encode(['ok' => false, 'error' => 'Invalid key']);
-        exit;
-    }
-    // Find latest snapshot
-    $snaps = array_filter(glob($BK . '/*', GLOB_ONLYDIR), fn($d) => is_dir($d));
-    if (empty($snaps)) {
-        echo json_encode(['ok' => false, 'error' => 'No backups available for auth restore']);
-        exit;
-    }
-    rsort($snaps);
-    $latestAuthFile = $snaps[0] . '/auth/secrets.php';
-    if (!is_file($latestAuthFile)) {
-        echo json_encode(['ok' => false, 'error' => 'auth/secrets.php not found in latest backup']);
-        exit;
-    }
-    // Restore
-    @mkdir($ROOT . '/auth', 0755, true);
-    $content = (string) @file_get_contents($latestAuthFile);
-    if ($content === '' || !@file_put_contents($ROOT . '/auth/secrets.php', $content, LOCK_EX)) {
-        echo json_encode(['ok' => false, 'error' => 'Could not write auth/secrets.php']);
-        exit;
-    }
-    audit_log($AUDIT, 'restore.auth', ['from' => basename($snaps[0])]);
-    echo json_encode(['ok' => true, 'file' => 'auth/secrets.php', 'restoredFrom' => basename($snaps[0])]);
-    exit;
-}
-
-/* PRE-DEPLOY RESTORE: restore critical dirs from latest backup before FTP deploy */
-if ($action === 'pre-deploy-restore' || $action === 'restore-latest') {
-    // No auth check — called from CI/cron. Rate-limit by checking the key instead.
-    $key = (string) ($p['key'] ?? '');
-    if (!isset($CRON_SECRET) || $CRON_SECRET === '' || !hash_equals($CRON_SECRET, $key)) {
-        http_response_code(403);
-        echo json_encode(['ok' => false, 'error' => 'Invalid key']);
-        exit;
-    }
-    // Find latest snapshot
-    $snaps = array_filter(glob($BK . '/*', GLOB_ONLYDIR), fn($d) => is_dir($d));
-    if (empty($snaps)) {
-        echo json_encode(['ok' => false, 'error' => 'No backups available']);
-        exit;
-    }
-    rsort($snaps);
-    $latestSnap = $snaps[0];
-    $files = [];
-    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($latestSnap, FilesystemIterator::SKIP_DOTS));
-    foreach ($it as $fi) {
-        if (!$fi->isFile()) continue;
-        $rel = ltrim(str_replace($latestSnap, '', $fi->getPathname()), '/');
-        if ($rel === '_manifest.json') continue;
-        // Only restore critical dirs (leads/, auth/, integrations)
-        if (preg_match('#^(leads/|auth/|system-backups/|ai-data/)#', $rel)) {
-            $files[$rel] = (string) @file_get_contents($fi->getPathname());
-        }
-    }
-    if (empty($files)) {
-        echo json_encode(['ok' => false, 'error' => 'No critical files in latest backup']);
-        exit;
-    }
-    $r = restore_map($ROOT, $BK, $map, $files);
-    audit_log($AUDIT, 'restore.pre-deploy', ['from' => basename($latestSnap), 'restored' => $r['restored']]);
-    echo json_encode(['ok' => true, 'restored' => $r['restored'], 'from' => basename($latestSnap)]);
-    exit;
-}
+/*
+ * NOTE: The automatic pre-deploy / post-deploy "restore-on-fail" endpoints that
+ * previously lived here (restore-auth, pre-deploy-restore, restore-latest) were
+ * intentionally REMOVED. An automated restore that fires on a false-negative
+ * health check is a data-loss risk — it can overwrite live leads/auth with a
+ * stale snapshot. Data persistence is guaranteed by the FTP deploy exclude list
+ * (leads/**, auth/**, etc. are never touched by the mirror). Restores remain
+ * available, but ONLY as deliberate, admin-authenticated actions via the
+ * 'restore' / 'onedrive-restore' endpoints below (which snapshot current state
+ * first and never overwrite a populated store with an empty one).
+ */
 
 if ($action === 'download') {
     if (!$authAdmin) { http_response_code(403); echo json_encode(['ok' => false, 'error' => 'Admin only']); exit; }
